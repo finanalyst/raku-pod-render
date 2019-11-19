@@ -1,0 +1,16 @@
+ToDo
+
+rethink link and target strategy
+Glossary - When X<> is used, create a item in a glossary, with a pointer to the location in the text where it is, and the label and some 
+location data. Item names may be the same, locations are unique
+
+Contents - When a =header is defined, a pointer to where in the text the header starts
+
+Links - External links, unchanged
+- Internal links should point to a named anchor, which is a header text.
+
+$candidate-name = $candidate-name
+            .lc
+            .subst(/\s+/,'-',:g) # all space to -
+            .subst(/<[`~!@#$%^&*()+=<>?,./:;"'|{}\[\]\\–—]>/,'',:g)  # all 'bad' chars removed
+            .subst(/<[　。？！，、；：“”【】（）〔〕［］﹃﹄“”‘’﹁﹂—…－～《》〈〉「」]>/,'',:g); #all CJK punctuation removed

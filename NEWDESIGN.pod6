@@ -1,0 +1,255 @@
+=begin pod
+=TITLE Rendering Pod
+=SUBTITLE A generic Module to render Pod in a file (program or module) or in a cache (eg. the Raku documentation collection)
+
+This module provides two Pod::To::<name> modules, viz. Pod::To::HTML and Pod::To::MarkDown, together with helper
+funtionality to allow for other output formats. These modules are designed to be used in conjunction with the
+raku (aka perl6) compiler option C<--doc=name>.
+
+This module also provides (1) PodCache::StaticHTML and (2) PodCache::BigPage. These are intended to take all of the Pod sources
+in a cache and bundle them into (1) static HTML files structured as a tree with a single top node (conventionally index.html)
+and several other files eg., an index that is alphabetically organised, and an alphabetical index of glossary items.
+(2) a single html file that can be converted using other utilities into a pdf file or epub book.
+
+This module uses the moustache templating system. The design is intended to collect together functions that depend on
+the templating system so that the module's Processed class can be subclassed, overwriting the templating functions.
+
+This module assumes that there is a single set of templates for the whole file, that is the template for a paragraph
+can be determined when the renderer is instantiated and does not change. Since this module is designed for documentation
+not the contruction of complex web sites, this assumption does not appear to be a limitation.
+
+A rendering strategy has to consider
+=item The pod contained in a single file may be provided as one or more trees of Pod blocks. A pod tree may contain
+blocks to be referred to in a Table of Contents (TOC), and also it may contain anchors to which other documentation
+may point. This means that the pod in each separate file will automatically produces its own TOC (a list of headers in
+the order in which they appear in the pod tree(s), and its own Glossary (a list of terms that are encountered, perhaps
+multiple times for each term, within the text).
+=item When only a single file source is used (such as when a Pod::To::name is called by the compiler), then the content,
+TOC and glossary have to be rendered together.
+=item Multiple pod files will by definition exist in a collection that should be rendered together in a consistent manner.
+The content from a single source file will be called a B<Component>.
+This will be handled in another module raku-render-collection
+There have to be the following facilities
+    =item A strategy to create one or more TOC's for the whole collection that collect and combine all the B<Component>
+    TOC's. The intent is to allow for TOCs that are designed and do not follow the alphabetical name of the B<Component>
+    source, together with a default alphabetical list.
+    =item A strategy to create one or more Glossary(ies) from all the B<Component> glossaries
+
+
+=head1 RenderPod Create a Renderer
+The first step in rendering is to create a renderer.
+
+The renderer needs to take into account the output format, eg., html, incorporate non-default templates (eg., a designer
+may want to have customised classes in paragraphs or headers). The Pod renderer requires templates for a number of
+document elements, see TEMPLATES below.
+
+Essentially, a hash of element keys pointing to Mustache strings is provided by default to the renderer. The renderer
+can be customised by rewriting the keys of the template hash. For example,
+
+=begin code
+    use RenderPod;
+    my $renderer .= RenderPod.new;
+    $renderer.tmpl<format-b> =  '<strong class="myStrongClass {{# addClass }}{{ addClass }}{{/ addClass }}">{{{ contents }}}</strong>';
+    # was 'format-b' => '<strong{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</strong>'
+    # the effect of this change is to add myStrongClass to all instances of B<> including any extra classes added by the POD
+=end code
+
+
+
+
+
+
+=head1 Templates
+The following is a set of templates (may differ from latest implementation of this module)
+
+=begin code
+    :escaped<{{ contents }}>,
+    :raw<{{{ contents }}}>,
+
+    'block-code' => '<pre class="pod-block-code{{# addClass }} {{ addClass }}{{/ addClass}}">{{# contents }}{{{ contents }}}{{/ contents }}</pre>
+    ',
+
+    'comment' => '<!-- {{{ contents }}} -->',
+
+    'defn' => '<dl><dt>{{ term }}</dt><dd>{{{ contents }}}</dd></dl>
+    ',
+
+    'source-wrap' => '<!doctype html>
+    <html lang="en">
+        <head>
+            <title>{{ title }}</title>
+            <meta charset="UTF-8" />
+            <link rel="stylesheet" type="text/css" href="assets/pod.css" media="screen" title="default" />
+            {{# metadata }}{{{ metadata }}}{{/ metadata }}
+        </head>
+        <body class="pod">
+            {{# toc }}{{{ toc }}}{{/ toc }}
+            {{# index }}{{{ index }}}{{/ index }}
+            <div class="pod-body{{^ toc }} no-toc{{/ toc }}">
+                {{{ body }}}
+            </div>
+            {{# footnotes }}{{{ footnotes }}}{{/ footnotes }}
+            {{# path }}<footer>Rendered from {{ path }}{{/ path }}{{# time }} at {{ time }}{{/ time }}{{# path }}</footer>{{/ path }}
+        </body>
+    </html>
+    ',
+
+    'footnotes' => '<div class="footnotes">
+        <ol>{{# notes }}
+                <li id="{{ fnTarget }}">{{{ text }}}<a class="footnote" href="#{{ retTarget }}"> « Back »</a></li>
+                {{/ notes }}
+        </ol>
+    </div>
+    ',
+
+    'format-b' => '<strong{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</strong>',
+
+    'format-c' => '<code{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</code>
+    ',
+
+    'format-i' => '<em{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</em>',
+
+    'format-k' => '<kbd{{# addClass }}class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</kbd>
+    ',
+
+    'format-l' => '<a href="{{ target }}"{{# addClass }} class="{{ addClass }}"{{/ addClass}}>{{{ contents }}}</a>
+    ',
+
+    'format-n' => '<sup><a name="{{ retTarget }}" href="#{{ fnTarget }}">[{{ fnNumber }}]</a></sup>
+    ',
+
+    'format-p' => '<div{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{^ html }}<pre>{{/ html }}{{{ contents }}}{{^ html }}</pre>{{/ html }}</div>',
+
+    'format-r' => '<var{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</var>',
+
+    'format-t' => '<samp{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</samp>',
+
+    'format-u' => '<u{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</u>',
+
+    'format-x' => '{{^ header }}<a name="{{ target }}"></a>{{/ header }}{{# text }}<span class="index-entry{{# addClass }} {{ addClass }}{{/ addClass }}">{{{ text }}}</span>{{/ text }} ',
+
+    'global-indexation-defn-list' => '<dl class="global-indexation">
+        {{# list }}
+            <dt>{{ text }}</dt> {{# refs }}<dd><a href="{{ source }}#{{ target }}">{{{ location }}} : {{{ place }}}</a></dd>{{/ refs }}
+        {{/ list }}
+    </dl>
+    ',
+
+    'global-indexation-file' => '<!doctype html>
+    <html lang="en">
+        <head>
+            <title>{{ title }}</title>
+            <meta charset="UTF-8" />
+            <link rel="stylesheet" type="text/css" href="assets/pod.css" media="screen" title="default" />
+        </head>
+        <body class="pod">
+            <div class="pod-body{{^ toc }} no-toc{{/ toc }}">
+                {{{ body }}}
+            </div>
+            {{# path }}<footer>Rendered from {{ path }}</footer>{{/ path }}
+        </body>
+    </html>
+    ',
+
+    'global-indexation-heading' => '<h{{ level }} class="global-indexation-heading">{{ text }}</h{{ level }}>
+    ',
+
+    'heading' => '<h{{# level }}{{ level }}{{/ level }} id="{{ target }}"><a href="#{{ top }}" class="u" title="go to top of document">{{{ text }}}</a></h{{# level }}{{ level }}{{/ level }}>
+    ',
+
+    'index' => '<table id="index">
+        <caption><h2 id="source-index">Index</h2></caption>
+        {{# index }}
+        <tr class="index-defn-row">
+            <td class="index-defn">{{{ text }}}</td><td></td></tr>
+            {{# refs }}<tr class="index-place-row"><td></td><td class="index-place"><a href="#{{ target }}">{{{ place }}}</a></td></tr>{{/ refs }}
+        {{/ index }}
+    </table>
+    ',
+
+    'indexation-entry' => '<div class="indexation-entry">
+        <a href="{{ link }}">{{{ title }}}</a>
+        {{# subtitle }}{{{ subtitle }}}{{/ subtitle }}
+        {{# toc }}<table class="indexation-entry-toc">
+            <tr class="entry-toc-level-{{ level }}">
+                <td class="entry-toc-text"><a href="{{ link }}#{{ target }}">{{{ text }}}</a></td>
+            </tr>
+        </table>
+        {{/ toc }}
+    </div>
+    ',
+
+    'indexation-file' => '<!doctype html>
+    <html lang="en">
+        <head>
+            <title>{{ title }}</title>
+            <meta charset="UTF-8" />
+            <link rel="stylesheet" type="text/css" href="assets/pod.css" media="screen" title="default" />
+        </head>
+        <body class="pod">
+            <div class="pod-body{{^ toc }} no-toc{{/ toc }}">
+                {{{ body }}}
+            </div>
+            {{# path }}<footer>Rendered from {{ path }}</footer>{{/ path }}
+        </body>
+    </html>
+    ',
+
+    'indexation-heading' => '<h{{ level }} class="indexation-heading">{{ text }}</h{{ level }}>
+    {{# subtitle }}<p>{{ subtitle }}</p>{{/ subtitle }}
+    ',
+
+    'item' => '<li{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</li>
+    ',
+
+    'list' => '<ul>
+        {{# items }}{{{ . }}}{{/ items}}</ul>
+    ',
+
+    'meta' => '{{# meta }}
+    <meta name="{{ name }}" value="{{ value }}" />
+    {{/ meta }}
+    ',
+
+    'named' => '<section name="{{ name }}">
+        <h{{# level }}{{ level }}{{/ level }} id="{{ target }}"><a href="#{{ top }}" class="u" title="go to top of document">{{{ name }}}</a></h{{# level }}{{ level }}{{/ level }}>
+        {{{ contents }}}
+        </section>
+    ',
+
+    'notimplemented' => '<span class="pod-block-notimplemented">{{{ contents }}}</span>',
+
+    'output' => '<pre class="pod-output">{{{ contents }}}</pre>',
+
+    'para' => '<p{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</p>',
+
+    'section' => '<section name="{{ name }}">{{{ contents }}}{{{ tail }}}
+    </section>',
+
+    'subtitle' => '<div class="subtitle{{# addClass }} {{ addClass }}{{/ addClass }}">{{{ contents }}}</div>',
+
+    'table' => '<table class="pod-table{{# addClass }} {{ addClass }}{{/ addClass }}">
+        {{# caption }}<caption>{{{ caption }}}</caption>{{/ caption }}
+        {{# headers }}<thead>
+            <tr>{{# cells }}<th>{{{ . }}}</th>{{/ cells }}</tr>
+        </thead>{{/ headers }}
+        <tbody>
+            {{# rows }}<tr>{{# cells }}<td>{{{ . }}}</td>{{/ cells }}</tr>{{/ rows }}
+        </tbody>
+    </table>
+    ',
+
+    'title' => '<h1 class="title{{# addClass }} {{ addClass }}{{/ addClass }}" id="{{ target }}">{{{ text }}}</h1>',
+
+    'toc' => '<table id="TOC">
+            <caption><h2 id="TOC_Title">Table of Contents</h2></caption>
+            {{# toc }}
+            <tr class="toc-level-{{ level }}">
+                <td class="toc-text"><a href="#{{ target }}">{{ text }}</a></td>
+            </tr>
+            {{/ toc }}
+        </table>
+    '
+    =end code
+
+=end pod
