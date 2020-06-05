@@ -20,8 +20,7 @@ by reporting mistakes or sending patches.
 <hr/>
 =end Html
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
     '<img style="float: right; margin: 0 0 1em 1em; width:261px" src="/images/Camelia.svg" alt="" id="home_logo"/>'

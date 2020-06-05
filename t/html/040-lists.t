@@ -23,12 +23,11 @@ The seven suspects are:
 We want to know the first through the door.
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
-    '<section name="___top">'
+    '<section' .+
     \s*'<p>The seven suspects are:</p>'
     \s* '<ul>'
     \s* '<li>' \s* '<p>Happy</p>' \s* '</li>'
@@ -55,8 +54,7 @@ like $rv,
 =item2     Chocolate
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -86,8 +84,7 @@ The choices are:
 =item2 Beer
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -112,8 +109,7 @@ The choices are:
 =item4 non-alcoholic
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -154,8 +150,7 @@ for breakfast.
 As you can see, folk wisdom is often of dubious value.
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -226,8 +221,7 @@ foo(3); # /language/functions#index-entry-dispatch_callsame
 =head3 C<*> Glob
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -274,8 +268,7 @@ P<https://doc.perl6.org>
 
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -283,7 +276,7 @@ like $rv,
         .+
         'ABSOLUTELY NO WARRANTY IS IMPLIED'
         .+
-        'Perl' \s '6 Documentation'
+        'Raku Documentation'
     /, 'Seems to have got all three docs';
 
 $fn.IO.unlink if $fn.IO.e;

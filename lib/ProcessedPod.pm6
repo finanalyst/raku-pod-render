@@ -1,4 +1,4 @@
-use v6.*;
+use v6.d;
 use Template::Mustache;
 
 use URI;
@@ -25,17 +25,15 @@ unit class ProcessedPod;
 
     # template related variables independently of the templating system
     has %.tmpl;
-    has @!required = < raw comment escaped glossary footnotes glossary-heading
+    has @!required = < raw comment escaped glossary footnotes
             format-c block-code format-u para format-b named source-wrap defn output format-l
             format-x heading title format-n format-i format-k format-p meta list subtitle format-r
-            format-t table item notimplemented glossary-entry section toc >;
-    has $.engine; # slot for template engine. Should only be set in first call to rendition
+            format-t table item notimplemented section toc >;
+    has $.engine; # slot for template engine. Should only be set in first call to rendition, or after call to replace-template
 
     # defaults
     has $.default-top = '___top'; # the name of the anchor at the top of a source file
-    has $!front-matter = 'Introduction'; # Text between =TITLE and first header
-
-    has Bool $!in-defn-list = False; # used to register state when processing a definition list
+    has $!front-matter = 'preface'; # Text between =TITLE and first header, this is used to refer for textual placenames
 
     # provided at instantiation
     has &.highlighter; # a callable (eg. provided by external program) that converts [html] to highlighted raku code
@@ -46,6 +44,8 @@ unit class ProcessedPod;
     has Str $.subtitle is rw = '';
     has Str $.path; # should be path of original document, defaults to $.name
     has Str $.top is rw = $!default-top; # defaults to top, then becomes target for TITLE
+
+    # Output rendering information
     has Bool $.no-meta is rw = False; # set to True eliminates meta data rendering
     has Bool $.no-footnotes is rw = False; # set to True eliminates rendering of footnotes
     has Bool $.no-toc is rw = False; # set to True to exclude TOC even if there are headers
@@ -55,18 +55,29 @@ unit class ProcessedPod;
     has $!pod-tree; # pod tree supplied to renderer
 
     # populated by process-pod method
-    has Str $.pod-body; # rendition of whole source, but not including toc or glossary
-    has Str $.cum-pod-body = ''; # concatenation of multiple process calls
-    has @.toc;
-    has %.glossary;
-    has @.links; # for links referenced
-    has @.footnotes;
-    has SetHash $.targets .= new; # target names are relative to Processed
+    has Str $.pod-body is rw; # rendition of whole source, but not including toc or glossary
+    has Str $.body is rw = ''; # concatenation of multiple process calls
+    has @.metadata; # information to be included in eg html header
+    has Str $!metadata; # metadata when rendered
+    has @.toc; # toc structure
+    has Str $!toc; # rendered toc
+    has %.glossary; # glossary structure
+    has Str $!glossary; # rendered glossary
+    has @.footnotes; # footnotes structure
+    has Str $!footnotes; # rendered footnotes
+    has Str $.renderedtime; # when source wrap is called
+
+    # A set of counters for Headers
     has Int @.counters is default(0);
+    has Str $.counter-separator is rw = '.';
+    has Bool $.no-counters is rw = False;
+
+    # debugging
     has Bool $.debug is rw;
     has Bool $.verbose;
+    # variables to manage Pod state, where rendering is dependent on local context
     has @.itemlist; # for multilevel lists
-    has @.metalist;
+    has Bool $!in-defn-list = False; # used to register state when processing a definition list
 
     submethod BUILD  (
             :$!name = 'UNNAMED',
@@ -94,6 +105,7 @@ unit class ProcessedPod;
 
     =comment rendition() is the only method that needs to be over-ridden for a different template system.
 
+    #| maps the key to template and renders the block
     method rendition(Str $key, %params --> Str) {
         $!engine = Template::Mustache.new without $!engine;
 
@@ -106,76 +118,206 @@ unit class ProcessedPod;
         # hence we pass a Subroutine instead of a string in the template
         # the subroutine takes the same parameters as rendition and produces a mustache string
         $!engine.render(
-                %!tmpl{ $key } ~~ Routine ?? %!tmpl{$key}( %params ) !! %!tmpl{$key}
+                %!tmpl{ $key } ~~ Block ?? %!tmpl{$key}( %params ) !! %!tmpl{$key}
                 , %params, :literal )
+    }
+
+    #| allows for templates to be replaced during pod processing
+    method replace-template( %new-templates )
+    {
+        { %!tmpl{ $^a } = $^b } for %new-templates.kv;
+        $!engine = Nil; # This will force a reinstantiation of the template engine.
+        # a new instance is not made here because using a new template engine would require two functions to be overidden
+    }
+
+    =comment The next function is placed here because it may need to be over-ridden. (see Pod::To::Markdown)
+
+    #| rewrites targets (link destinations to be made unique and to be cannonised to output form
+    #| takes the candidate name and whether it should be unique, returns with the cannonised link name
+    method rewrite-target(Str $candidate-name is copy, :$unique --> Str ) {
+        state SetHash $targets .= new;
+        # target names inside the POD file, eg., headers, glossary, footnotes
+        # function is called to cannonise the target name and to ensure - if necessary - that
+        # the target name used in the link is unique.
+        # This method uses the default algorithm for HTML and POD
+        # It may need to be over-ridden, eg., for MarkDown which uses a different targetting function.
+
+        # when indexing a unique target is needed even when same entry is repeated
+        # when a Heading is a target, the reference must come from the name
+        # the algorithm for target names comes from github markup
+        # https://gist.github.com/asabaylus/3071099#gistcomment-2563127
+        # because it matters for MarkDown but not for html
+#        function GithubId(val) {
+#	return val.toLowerCase().replace(/ /g,'-')
+#		// single chars that are removed
+#		.replace(/[`~!@#$%^&*()+=<>?,./:;"'|{}\[\]\\–—]/g, '')
+#		// CJK punctuations that are removed
+#		.replace(/[　。？！，、；：“”【】（）〔〕［］﹃﹄“”‘’﹁﹂—…－～《》〈〉「」]/g, '')
+#}
+        $candidate-name = $candidate-name.lc.subst(/\s+/,'_',:g);
+        if $unique {
+            $candidate-name ~= '_0' if $candidate-name (<) $targets;
+            ++$candidate-name while $targets{$candidate-name}; # will continue to loop until a unique name is found
+        }
+        $targets{ $candidate-name }++; # now add to targets, no effect if not unique
+        $candidate-name
     }
 
     =comment process-pod is called to populate the processed variables.
 
+    #| process the pod block or tree passed to it, and concatenates it to previous pod tree
+    #| returns a string representation of the tree in the required format
     method process-pod( $pod ) {
         $!pod-tree = $pod; # replace any pod, then process it
         $!pod-body = [~] $!pod-tree>>.&handle( 0, self );
-        $!cum-pod-body ~= $!pod-body;
-        self.filter-links;
+        $!body ~= $!pod-body # returns accumulated pod-bodies
     }
 
     =comment methods to provide output from a processed pod
 
-    method body-only {
-        $.pod-body
+    #| renders a pod tree, but probably a block
+    #| returns only the pod that was passed
+    method render-block( $pod ) {
+        self.process-pod( $pod );
+        $!pod-body # returns only most recent pod-body
     }
 
-    method last-body {
-        $.cum-pod-body
+    #| renders the whole pod tree
+    #| is actually an alias to process-pod
+    method render-tree( $pod ) { # an alias for a consistent naming system
+        self.process-pod( $pod );
     }
 
-    method source-wrap {
-        self.rendition('source-wrap', {
-            :$!name,
-            :orig-name($!name),
-            :$!title,
-            :$!subtitle,
-            :metadata(self.render-meta),
-            :toc( self.render-toc ),
-            :glossary( self.render-glossary),
-            :footnotes( self.render-footnotes ),
-            :body( $!cum-pod-body ),
-            :$!path,
-            :time( DateTime(now).utc.truncated-to('seconds').Str )
-        } )
+    =comment generating the template engine is expensive if only generating small sections of pod.
+
+    #| deletes any previously processed pod, keeping the template engine cache
+    method delete-pod-structure {
+        self.render-structures without $!renderedtime;
+        my %h =
+                :$!name,
+                :$!title,
+                :$!subtitle,
+                :$!metadata,
+                :$!toc,
+                :$!glossary,
+                :$!footnotes,
+                :$!body,
+                :$!path,
+                :$!renderedtime,
+                :raw-metadata(@!metadata.clone),
+                :raw-toc(@!toc.clone),
+                :raw-glossary(%!glossary.clone),
+                :raw-footnotes(@!footnotes.clone)
+                ;
+        #clean out the variables, whilst keeping the Templating engine cache.
+        $!name = $!title = $!subtitle = $!metadata = $!toc
+                = $!glossary = $!footnotes = $!body = $!path = $!renderedtime = Nil;
+        @!metadata = @!toc = @!footnotes = ();
+        %!glossary = Empty;
+        %h
     }
 
+    =comment These are the rendering functions for the file and the file structures.
+    The first pass creates the rendering for a pod tree, and collects data for TOC/glossary/footnotes
+    Then the structures are rendered after the body has been prepared.
+
+    #| saves the rendered pod tree as a file, and its document structures, uses source wrap
+    #| filename defaults to the name of the pod tree, and ext defaults to html
     method file-wrap(:$filename = $.name, :$ext = 'html' ) {
         "$filename\.$ext".IO.spurt: self.source-wrap
     }
 
-    =comment methods to collect toc and glossary data
+    #| renders all of the document structures, and wraps them and the body
+    #| uses the source-wrap template
+    method source-wrap {
+        self.render-structures without $!renderedtime;
+        self.rendition('source-wrap', {
+            :$!name,
+            :$!title,
+            :$!subtitle,
+            :$!metadata,
+            :$!toc,
+            :$!glossary,
+            :$!footnotes,
+            :$!body,
+            :$!path,
+            :$!renderedtime
+        } )
+    }
 
+    method render-structures {
+        without $!renderedtime
+        {
+            $!metadata = self.render-meta;
+            $!toc = self.render-toc;
+            $!glossary = self.render-glossary;
+            $!footnotes = self.render-footnotes;
+            $!renderedtime = DateTime(now).utc.truncated-to('seconds').Str ;
+        }
+    }
+
+    method render-toc( --> Str ) {
+        # if no headers in pod, then no need to include a TOC
+        return '' if ( ! ?@!toc or $.no-toc);
+        my @filtered = @!toc.grep( { !( .<is-title>) } );
+        @filtered.map({ .<counter>.subst-mutate(/\./,$.counter-separator,:g) }) if $.counter-separator ne '.';
+        @filtered.map({ .<counter>:delete}) if $.no-counters;
+        self.rendition('toc', %( :toc( [ @filtered ] )  ));
+    }
+    method render-glossary(-->Str) {
+        return '' if ( ! ?%!glossary.keys or $.no-glossary); #No render without any keys
+        my @filtered = [gather for %!glossary.sort {  take %(:text(.key), :refs( [.value.sort] )) } ];
+        self.rendition( 'glossary', %( :glossary( @filtered )  )  )
+    }
+    method render-footnotes(--> Str){
+        return '' if ( ! ?@!footnotes or $!no-footnotes ); # no rendering of code if no footnotes
+        self.rendition('footnotes', %( :notes( @!footnotes )  ) )
+    }
+    method render-meta {
+        return '' if ( ! ?@!metadata or $!no-meta );
+        self.rendition('meta', %( :meta( @!metadata )  ))
+    }
+
+    =comment methods to collect structure data
+
+    #| registers a header or title in the toc structure
+    #| is-title is true for TITLE and SUBTITLE blocks, false otherwise
     method register-toc(:$level!, :$text!, Bool :$is-title = False --> Str) {
-        @!counters[$level - 1]++;
-        @!counters.splice($level);
-        my $counter = @!counters>>.Str.join: '_';
+        my $counter = '';
+        unless $is-title or $.no-counters {
+            @!counters[$level - 1]++;
+            @!counters.splice($level);
+            $counter = @!counters>>.Str.join: $.counter-separator;
+        }
         my $target = self.rewrite-target($text, :!unique ) ;
         @!toc.push: %( :$level, :$text, :$target, :$is-title, :$counter );
         $target
     }
-    method render-toc( --> Str ) {
-        # if no headers in pod, then no need to include a TOC
-        return '' unless ( +@!toc and ! $.no-toc);
-        self.rendition('toc', %( :toc( [@!toc.grep( { !( .<is-title>) } )] )  ));
-    }
+
     method register-glossary(Str $text, @entries, Bool $is-header --> Str) {
         my $target;
-        if $is-header {
-            $target = @.toc[ * - 1 ]<target>
-            # the last header to be added to the toc will have the url we want
+        if $is-header
+        {
+            if +@.toc
+            {
+                $target = @.toc[ * - 1 ]<target>
+                # the last header to be added to the toc will have the url we want
+            }
+            else
+            {
+                $target = $!front-matter
+                # if toc not initiated, then before 1st header
+            }
         }
-        else {
+        else
+        {
             # there must be something in either text or entries[0] to get here
             $target = @entries ?? @entries.join('-') !! $text;
             $target = self.rewrite-target($target, :unique)
         }
-        my $place = @.toc ?? @.toc[ * - 1]<text> !! $!front-matter;
+        # Place information is needed when a glossary is constructed without a return anchor reference,
+        # so the most recent header is used
+        my $place = +@.toc ?? @.toc[ * - 1]<text> !! $!front-matter;
         if @entries {
             for @entries {
                 %.glossary{ .[0] } = Array unless %.glossary{ .[0] }:exists;
@@ -189,17 +331,24 @@ unit class ProcessedPod;
         }
         $target
     }
-    method render-glossary(-->Str) {
-        return '' unless ( +%!glossary.keys and ! $.no-glossary); #No render without any keys
-        self.rendition( 'glossary', %( :glossary([gather for %!glossary.sort {  take %(:text(.key), :refs( [.value.sort] )) } ])  )  )
+
+    =comment This method could be over-ridden in order to collect the links inside a pod, eg., for error checking
+
+    method register-link(Str $entry, Str $target --> Str) {
+        # A link may be
+        # - internal to the document (in which case it needs to be rewritten to conform)
+        # - to a group of documents with the same format (rewritten to conform)
+        # - to an external source, assuming only http type links (not rewritten)
+        if $target ~~ / ^ 'http://' | ^ 'https://' /
+        { $target }
+        else
+        { self.rewrite-target($target, :!unique); }
     }
-    #TODO needs changing
-    method register-link(Str $entry, Str $target is copy --> Str) {
-        my $lable= $entry ?? $entry !! $target;
-        $target = self.rewrite-target($target, :!unique);
-        @!links.push: %( :$lable, :$target);
-        $target
-    }
+
+    =comment A footnote structure is created storing both the target anchor (with the footnote text)
+    and the return anchor (with the text from which the footnote originates, to be used in the footnote
+    to return the cursor if desired).
+
     method register-footnote(:$text! --> Hash ) {
         my $fnNumber = +@!footnotes + 1;
         my $fnTarget = self.rewrite-target("fn$fnNumber",:unique) ;
@@ -207,58 +356,20 @@ unit class ProcessedPod;
         @!footnotes.push: %( :$text, :$retTarget, :$fnNumber, :$fnTarget  );
         (:$fnTarget, :$fnNumber, :$retTarget).hash
     }
-    method render-footnotes(--> Str){
-        return '' unless ( @!footnotes and ! $!no-footnotes ); # no rendering of code if no footnotes
-        self.rendition('footnotes', %( :notes( @!footnotes )  ) )
-    }
+
+    =comment Pod specifies Meta data for use in an HTML header context, but it could be used in other
+    contexts, such as epub or pdf for the author, version, etc.
+
     method register-meta( :$name, :$value ) {
-        @!metalist.push: %( :$name, :$value )
-    }
-    method render-meta {
-        return '' unless ( @!metalist and ! $!no-meta );
-        self.rendition('meta', %( :meta( @!metalist )  ))
+        @!metadata.push: %( :$name, :$value )
     }
 
-    method filter-links {
-        # links have to be collected from the whole source before testing
-        # remove from the links list all those that match an internal target
-        # links to internal targets are specified with 1st char # in target
-        # targets in glossary are stored without #
-        my Set $internal .= new: gather for %.glossary.values -> @items { take .<target> for @items }
-        @!links = gather for @!links {
-            next if .<target> ~~ m/^ '#' $<tgt>=(.+) $ / and $internal{ $<tgt> }; #remove
-            take %(:source($!name), :target( .<target> ), :lable( .<lable> ) )
-        }
-    }
+    =comment This is the routine called at the end of a Pod block and is used to determine whether the cursor
+    is in the context of a B<List> or B<Definition>, which may be recursively called.
 
-    method rewrite-target(Str $candidate-name is copy, :$unique --> Str ) {
-        # when indexing a unique target is needed even when same entry is repeated
-        # when a Heading is a target, the reference must come from the name
-        # the algorithm for target names comes from github markup
-        # https://gist.github.com/asabaylus/3071099#gistcomment-2563127
-        # because it matters for MarkDown but not for html
-#        function GithubId(val) {
-#	return val.toLowerCase().replace(/ /g,'-')
-#		// single chars that are removed
-#		.replace(/[`~!@#$%^&*()+=<>?,./:;"'|{}\[\]\\–—]/g, '')
-#		// CJK punctuations that are removed
-#		.replace(/[　。？！，、；：“”【】（）〔〕［］﹃﹄“”‘’﹁﹂—…－～《》〈〉「」]/g, '')
-#}function GithubId(val) {
-#            return val.toLowerCase().replace(/ /g,'-')
-#		// single chars that are removed
-#		.replace(/[`~!@#$%^&*()+=<>?,./:;"'|{}\[\]\\–—]/g, '')
-#		// CJK punctuations that are removed
-#		.replace(/[　。？！，、；：“”【】（）〔〕［］﹃﹄“”‘’﹁﹂—…－～《》〈〉「」]/g, '')
-#}
-        $candidate-name = $candidate-name.lc.subst(/\s+/,'_',:g);
-        if $unique {
-            $candidate-name ~= '_0' if $candidate-name (<) $!targets;
-            ++$candidate-name while $!targets{$candidate-name}; # will continue to loop until a unique name is found
-        }
-        $!targets{ $candidate-name }++; # now add to targets, no effect if not unique
-        $candidate-name
-    }
-
+    #| verifies whether a list has completed, otherwise adding items or definitions to the list
+    #| completes list if the context indicates the end of a list
+    #| returns the string representation of the block / list
     method completion(Int $in-level, Str $key, %params --> Str) {
         my Str $rv = '';
         # first deal with any existing defn list when next not a defn
@@ -283,12 +394,12 @@ unit class ProcessedPod;
     }
 
     my enum Context <None Glossary Heading HTML Raw Output>;
-
-    multi sub recurse-until-str(Str:D $s){ $s } # strip out formating code and links
+    #| Strip out formatting code and links from a Title or Link
+    multi sub recurse-until-str(Str:D $s){ $s }
     multi sub recurse-until-str(Pod::Block $n){ $n.contents>>.&recurse-until-str().join }
 
     #| Multi for handling different types of Pod blocks.
-
+    #| Most of the following code is adapted from Pod::To::BigPage rather than the original Pod::To:HTML
     multi sub handle (Pod::Block::Code $node, Int $in-level, ProcessedPod $pf, Context $context? = None  --> Str )  {
         note "At $?LINE node is { $node.WHAT.perl }" if $pf.debug;
         my $addClass = $node.config && $node.config<class> ?? ' ' ~ $node.config<class> !! '';
@@ -317,7 +428,7 @@ unit class ProcessedPod;
         note "At $?LINE node is { $node.WHAT.perl } with name { $node.name // 'na' }" if $pf.debug;
         my $target = $pf.register-toc( :1level, :text( $node.name.tclc ) );
         $pf.completion($in-level,'zero', %() ) ~ $pf.completion($in-level, 'named', %(
-            :name($node.name.tclc),
+            :name($node.name),
             :$target,
             :1level,
             :contents( [~] $node.contents>>.&handle($in-level, $pf )),
@@ -600,7 +711,9 @@ unit class ProcessedPod;
     }
 
     =begin takeout
-            In S26:
+            In S26 the following Pod specification was made. These are not completely followed in this Renderer.
+        The reason is that not all of the url schemas have been thought necessary.
+
             A second kind of link—the P<> or placement link—works in the opposite direction. Instead of directing focus out to another document, it allows you to assimilate the contents of another document into your own.
         In other words, the P<> formatting code takes a URI and (where possible) inserts the contents of the corresponding document inline in place of the code itself.
         P<> codes are handy for breaking out standard elements of your documentation set into reusable components that can then be incorporated directly into multiple documents. For example:

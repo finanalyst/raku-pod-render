@@ -10,8 +10,7 @@ plan 5;
 =table
   col1  col2
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -30,8 +29,7 @@ like $rv,
   --    --
   col1  col2
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -60,8 +58,7 @@ like $rv,
 
 =end table
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only.subst(/\s+/,' ',:g);
+$rv = $processor.render-block( $=pod[$pn++] ).subst(/\s+/,' ',:g);
 
 like $rv,
     /
@@ -93,8 +90,7 @@ like $rv,
 
 =end table
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -127,8 +123,7 @@ like $rv,
 
 todo 'Compiler does not give information about contents of POD table cells';
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only.subst(/\s+/,' ',:g);
+$rv = $processor.render-block( $=pod[$pn++] ).subst(/\s+/,' ',:g);
 
 like $rv,
     /

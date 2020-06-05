@@ -15,12 +15,11 @@ Some thing to B<say> in between words.
 This isn't a comment and I want to add a formatB<next to a word>in the middle.
 
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'Some thing to'
     \s+ '<strong>say</strong>'
     \s+ 'in between words.'
@@ -38,12 +37,11 @@ Some thing to I<say> in between words.
 This isn't a comment and I want to add a formatI<next to a word>in the middle.
 
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'Some thing to'
     \s+ '<em>say</em>'
     \s+ 'in between words.'
@@ -61,12 +59,11 @@ Some thing to U<say> in between words.
 This isn't a comment and I want to add a formatU<next to a word>in the middle.
 
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'Some thing to'
     \s+ '<u>say</u>'
     \s+ 'in between words.'
@@ -83,12 +80,11 @@ like $rv, /
 Some thing to B<I<say> embedded> in between words.
 
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'Some thing to'
     \s+ '<strong><em>say</em> embedded</strong>'
     \s+ 'in between words.'
@@ -99,12 +95,11 @@ like $rv, /
 
 Some thing to C<say> in between words.
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'Some thing to'
     \s+ '<code>say</code>'
     \s+ 'in between words.'
@@ -115,12 +110,11 @@ like $rv, /
 
 Some thing to K<say> in between words.
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'Some thing to'
     \s+ '<kbd>say</kbd>'
     \s+ 'in between words.'
@@ -131,12 +125,11 @@ like $rv, /
 
 Some thing to R<say> in between words.
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'Some thing to'
     \s+ '<var>say</var>'
     \s+ 'in between words.'
@@ -147,12 +140,11 @@ like $rv, /
 
 Some thing to T<say> in between words.
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'Some thing to'
     \s+ '<samp>say</samp>'
     \s+ 'in between words.'
@@ -167,12 +159,11 @@ Perl 6 makes considerable use of the E<0o253> and E<0o273> characters.
 Perl 6 makes considerable use of the E<0d171> and E<0d187> characters.
 Perl 6 makes considerable use of the E<0xAB> and E<0xBB> characters.
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* [ .+? 'use of the ' [ '&laquo;' | '&#171;' ]  ' and ' [ '&raquo;' | '&#187;' ] ' characters' ] **6
+    '<section'
+    .+? [ .+? 'use of the ' [ '&laquo;' | '&#171;' ]  ' and ' [ '&raquo;' | '&#187;' ] ' characters' ] **6
     /, 'Unicode E format 6 times same';
 
 
@@ -180,12 +171,11 @@ like $rv, /
 
     Perl 6 is awesomeZ<Of course it is!> without doubt.
     =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'Perl 6 is awesome without doubt.'
     /, 'Z format';
 
@@ -199,12 +189,11 @@ This L<link should fail|https://xxxxxioioioi.com> with a bad response code.
 We can L<link to an index test code|format-code-index-test-pod-file_2#an item> with more text.
 
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'We can'
     \s* '<a href="https://docs.perl6.org">Link to a place</a>'
     \s* 'with no problem.'
@@ -217,12 +206,11 @@ like $rv, /
 
 Some thing to V< B<say> C<in>> between words.
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'Some thing to'
     \s+ 'B&lt;say&gt;'
     \s+ 'C&lt;in&gt; between words.'
@@ -233,12 +221,11 @@ like $rv, /
 
 Some thing F<a-filename.pod> between words.
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'Some thing'
     \s+ 'F&lt;a-filename.pod&gt;'
     \s+ 'between words.'
@@ -252,12 +239,11 @@ Some thing B<<a-filename.pod>> with multiple brackets.
 Sequences of brackets I<<<here I am>>> and  T<<<<here I am>>>> that parse.
 
 =end pod
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
-    \s* '<p>'
+    '<section'
+    .+? '<p>'
     \s* 'Some thing'
     \s+ '<strong>a-filename.pod</strong>'
     \s+ 'with multiple brackets.'

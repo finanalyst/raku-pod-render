@@ -11,9 +11,8 @@ plan 11;
 =begin pod
 X<|behavior> L<http://www.doesnt.get.rendered.com>
 =end pod
-    
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -27,15 +26,11 @@ When creating an anchor (or indexing), eg. for a glossary, for X<an item> the X<
 It is possible to reference the same text, eg. X<an item>, in multiple places.
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only
-        .subst(/\s+/,' ',:g);
+$rv = $processor.render-block( $=pod[$pn++] ).subst(/\s+/,' ',:g);
 
 like $rv,
     /
-    '<section name="___top">'
-    \s* '<p>'
-    \s* 'When creating an anchor (or indexing), eg. for a glossary, for '
+    'When creating an anchor (or indexing), eg. for a glossary, for '
     \s* '<a name="an_item"></a>'
     \s* '<span class="glossary-entry">an item</span>'
     \s* 'the'
@@ -51,8 +46,9 @@ $rv = $processor.render-glossary
         .subst(/\s+/,' ',:g).trim;
 
 like $rv, /
-    '<table id="glossary">'
-    \s* '<caption><h2 id="source-glossary">Glossary</h2></caption>'
+    '<table id="Glossary">'
+    \s* '<caption>Glossary</caption>'
+    \s* '<tr><th>Term</th><th>Section Location</th></tr>'
     \s* '<tr class="glossary-defn-row">'
     \s*     '<td class="glossary-defn">X format</td><td></td></tr>'
     \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#x_format">' .+ '</a></td></tr>'
@@ -68,7 +64,7 @@ $rv = $processor.render-glossary
         .subst(/\s+/,' ',:g).trim;
 
 unlike $rv, /
-    '<table id="glossary">'
+    '<table id="Glossary">'
     /, 'No glossary is rendered';
 
 =begin pod
@@ -86,9 +82,9 @@ An empty X<> is ignored.
 
 # Need to eliminate all previous glossary entries. Easiest by just making new instance.
 
-$processor = Pod::To::HTML.processor;
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$processor.delete-pod-structure;
+$processor.no-glossary = False;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -105,8 +101,7 @@ like $rv,
     .+ 'An empty' \s+ 'is ignored.'
     /,  'Text with indexed items correct';
 
-$rv = $processor.render-glossary.subst(/\s+/,' ',:g).trim;
-
+$rv = $processor.render-glossary;
 like $rv, /
     '<tr class="glossary-defn-row">' \s* '<td class="glossary-defn">Define an item</td><td></td>'
     /, 'glossary contains the right entry text';

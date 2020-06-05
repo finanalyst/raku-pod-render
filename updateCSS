@@ -1,0 +1,2 @@
+#!/bin/bash
+wt compile -b "/home/richard/development/raku-pod-render/resources/" "/home/richard/development/raku-pod-render/scss/pod.scss"

@@ -1333,6 +1333,12 @@ td p,th p {
  table#TOC a {
   color:black
  }
+ table#Glossary {
+  max-width:20em
+ }
+ table#Glossary a {
+  color:black
+ }
 }
 @media (min-width: 80em) {
  #content {
@@ -1367,21 +1373,17 @@ footer.pretty-box {
 footer.pretty-box p {
  margin:3px 0
 }
-#TOC_Title {
- font-size:120%;
- white-space:nowrap
-}
-#TOC_Title a {
- font-weight:normal;
- font-size:90%;
- outline:0
+.toc-glossary {
+ float: left;
 }
 table#TOC {
  border-collapse:collapse;
  margin:0 0 0 12pt
 }
 table#TOC caption {
- text-align:left
+ text-align:left;
+ font-size:120%;
+ font-weight: bold;
 }
 table#TOC tr {
  background-color:transparent
@@ -1428,6 +1430,28 @@ table#TOC td.toc-number {
 table#TOC code {
  color:black
 }
+
+table#Glossary {
+ border-collapse:collapse;
+ margin:40px 0 0 12pt
+}
+table#Glossary caption {
+ text-align:left;
+ font-size:120%;
+ font-weight: bold;
+}
+table#Glossary tr {
+ background-color:transparent
+}
+table#Glossary td {
+ padding:0.25pt 5pt 0 0;
+ font-size:11pt
+}
+table#Glossary th {
+    text-align: left;
+    padding: 0 0 0 10px;
+}
+
 div.highlight span.c-Singleline,div.highlight span.c {
  color:#204040
 }

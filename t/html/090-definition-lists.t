@@ -22,8 +22,7 @@ Having the quality of general expediency.
 
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /

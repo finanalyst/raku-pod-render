@@ -26,11 +26,10 @@ This isn't a comment and I want to add a footnoteN<next to a word>.
 
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-    '<section name="___top">'
+    '<section' .+
     \s* '<p>'
     \s* 'Some thing to say'
     \s+ '<sup><a name="fnret' .+ '" href="#fn' .+ '">[' \d+ ']</a></sup>'

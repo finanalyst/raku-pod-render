@@ -6,15 +6,13 @@ use Pod::To::HTML;
 my $processor = Pod::To::HTML.processor;
 my $rv;
 my $pn = 0;
-
 plan 3;
 
 
-=begin foo
-=end foo
+=begin Foo
+=end Foo
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -23,12 +21,11 @@ like $rv,
     .+ '</section>'
     /, 'section test';
 
-=begin foo
+=begin Foo
 some text
-=end foo
+=end Foo
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
@@ -43,8 +40,7 @@ like $rv,
 
 =head1 Talking about Perl 6
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     / 'Perl 6' /, "no-break space is not converted to other space";

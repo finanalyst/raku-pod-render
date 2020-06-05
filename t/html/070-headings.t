@@ -6,7 +6,7 @@ my $processor = Pod::To::HTML.processor;
 my $rv;
 my $pn = 0;
 
-plan 7;
+plan 9;
 
 =begin pod
 =TITLE This is a title
@@ -15,25 +15,24 @@ Some text
 
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
         /
-        '<section name="___top">'
-                \s* '<h1 class="title" id="this_is_a_title">This is a title</h1>'  # the first header id
-                \s* '<p>Some text</p>'
-                \s* '</section>'
+        '<section'
+        .+? '<h1 class="title" id="this_is_a_title">This is a title</h1>'  # the first header id
+        \s* '<p>Some text</p>'
+        \s* '</section>'
         /,
         'pod with title rendered';
 
 $rv = $processor.source-wrap;
 like $rv,
         /
-        '<section name="___top">'
-                \s* '<h1 class="title" id="this_is_a_title">This is a title</h1>'  # the first header id
-                \s* '<p>Some text</p>'
-                \s* '</section>'
+        '<section'
+        .+? '<h1 class="title" id="this_is_a_title">This is a title</h1>'  # the first header id
+        \s* '<p>Some text</p>'
+        \s* '</section>'
         /,
         'pod with title rendered, target rewritten for source-wrap';
 
@@ -48,11 +47,16 @@ Some more text
 
 Some text after a heading
 
+=head1 An upper heading after a second level one
+
+text
+
+=head2 A lower heading within upper one
+
 =end pod
 
-$processor = Pod::To::HTML.processor; # re-instantiate to clear previous headings
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$processor.delete-pod-structure;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
         '<h1 class="title" id="a_second_pod_file">A Second Pod File</h1>'
@@ -68,19 +72,59 @@ $rv = $processor.source-wrap;
 like $rv,
         /
         '<table id="TOC">'
-                \s* '<caption>'
-                \s* '<h2 id="TOC_Title">Table of Contents</h2></caption>'
-                \s* '<tr class="toc-level-2">'
-                \s* '<td class="toc-text">'
-                \s* '<a href="#this_is_a_heading">This is a heading</a>'
-                \s* '</td>'
-                \s* '</tr>'
-                \s* '</table>'
+        \s* '<caption>Table of Contents</caption>'
+        \s* '<tr class="toc-level-2">'
+        \s* '<td class="toc-text"><a href="#this_is_a_heading"><span class="toc-counter">0.1</span> This is a heading</a></td>'
+        \s* '</tr>'
+        \s* '<tr class="toc-level-1">'
+        \s* '<td class="toc-text"><a href="#an_upper_heading_after_a_second_level_one">'
+        '<span class="toc-counter">1</span> An upper heading after a second level one</a></td>'
+        \s* '</tr>'
+        \s* '<tr class="toc-level-2">'
+        \s* '<td class="toc-text"><a href="#a_lower_heading_within_upper_one">'
+        \s* '<span class="toc-counter">1.1</span> A lower heading within upper one</a>'
+        \s* '</td>'
+        \s* '</tr>'
+        \s* '</table>'
         /
         , 'rendered TOC';
+$processor.counter-separator = '|';
+$rv = $processor.render-toc;
+
+like $rv,
+        /
+        '<table id="TOC">'
+        \s* '<caption>Table of Contents</caption>'
+        \s* '<tr class="toc-level-2">'
+        \s* '<td class="toc-text"><a href="#this_is_a_heading"><span class="toc-counter">0|1</span> This is a heading</a></td>'
+        /
+        , 'TOC has new heading separator';
+
+$processor.no-counters = True;
+$rv = $processor.render-toc;
+
+like $rv,
+        /
+        '<table id="TOC">'
+        \s* '<caption>Table of Contents</caption>'
+        \s* '<tr class="toc-level-2">'
+        \s* '<td class="toc-text"><a href="#this_is_a_heading"> This is a heading</a></td>'
+        \s* '</tr>'
+        \s* '<tr class="toc-level-1">'
+        \s* '<td class="toc-text"><a href="#an_upper_heading_after_a_second_level_one">'
+        \s* 'An upper heading after a second level one</a></td>'
+        \s* '</tr>'
+        \s* '<tr class="toc-level-2">'
+        \s* '<td class="toc-text"><a href="#a_lower_heading_within_upper_one">'
+        \s* 'A lower heading within upper one</a>'
+        \s* '</td>'
+        \s* '</tr>'
+        \s* '</table>'
+        /
+        , 'TOC has no Heading counters';
 
 $processor.no-toc = True;
-$rv = $processor.source-wrap;
+$rv = $processor.render-toc;
 
 unlike $rv,
         /
@@ -111,7 +155,7 @@ unlike $rv,
 
 =end pod
 
-$processor = Pod::To::HTML.processor; # re-instantiate to clear previous headings
+$processor.delete-pod-structure;
 $processor.process-pod( $=pod[$pn++] );
 $rv = $processor.source-wrap
         .subst(/\s+/,' ',:g).trim;

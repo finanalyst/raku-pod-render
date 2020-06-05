@@ -54,11 +54,6 @@ can be customised by rewriting the keys of the template hash. For example,
     # the effect of this change is to add myStrongClass to all instances of B<> including any extra classes added by the POD
 =end code
 
-
-
-
-
-
 =head1 Templates
 The following is a set of templates (may differ from latest implementation of this module)
 

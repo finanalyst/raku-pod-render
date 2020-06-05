@@ -16,12 +16,11 @@ bla bla    bla
 This isn't a comment
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
-    '<section name="___top">'
-    \s* '<p>This isn\'t a comment</p>'
+    '<section'
+    .+? '<p>This isn\'t a comment</p>'
     \s* '</section>'
     /, 'commment is eliminated';

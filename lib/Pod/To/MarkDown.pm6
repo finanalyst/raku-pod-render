@@ -1,11 +1,16 @@
 =begin pod
 
 =head Usage with compiler
+
     From the terminal:
-    C<raku --doc=MarkDown input.raku > README.md>
+    =begin code :lang<shell>
+    raku --doc=MarkDown input.raku > README.md
+    =end code
 
     Rendering options for the renderering module cam be passed via the PODRENDER Environment variable, Eg.
-    C<PODRENDER='NoTOC NoMETA NoGloss NoFoot' raku --doc=MarkDown input.raku > README.md>
+    =begin code :lang<shell>
+    PODRENDER='NoTOC NoMETA NoGloss NoFoot' raku --doc=MarkDown input.raku > README.md
+    =end code
 
     The following regexen are applied to PODRENDER and switch off the default rendering of the respective section:
     =defn /:i 'no' '-'? 'toc' /
@@ -20,14 +25,58 @@
     Hence any or all of 'NoTOC' 'NoMETA' 'NoGloss' 'NoFoot' may be included in any order.
     Default is to include each section.
 
-=head More
+=head More and Differences from Pod::To::HTML
+
     See C<Pod::To::HTML> for more detail. Essentially the same as that class, but
     with different templates to produce MarkDown and not HTML.
+
+    =item There is no need to reproduce the node2html or pod2html functions.
+
+    =item The target rewrite function needs to be over-ridden.
+
+    =item The limitations of MarkDown mean that Footnotes have to be rendered at the end of the document, and there is
+    no know way (by the author) to place targets into the footnote that refers back to the original anchor.
+
+    =item as for Footnotes, a Glossary cannot contain links to the text, so only a text location is provided. This makes
+    a Glossary structure pretty well useless for an MD document. The default therefore is to turn off glossaries.
 
 =end pod
 
 unit class Pod::To::MarkDown;
 use ProcessedPod;
+
+class MDProcessedPod is ProcessedPod {
+    method rewrite-target(Str $candidate-name is copy, :$unique --> Str ) {
+        state SetHash $targets .= new;
+        # target names inside the POD file, eg., headers, glossary, footnotes
+        # function is called to cannonise the target name and to ensure - if necessary - that
+        # the target name used in the link is unique.
+        # This method uses the default algorithm for HTML and POD
+        # It may need to be over-ridden, eg., for MarkDown which uses a different targetting function.
+
+        # when indexing a unique target is needed even when same entry is repeated
+        # when a Heading is a target, the reference must come from the name
+        # the following algorithm for target names comes from github markup
+        # https://gist.github.com/asabaylus/3071099#gistcomment-2563127
+        #        function GithubId(val) {
+        #	return val.toLowerCase().replace(/ /g,'-')
+        #		// single chars that are removed
+        #		.replace(/[`~!@#$%^&*()+=<>?,./:;"'|{}\[\]\\–—]/g, '')
+        #		// CJK punctuations that are removed
+        #		.replace(/[　。？！，、；：“”【】（）〔〕［］﹃﹄“”‘’﹁﹂—…－～《》〈〉「」]/g, '')
+        #}
+        $candidate-name = $candidate-name.lc
+                .subst(/\s+/,'-',:g)
+                .subst(/<[`~!@#$%^&*()+=<>?,./:;"'|{}\[\]\\–—]>/,'',:g)
+                .subst( /<[　。？！，、；：“”【】（）〔〕［］﹃﹄“”‘’﹁﹂—…－～《》〈〉「」]> /, '' , :g);
+        if $unique {
+            $candidate-name ~= '-0' if $candidate-name (<) $targets;
+            ++$candidate-name while $targets{$candidate-name}; # will continue to loop until a unique name is found
+        }
+        $targets{ $candidate-name }++; # now add to targets, no effect if not unique
+        $candidate-name
+    }
+}
 
 method render( $pod-tree ) {
     state $rv;
@@ -35,7 +84,7 @@ method render( $pod-tree ) {
     # Some implementations of raku/perl6 called the classes render method twice,
     # so it's necessary to prevent the same work being done repeatedly
 
-    my ProcessedPod $processor .= new(
+    my MDProcessedPod $processor .= new(
         :tmpl( md-templates() ),
         :name( $*PROGRAM-NAME )
     );
@@ -47,7 +96,7 @@ method render( $pod-tree ) {
 }
 
 method processor {
-    ProcessedPod.new( :tmpl( md-templates() ) )
+    MDProcessedPod.new( :tmpl( md-templates() ) )
 }
 
 
@@ -78,8 +127,7 @@ sub md-templates {
 
         'format-l' => '[{{{ contents }}}]({{ target }})',
 
-#        'format-n' => '<sup><a name="{{ retTarget }}" href="#{{ fnTarget }}">[{{ fnNumber }}]</a></sup>
-#        ',
+        'format-n' => '[ {{ fnNumber }} ]',
 
         'format-p' => "```\{\{^ html }}\n<pre>\{\{/ html }}\{\{\{ contents }}}\{\{^ html }}</pre>\{\{/ html }}\n```\n",
 
@@ -89,8 +137,8 @@ sub md-templates {
 
         # No separate underline in standard MarkDown, so choice is to be same as -i
         'format-u' => '_{{{ contents }}}_',
-
-#        'format-x' => '{{^ header }}<a name="{{ target }}"></a>{{/ header }}{{# text }}<span class="glossary-entry{{# addClass }} {{ addClass }}{{/ addClass }}">{{{ text }}}</span>{{/ text }} ',
+        # Markdown does not provide a mechanism for inline anchors, so place is the most recent header
+        'format-x' => '{{{ text }}} ',
 
         'heading' => -> %params { '#' x %params<level> ~ ' {{ text }}' ~ "\n" } ,
 
@@ -100,12 +148,7 @@ sub md-templates {
                     {{# items }}* {{{ . }}}{{/ items}}
             TEMPL
 
-#        'named' => q:to/TEMPL/,
-#                <section name="{{ name }}">
-#                    <h{{# level }}{{ level }}{{/ level }} id="{{ target }}"><a href="#{{ top }}" class="u" title="go to top of document">{{{ name }}}</a></h{{# level }}{{ level }}{{/ level }}>
-#                    {{{ contents }}}
-#                </section>
-#            TEMPL
+        'named' =>  -> %params { '#' x %params<level> ~ ' {{ name }}' ~ "\n\n" ~ '{{{ contents }}}' } ,
 
         'notimplemented' => '*{{{ contents }}}*',
 
@@ -114,10 +157,8 @@ sub md-templates {
         'para' => '{{{ contents }}}
         ',
 
-#        'section' => q:to/TEMPL/,
-#                <section name="{{ name }}">{{{ contents }}}{{{ tail }}}
-#                </section>',
-#            TEMPL
+        'section' => '{{{ contents }}}' ~ "\n\n" ~ '{{{ tail }}}' ~ "\n\n",
+
         'subtitle' => "## \{\{\{ contents }}}\n",
 
         'table' => q:to/TEMPL/,
@@ -146,12 +187,12 @@ sub md-templates {
             ----
             {{# glossary }}{{{ glossary }}}{{/ glossary }}
             ----
-            {{# path }}Rendered from {{ path }}{{/ path }}{{# time }} at {{ time }}{{/ time }}{{# path }}{{/ path }}
+            {{# path }}Rendered from {{ path }}{{/ path }}{{# renderedtime }} at {{ renderedtime }}{{/ renderedtime }}{{# path }}{{/ path }}
             TEMPL
 
         'footnotes' => q:to/TEMPL/,
             {{# notes }}
-            ###### {{ fnTarget }}
+            ###### {{ fnNumber }}
                 {{{ text }}}
             {{/ notes }}
             TEMPL
@@ -160,7 +201,7 @@ sub md-templates {
             ## Glossary
                 {{# glossary }}
                 ##### {{{ text }}}
-                    {{# refs }}{{{ place }}}
+                    {{{ place }}}
                 {{/ refs }}
                 {{/ glossary }}
             TEMPL

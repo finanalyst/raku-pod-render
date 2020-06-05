@@ -15,13 +15,12 @@ This ordinary paragraph introduces a code block:
     $which.is_specified(:by<indenting>);
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
     '<p>' \s* 'This ordinary paragraph introduces a code block:' \s* '</p>'
-     \s* '<pre class="pod-block-code">$this = 1 * code(\'block\');'
+     \s* '<pre class="pod-block-code">' \s* '$this = 1 * code(\'block\');'
      \s* '$which.is_specified(:by&lt;indenting&gt;);</pre>'
      /, 'code block';
 
@@ -41,13 +40,12 @@ But this is just a text. Again
 
 =end pod
 
-$processor.process-pod( $=pod[$pn++] );
-$rv = $processor.body-only;
-
+$rv = $processor.render-block( $=pod[$pn++] );
 like $rv,
     /
     '<p>' \s* 'This is an ordinary paragraph' \s* '</p>'
-    \s* '<pre class="pod-block-code">While this is not'
+    \s* '<pre class="pod-block-code">'
+    \s* 'While this is not'
     \s* 'This is a code block</pre>'
     \s* '<h1 id="mumble:_&quot;mumble&quot;">'
     \s* '<a' \s* [ 'class="u"' \s* | 'href="#___top"' \s* | 'title="go to top of document"' \s* ]**3 '>'
@@ -56,4 +54,4 @@ like $rv,
     \s* '</h1>'
     \s* '<p>' \s* 'Surprisingly, this is not a code block (with fancy indentation too)' \s* '</p>'
     \s* '<p>' \s* 'But this is just a text. Again' \s* '</p>'
-    /, 'para with heading and anchor to top';
+    /, 'mixed paragraphs and code';

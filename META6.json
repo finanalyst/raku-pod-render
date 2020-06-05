@@ -5,7 +5,7 @@
   "perl": "6.*",
   "auth": "github:finanalyst",
   "depends": [
-    "Template::Mustache",
+    "Template::Mustache:auth<github.finanalyst>",
     "URI",
     "LibCurl"
   ],
@@ -17,11 +17,10 @@
   "provides": {
     "Pod::To::HTML": "lib/Pod/To/HTML.pm6",
     "Pod::To::MarkDown": "lib/Pod/To/MarkDown.pm6",
-    "ProcessedPod": "lib/ProcessedPod.pm6",
-    "ProcessedPodExceptions": "lib/ProcessedPodExceptions.pm6"
+    "ProcessedPod": "lib/ProcessedPod.pm6"
   },
   "resources": [
-    "assets/pod.css"
+    "pod.css"
   ],
   "support": {
     "source": "https://github.com/finanalyst/raku-pod-render"
