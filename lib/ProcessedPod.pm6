@@ -1,27 +1,11 @@
 use v6.d;
 use Template::Mustache;
+use ProcessedPod::Exceptions;
 
 use URI;
 use LibCurl::Easy;
-
+use trace;
 unit class ProcessedPod;
-
-    class X::ProcessedPod::MissingTemplates is Exception {
-        has @.missing;
-        method message() {
-            "The following templates should be supplied, but are not:\n"
-                    ~ @.missing.join("\n")
-        }
-    }
-
-    class X::ProcessedPod::Non-Existent-Template is Exception {
-        has $.key;
-        method message() { "Cannot process non-existent template ｢$.key｣" }
-    }
-
-    class X::ProcessedPod::Unexpected-Nil is Exception {
-        method message() { "Unexpected handle with Nil value enountered" }
-    }
 
     # template related variables independently of the templating system
     has %.tmpl;
@@ -33,23 +17,25 @@ unit class ProcessedPod;
 
     # defaults
     has $.default-top = '___top'; # the name of the anchor at the top of a source file
-    has $!front-matter = 'preface'; # Text between =TITLE and first header, this is used to refer for textual placenames
-
-    # provided at instantiation
-    has &.highlighter; # a callable (eg. provided by external program) that converts [html] to highlighted raku code
 
     # provided at instantiation or by attributes on Class instance
-    has Str $.name;
+    has $.front-matter is rw = 'preface'; # Text between =TITLE and first header, this is used to refer for textual placenames
+    has Str $.name is rw;
     has Str $.title is rw = $!name;
     has Str $.subtitle is rw = '';
-    has Str $.path; # should be path of original document, defaults to $.name
+    has Str $.path is rw; # should be path of original document, defaults to $.name
     has Str $.top is rw = $!default-top; # defaults to top, then becomes target for TITLE
+    has &.highlighter is rw; # a callable (eg. provided by external program) that converts [html] to highlighted raku code
 
     # Output rendering information
     has Bool $.no-meta is rw = False; # set to True eliminates meta data rendering
     has Bool $.no-footnotes is rw = False; # set to True eliminates rendering of footnotes
     has Bool $.no-toc is rw = False; # set to True to exclude TOC even if there are headers
     has Bool $.no-glossary is rw = False; # set to True to exclude Glossary even if there are internal anchors
+
+    # debugging
+    has Bool $.debug is rw; # outputs to STDERR information on processing
+    has Bool $.verbose is rw; # outputs to STDERR more detail about errors.
 
     # supplied via process-pod
     has $!pod-tree; # pod tree supplied to renderer
@@ -72,25 +58,34 @@ unit class ProcessedPod;
     has Str $.counter-separator is rw = '.';
     has Bool $.no-counters is rw = False;
 
-    # debugging
-    has Bool $.debug is rw;
-    has Bool $.verbose;
     # variables to manage Pod state, where rendering is dependent on local context
     has @.itemlist; # for multilevel lists
     has Bool $!in-defn-list = False; # used to register state when processing a definition list
 
     submethod BUILD  (
-            :$!name = 'UNNAMED',
-            :%!tmpl,
-            :$!title = $!name,
-            :$!debug = False,
-            :$!verbose = False,
-            :$!path = $!name,
-            :&!highlighter,
-            ) { }
+        :$!name = 'UNNAMED',
+        :$templates,
+        :$!title = $!name,
+        :$!debug = False,
+        :$!verbose = False,
+        :$!path = $!name,
+        :&!highlighter,
+        ) {
+        given $templates {
+            when Hash { %!tmpl = $templates }
+            when Str {
+                %!tmpl = EVALFILE $templates ;
+            } # a string is a filename with a compilable file
+        }
+        CATCH {
+            default {
+                X::ProcessedPod::TemplateFailure.new( :error( .message ) ).throw
+            }
+        }
+    }
 
     submethod TWEAK {
-        X::ProcessedPod::MissingTemplates.new(:missing( ( @!required (-) %!tmpl.keys ).keys )).throw
+        X::ProcessedPod::MissingTemplates.new(:missing( ( @!required (-) %!tmpl.keys ).keys.flat )).throw
             unless %!tmpl.keys (>=) @!required;
                     # the keys on the RHS above are required in %.tmpl. To throw here, the templates supplied are not
                     # a superset of the required keys.
@@ -101,6 +96,7 @@ unit class ProcessedPod;
             $!no-glossary = ?m/:i 'No' \-? 'Glos'/;
             $!no-meta = ?m/:i 'No' \-? 'Meta'/;
         }
+        note "Debug is ON" if $!debug;
     }
 
     =comment rendition() is the only method that needs to be over-ridden for a different template system.
@@ -108,18 +104,22 @@ unit class ProcessedPod;
     #| maps the key to template and renders the block
     method rendition(Str $key, %params --> Str) {
         $!engine = Template::Mustache.new without $!engine;
-
         return '' if $key eq 'zero';
         # special case this as there must be no EOL.
-
         X::ProcessedPod::Non-Existent-Template.new( :$key ).throw
                 unless %!tmpl{$key}:exists;
         # templating engines like mustache do not handle logic or loops, which some Pod formats require.
         # hence we pass a Subroutine instead of a string in the template
         # the subroutine takes the same parameters as rendition and produces a mustache string
+        # eg P format template escapes containers
+
+        note "At $?LINE rendering with \<$key>" if $.debug;
         $!engine.render(
-                %!tmpl{ $key } ~~ Block ?? %!tmpl{$key}( %params ) !! %!tmpl{$key}
-                , %params, :literal )
+                %!tmpl{ $key } ~~ Block ??
+                %!tmpl{$key}(  %params ) # if the template is a block, then run as sub and pass in the params
+                !! %!tmpl{$key}
+                , %params , :literal
+                )
     }
 
     #| allows for templates to be replaced during pod processing
@@ -132,7 +132,7 @@ unit class ProcessedPod;
 
     =comment The next function is placed here because it may need to be over-ridden. (see Pod::To::Markdown)
 
-    #| rewrites targets (link destinations to be made unique and to be cannonised to output form
+    #| rewrites targets (link destinations) to be made unique and to be cannonised depending on the output format
     #| takes the candidate name and whether it should be unique, returns with the cannonised link name
     method rewrite-target(Str $candidate-name is copy, :$unique --> Str ) {
         state SetHash $targets .= new;
@@ -167,7 +167,7 @@ unit class ProcessedPod;
 
     #| process the pod block or tree passed to it, and concatenates it to previous pod tree
     #| returns a string representation of the tree in the required format
-    method process-pod( $pod ) {
+    method process-pod( $pod --> Str ) {
         $!pod-tree = $pod; # replace any pod, then process it
         $!pod-body = [~] $!pod-tree>>.&handle( 0, self );
         $!body ~= $!pod-body # returns accumulated pod-bodies
@@ -177,21 +177,21 @@ unit class ProcessedPod;
 
     #| renders a pod tree, but probably a block
     #| returns only the pod that was passed
-    method render-block( $pod ) {
+    method render-block( $pod --> Str ) {
         self.process-pod( $pod );
         $!pod-body # returns only most recent pod-body
     }
 
     #| renders the whole pod tree
     #| is actually an alias to process-pod
-    method render-tree( $pod ) { # an alias for a consistent naming system
+    method render-tree( $pod --> Str ) { # an alias for a consistent naming system
         self.process-pod( $pod );
     }
 
     =comment generating the template engine is expensive if only generating small sections of pod.
 
     #| deletes any previously processed pod, keeping the template engine cache
-    method delete-pod-structure {
+    method delete-pod-structure( --> Hash ) {
         self.render-structures without $!renderedtime;
         my %h =
                 :$!name,
@@ -229,7 +229,7 @@ unit class ProcessedPod;
 
     #| renders all of the document structures, and wraps them and the body
     #| uses the source-wrap template
-    method source-wrap {
+    method source-wrap( --> Str ) {
         self.render-structures without $!renderedtime;
         self.rendition('source-wrap', {
             :$!name,
@@ -252,10 +252,11 @@ unit class ProcessedPod;
             $!toc = self.render-toc;
             $!glossary = self.render-glossary;
             $!footnotes = self.render-footnotes;
-            $!renderedtime = DateTime(now).utc.truncated-to('seconds').Str ;
+            $!renderedtime = now.DateTime.utc.truncated-to('seconds').Str ;
         }
     }
 
+    #| renders only the toc
     method render-toc( --> Str ) {
         # if no headers in pod, then no need to include a TOC
         return '' if ( ! ?@!toc or $.no-toc);
@@ -264,16 +265,22 @@ unit class ProcessedPod;
         @filtered.map({ .<counter>:delete}) if $.no-counters;
         self.rendition('toc', %( :toc( [ @filtered ] )  ));
     }
+
+    #| renders only the glossary
     method render-glossary(-->Str) {
         return '' if ( ! ?%!glossary.keys or $.no-glossary); #No render without any keys
         my @filtered = [gather for %!glossary.sort {  take %(:text(.key), :refs( [.value.sort] )) } ];
         self.rendition( 'glossary', %( :glossary( @filtered )  )  )
     }
+
+    #| renders only the footnotes
     method render-footnotes(--> Str){
         return '' if ( ! ?@!footnotes or $!no-footnotes ); # no rendering of code if no footnotes
         self.rendition('footnotes', %( :notes( @!footnotes )  ) )
     }
-    method render-meta {
+
+    #| renders on the meta data
+    method render-meta(--> Str) {
         return '' if ( ! ?@!metadata or $!no-meta );
         self.rendition('meta', %( :meta( @!metadata )  ))
     }
@@ -383,13 +390,12 @@ unit class ProcessedPod;
             else {
                 $rv ~= self.rendition('list', %( :items( @.itemlist.pop )  ));
                 note "At $?LINE rendering with template ｢list｣ list level $in-level" if $!debug;
-                note "At $?LINE rv is $rv" if $!debug;
             }
             $top-level = @.itemlist.elems
         }
         note "At $?LINE rendering with template ｢$key｣ list level $in-level" if $!debug;
         $rv ~= self.rendition($key, %params);
-        note "At $?LINE rv is $rv" if $!debug;
+        note "At $?LINE rv is { $rv.substr(0,150) } { '... (' ~ $rv.chars - 150 ~ 'more)' if $rv.chars > 150 } " if $!debug;
         $rv
     }
 
@@ -409,8 +415,9 @@ unit class ProcessedPod;
         with $pf.highlighter { note "highlighter is defined";
             $retained-list ~ $pf.highlighter( $contents )
         }
-        else {
-            $retained-list ~ $pf.completion($in-level, 'block-code', %( :$addClass, :$contents ) )
+        else {my $t = $pf.completion($in-level, 'block-code', %( :$addClass, :$contents ) );
+        #say $t;
+            $retained-list ~ $t
         }
     }
 
@@ -677,36 +684,50 @@ unit class ProcessedPod;
 
     multi sub handle (Pod::FormattingCode $node where .type eq 'P', Int $in-level, ProcessedPod $pf, Context $context = None  --> Str )  {
         note "At $?LINE node is { $node.WHAT.perl } with type { $node.type // 'na' }" if $pf.debug;
-        my Str $link-contents = [~] $node.contents>>.&handle($in-level, $pf, $context);
+        my Str $link-contents = recurse-until-str( $node );
         my $link = ($node.meta eqv [] | [""] ?? $link-contents !! $node.meta).Str;
         my URI $uri .= new($link);
         my Str $contents;
+        my LibCurl::Easy $curl;
+        my Bool $html = False;
+
         given $uri.scheme {
             when 'http' | 'https' {
-                my LibCurl::Easy $curl .= new( :URL($link), :followlocation, :verbose($pf.verbose) );
-                CATCH {
-                    when X::LibCurl {
-                        $contents = "Link ｢$link｣ caused LibCurl Exception, response code ｢{$curl.response-code}｣ with error ｢{$curl.error}｣";
-                        note $contents if $pf.verbose;
-                    }
+                $curl .= new( :URL($link), :followlocation, :verbose($pf.verbose) );
+                if $curl.perform.response-code ~~ / '2' \d\d / {
+                    $contents = $curl.perform.content;
                 }
-                $contents = $curl.perform.content;
+                else {
+                    $contents = "See: $link-contents";
+                    note "Response code from ｢$link｣ is {  $curl.perform.response-code }" if $pf.verbose;
+                }
             }
             when 'file' | '' {
                 if $uri.path.Str.IO.f {
                     $contents = $uri.path.Str.IO.slurp;
                 }
                 else {
-                    $contents = "No file found at ｢$link｣";
-                    note $contents if $pf.verbose;
+                    $contents = "See: $link-contents";
+                    note "No file found at ｢$link｣" if $pf.debug;
                 }
             }
             default {
-                $contents = "Scheme ｢$_｣ is not implemented for P<$link-contents>"
+                $contents = "See: $link-contents"
             }
-        } # Catch will resume here
-        my $html = $contents ~~ m/ '<html' (.+) $ /;
-        $contents = ('<html' ~ $/[0]) if $html;
+        }
+        CATCH {
+            when X::LibCurl {
+                #$contents = "Link ｢$link｣ caused LibCurl Exception, response code ｢{$curl.response-code}｣ with error ｢{$curl.error}｣";
+                $contents = "See: $link-contents";
+                note "Link ｢$link｣ caused LibCurl Exception, response code ｢{$curl.response-code}｣ with error ｢{$curl.error}｣" if $pf.verbose or $pf.debug;
+            }
+            default {
+                $contents = "See: $link-contents";
+                note "Link ｢$link｣ caused an exception with message ｢{ .message }｣" if $pf.verbose or $pf.debug;
+            }
+        }
+        $html = so $contents ~~ / '<html' .+ '</html>'/;
+        $contents = ~$/ if $html; # eliminate any chars outside the <html> container if there is one
         $pf.completion($in-level, 'format-p', %( :$contents, :$html ))
     }
 

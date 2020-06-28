@@ -1,0 +1,6 @@
+=begin pod
+
+=TITLE Some evil doing
+The text contains a </pre> which could cause formatting problems
+
+=end pod

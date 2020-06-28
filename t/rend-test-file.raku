@@ -10,11 +10,11 @@ use v6.*;
 
 =SUBTITLE This is subtitled for testing
 
-Some more text
+Some more text.
 
 =head2 This is a heading
 
-Some text after a heading
+Some text after a heading.
 Some thing to say N<A footnote> in between words.
 
 This isn't a comment and I want to add a footnoteN<next to a word>.

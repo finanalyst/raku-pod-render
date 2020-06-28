@@ -2,7 +2,7 @@ use Test;
 
 plan 15;
 
-my $p = run 'raku', '-Ilib', '--doc=HTML', 't/___-rend-test-file.raku', :out;
+my $p = run 'raku', '-Ilib', '--doc=HTML', 't/rend-test-file.raku', :out;
 my $rv = $p.out.slurp.subst(/\s+/,' ',:g).trim;;
 $p.out.close;
 
@@ -42,7 +42,7 @@ like $rv, /
     \s* '</div>'
     /, 'footnotes rendered';
 
-$p = shell 'PODRENDER="no-toc" raku -Ilib --doc=HTML t/___-rend-test-file.raku', :out;
+$p = shell 'PODRENDER="no-toc" raku -Ilib --doc=HTML t/rend-test-file.raku', :out;
 $rv = $p.out.slurp.subst(/\s+/,' ',:g).trim;;
 $p.out.close;
 
@@ -76,7 +76,7 @@ like $rv, /
     \s* '</div>'
     /, 'footnotes rendered';
 
-$p = shell 'PODRENDER="no-toc no-glos" raku -Ilib --doc=HTML t/___-rend-test-file.raku', :out;
+$p = shell 'PODRENDER="no-toc no-glos" raku -Ilib --doc=HTML t/rend-test-file.raku', :out;
 $rv = $p.out.slurp.subst(/\s+/,' ',:g).trim;;
 $p.out.close;
 

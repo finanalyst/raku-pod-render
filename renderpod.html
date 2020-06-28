@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>Rendering Pod Distribution</title>
+        <meta charset="UTF-8" />
+<style>header {
+  text-align: center;
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  font-family: sans-serif;
+  font-weight: bold;
+  border-radius: 0 0 1em 1em;
+  margin: 0 0 1em 0;
+  padding: 0.5em 0em 0.5em 0em;
+  line-height: 2em;
+  overflow: hidden;
+  border-top: none;
+  font-size: x-large;
+  background: #e6dbd0bd;
+  z-index: 10; }
+  header #Camelia_bug {
+    width: 100px;
+    height: 48px;
+    float: left; }
+
+kbd {
+  font-family: "Droid Sans Mono", "Luxi Mono", "Inconsolata", monospace; }
+
+samp {
+  font-family: "Terminus", "Courier", "Lucida Console", monospace; }
+
+u {
+  text-decoration: none; }
+
+.nested {
+  margin-left: 3em; }
+
+html, body {
+  margin: 0;
+  background: #EFEFEF !important;
+  font-family: sans-serif !important; }
+
+html {
+  padding: 0;
+  width: 100%;
+  position: relative;
+  min-height: 100%;
+  font-family: Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: normal; }
+
+body {
+  padding: 1px 10px 0;
+  margin: -1px 0 0;
+  width: auto; }
+
+.title {
+  margin-top: 0;
+  text-align: center; }
+
+.subtitle {
+  text-align: center;
+  font-style: italic; }
+
+pre {
+  background-color: rgba(120, 60, 0, 0.045);
+  border: 1px solid #CFCFCF;
+  padding: 0.6ex;
+  color: black;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all; }
+
+code {
+  color: #666; }
+
+a {
+  text-decoration: none; }
+
+a code {
+  color: #00e; }
+
+pre a {
+  text-decoration: underline;
+  color: black; }
+
+pre a:hover {
+  text-decoration: none;
+  color: inherit; }
+
+img, svg {
+  max-width: 100%; }
+
+svg {
+  height: auto; }
+
+table.pod-table {
+  display: block;
+  overflow-x: auto; }
+
+table.pod-table tr:nth-child(odd) {
+  background-color: rgba(0, 0, 0, 0.031373); }
+
+table.pod-table tr:nth-child(even) {
+  background-color: transparent; }
+
+td, th {
+  padding: 0.4em; }
+
+td p, th p {
+  margin: 0; }
+
+.pretty-box {
+  border: 0.2em solid;
+  border-style: solid;
+  border-radius: 1em;
+  box-shadow: 0.5em 0.5em 1em #888888;
+  padding: 2em; }
+
+#header {
+  font-family: sans-serif;
+  font-weight: bold;
+  border-radius: 0 0 4em 4em;
+  margin: -2em auto 0;
+  padding: 3em 0em 0em 0em;
+  line-height: 2em;
+  overflow: hidden;
+  border-top: none; }
+
+#header > a {
+  color: #000000;
+  text-decoration: none;
+  font-size: 2em;
+  margin-left: 1.5em; }
+
+#logo {
+  display: inline-block;
+  margin: -0.75em 0 -0.5em -0.5em;
+  border: none;
+  vertical-align: middle; }
+
+#content {
+  margin: 2em auto;
+  overflow: hidden;
+  max-width: 800px;
+  min-height: 220px;
+  background: #FFF; }
+
+#content dt {
+  font-weight: bold;
+  margin-bottom: 0.2em; }
+
+#content dd {
+  margin-bottom: 1em; }
+
+#content hr {
+  border: none;
+  margin: 0 3em;
+  padding: 0;
+  height: 20px;
+  background-color: transparent;
+  background-image: radial-gradient(#F5EF7B 30%, transparent 30%);
+  background-size: 25px 25px;
+  background-repeat: round no-repeat;
+  background-position: 0 center; }
+
+#content p:nth-child(2) {
+  margin-top: 0;
+  padding-top: 0; }
+
+#content h1 a, #content h2 a, #content h3 a, #content h4 a, #content h5 a, #content h6 a {
+  color: black; }
+
+#content h1 {
+  padding-top: 0.25em; }
+
+#content:not(.content_HomePage):not(.content_404) {
+  background-repeat: no-repeat;
+  background-position: right 2rem top 2rem;
+  background-size: 243px;
+  background-image: url(/images/Camelia-faded.svg); }
+
+@media (min-width: 65em) {
+  #content {
+    max-width: none;
+    min-width: 65em;
+    width: 65em;
+    display: table;
+    background-image: none; }
+  div.pod-body {
+    min-width: 45em;
+    max-width: 45em;
+    margin-left: 22em; }
+  div.pod-body.no-toc {
+    margin-left: 0em;
+    max-width: none; }
+  nav.indexgroup {
+    float: left; }
+  table#TOC {
+    max-width: 20em; }
+  table#TOC a {
+    color: black; }
+  table#Glossary {
+    max-width: 20em; }
+    table#Glossary a {
+      color: black; } }
+
+@media (min-width: 80em) {
+  #content {
+    max-width: none;
+    min-width: 80em;
+    width: 80em; }
+  div.pod-body {
+    min-width: 60em;
+    max-width: 60em; } }
+
+.title-anchor {
+  visibility: hidden;
+  color: #333;
+  font-size: 60%;
+  margin-left: 10px;
+  display: inline-block;
+  text-decoration: none;
+  vertical-align: 0.5ex;
+  outline: none; }
+
+h1:hover .title-anchor, h2:hover .title-anchor, h3:hover .title-anchor, h4:hover .title-anchor, h5:hover .title-anchor, h6:hover .title-anchor {
+  visibility: visible; }
+
+footer.pretty-box {
+  padding: 5px;
+  text-align: center;
+  font-size: 80%;
+  margin: 0 auto 20px; }
+
+footer.pretty-box p {
+  margin: 3px 0; }
+
+.toc-glossary {
+  float: left; }
+
+table#TOC {
+  border-collapse: collapse;
+  margin: 0 0 0 12pt; }
+  table#TOC caption {
+    text-align: left;
+    font-size: 120%;
+    font-weight: bold; }
+  table#TOC tr {
+    background-color: transparent; }
+  table#TOC td {
+    padding: 0.25pt 5pt 0 0;
+    font-size: 11pt; }
+  table#TOC tr.toc-level-1:first-child td {
+    padding-top: 0; }
+  table#TOC td.toc-text {
+    position: relative;
+    left: 6pt; }
+  table#TOC tr.toc-level-1 td {
+    padding-top: 4pt;
+    font-weight: bold; }
+  table#TOC tr.toc-level-1 td.toc-text {
+    position: relative;
+    left: 0; }
+  table#TOC tr.toc-level-2 td {
+    padding-top: 3pt; }
+  table#TOC tr.toc-level-3 td {
+    padding-top: 2pt;
+    font-size: 0.9em; }
+  table#TOC tr.toc-level-3 td.toc-text {
+    padding-left: 12px; }
+  table#TOC tr.toc-level-4 td {
+    padding-top: 2pt;
+    font-size: 0.8em; }
+  table#TOC tr.toc-level-4 td.toc-text {
+    padding-left: 16px; }
+  table#TOC td.toc-number {
+    display: none; }
+  table#TOC code {
+    color: black; }
+
+table#Glossary {
+  border-collapse: collapse;
+  margin: 40px 0 0 12pt; }
+  table#Glossary caption {
+    text-align: left;
+    font-size: 120%;
+    font-weight: bold; }
+  table#Glossary tr {
+    background-color: transparent; }
+  table#Glossary td {
+    padding: 0.25pt 5pt 0 0;
+    font-size: 11pt; }
+  table#Glossary th {
+    text-align: left;
+    padding: 0 0 0 10px; }
+
+@media (max-width: 560px) {
+  #header {
+    border-radius: 10px; }
+  #header > a {
+    font-size: 1.1em;
+    display: block;
+    padding: 5px 10px 0;
+    margin: 0;
+    text-align: center; }
+  #home_logo {
+    display: none; }
+  body {
+    padding: 0; }
+  .pretty-box {
+    padding: 3px; }
+  .menu-items {
+    height: auto;
+    padding: 0 10px; }
+  .menu-items .menu-item + .menu-item {
+    border: none; }
+  .menu-item.selected {
+    box-shadow: none;
+    border-radius: 3px; }
+  table#TOC tr[class^=toc-level] td {
+    padding: 8px 0; }
+  table#TOC tr.toc-level-1 td {
+    padding-top: 18px; } }
+
+a[href*="//"]:not([href*="perl6.org"])::after, [href="https://perl6.org"]::after, [href="/webchat.html"]::after, [href="/examples.html"]::after {
+  padding-left: 2px;
+  content: url(/images/External-link-04-bold-12x12.svg); }
+
+.pod-table th {
+  text-align: left; }
+
+.pod-table [class*="headerSort"] {
+  padding-left: 20px;
+  background: transparent no-repeat 5px/10px; }
+
+.pod-table .headerSortDown {
+  background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="https://www.w3.org/2000/svg" xmlns:xlink="https://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 490.659 490.659" style="enable-background:new 0 0 490.659 490.659;" xml:space="preserve"><path d="M489.272,37.339c-1.92-3.307-5.44-5.333-9.259-5.333H10.68c-3.819,0-7.339,2.027-9.259,5.333 c-1.899,3.307-1.899,7.36,0.021,10.667l234.667,405.333c1.899,3.307,5.419,5.333,9.237,5.333s7.339-2.027,9.237-5.333 L489.251,48.005C491.149,44.72,491.149,40.645,489.272,37.339z"/></svg>'); }
+
+.pod-table .headerSortUp {
+  background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="https://www.w3.org/2000/svg" xmlns:xlink="https://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 490.659 490.659" style="enable-background:new 0 0 490.659 490.659;" xml:space="preserve"><path d="M489.229,442.468L254.563,37.135c-3.797-6.592-14.677-6.592-18.453,0L1.443,442.468c-1.92,3.307-1.92,7.36-0.021,10.667 c1.92,3.307,5.44,5.333,9.259,5.333h469.333c3.819,0,7.339-2.027,9.259-5.333C491.128,449.849,491.128,445.775,489.229,442.468z"/></svg>'); }
+
+footer {
+  display: flex;
+  align-content: space-between;
+  padding: 30px;
+  background-color: #e6dbd0;
+  justify-content: space-evenly;
+  font-size: medium;
+  border-radius: 10px; }
+  footer .path {
+    color: red; }
+  footer .time {
+    color: #3800ff; }
+</style>    
+    </head>
+    <body class="pod">
+        <header>
+<svg version="1.1" id="Camelia_bug" xmlns:svg="http://www.w3.org/2000/svg"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="146.887 35.071 679.648 628.263" enable-background="new 146.887 35.071 679.648 628.263" xml:space="preserve">
+<g>
+
+		<rect x="341.717" y="326.778" transform="matrix(0.4226 -0.9063 0.9063 0.4226 -99.8267 501.2325)" stroke="#000000" stroke-width="1.0588" stroke-miterlimit="10" width="3.516" height="4.372"/>
+	<path id="path21" d="M287.307,517.452c-64.033,12.72-125.053-23.075-136.347-80.045c-11.248-56.844,31.519-113.25,95.512-125.885
+		c63.946-12.76,125.053,23.075,136.301,79.919C394.067,448.412,351.299,504.818,287.307,517.452z"/>
+	<path id="path25" fill="none" stroke="#000000" stroke-width="4.5546" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M287.307,517.452c-64.033,12.72-125.053-23.075-136.347-80.045c-11.248-56.844,31.519-113.25,95.512-125.885
+		c63.946-12.76,125.053,23.075,136.301,79.919C394.067,448.412,351.299,504.818,287.307,517.452z"/>
+	<path id="path27" d="M440.826,119.408c39.107,71.093,19.552,156.886-43.71,191.57c-63.176,34.724-146.095,5.182-185.117-65.871
+		c-39.108-71.093-19.512-156.973,43.664-191.696C318.925,18.728,401.758,48.229,440.826,119.408z"/>
+	<path id="path31" fill="none" stroke="#000000" stroke-width="7.611" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M440.826,119.408c39.107,71.093,19.552,156.886-43.71,191.57c-63.176,34.724-146.095,5.182-185.117-65.871
+		c-39.108-71.093-19.512-156.973,43.664-191.696C318.925,18.728,401.758,48.229,440.826,119.408z"/>
+	<path id="path33" fill="#00FF00" d="M327.422,226.986c-13.709-28.626,1.468-64.548,33.873-80.061
+		c32.53-15.559,69.983-5.016,83.652,23.696c13.795,28.667-1.342,64.502-33.872,80.061
+		C378.63,266.282,341.217,255.652,327.422,226.986z"/>
+	<path id="path37" fill="none" d="M327.422,226.986c-13.709-28.626,1.468-64.548,33.873-80.061
+		c32.53-15.559,69.983-5.016,83.652,23.696c13.795,28.667-1.342,64.502-33.872,80.061
+		C378.63,266.282,341.217,255.652,327.422,226.986z"/>
+	<path id="path39" d="M310.944,213.744c-13.755-28.753,1.382-64.588,33.827-80.187c32.53-15.559,70.029-4.89,83.738,23.736
+		c13.795,28.667-1.382,64.588-33.912,80.147C362.152,253.04,324.653,242.37,310.944,213.744z"/>
+	<path id="path43" fill="none" d="M310.944,213.744c-13.755-28.753,1.382-64.588,33.827-80.187
+		c32.53-15.559,70.029-4.89,83.738,23.736c13.795,28.667-1.382,64.588-33.912,80.147C362.152,253.04,324.653,242.37,310.944,213.744
+		z"/>
+	<path id="path47" fill="none" stroke="#0000FF" stroke-width="22.8331" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M331.586,290.7c-24.709-40.572-65.605-82.191-72.02-123.986c-4.804-31.081-18.469-48.78,11.408-63.373
+		c28.414-13.703,49.579-32.779,76.581-25.013c26.488,16.966,47.289,29.707,50.718,69.585c-10.664,17.471-22.618,59.3-55.203,66.654
+		l-52.16,3.679"/>
+	<path id="path49" fill="#FF3366" d="M306.479,185.758c-20.502-9.56-29.535-33.594-20.136-53.752
+		c9.4-20.158,33.617-28.686,54.119-19.126c20.502,9.56,29.536,33.594,20.137,53.752C351.2,186.79,326.982,195.319,306.479,185.758z"
+		/>
+	<path id="path53" fill="none" d="M306.479,185.758c-20.502-9.56-29.535-33.594-20.136-53.752
+		c9.4-20.158,33.617-28.686,54.119-19.126c20.502,9.56,29.536,33.594,20.137,53.752C351.2,186.79,326.982,195.319,306.479,185.758z"
+		/>
+	<path id="path55" fill="#0000FF" d="M330.41,177.62c-10.599,2.713-21.494-3.835-24.299-14.687
+		c-2.806-10.852,3.571-21.827,14.256-24.5c10.599-2.713,21.494,3.835,24.213,14.647C347.386,163.932,341.01,174.907,330.41,177.62z"
+		/>
+	<path id="path59" fill="none" d="M330.41,177.62c-10.599,2.713-21.494-3.835-24.299-14.687c-2.806-10.852,3.571-21.827,14.256-24.5
+		c10.599-2.713,21.494,3.835,24.213,14.647C347.386,163.932,341.01,174.907,330.41,177.62z"/>
+	<path id="path63" fill="none" stroke="#0000FF" stroke-width="22.8331" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M333.649,294.598c-24.755-40.699-79.026-66.006-85.48-107.715c-4.763-31.167-17.983-74.562,11.854-89.069
+		c30.129-19.406,60.893-28.028,88.372-15.214c26.614,16.92,50.629,41.438,47.157,66.876c-10.618,17.597-20.445,48.567-53.029,55.921
+		l-53.525,12.901"/>
+	<path id="path65" fill="#0000FF" d="M345.42,311.413c-4.547,3.229-14.546-3.217-22.289-14.274
+		c-7.83-11.097-10.4-22.678-5.853-25.906c4.593-3.102,14.546,3.217,22.375,14.314C347.356,296.69,350.053,308.225,345.42,311.413z"
+		/>
+	<path id="path69" fill="none" d="M345.42,311.413c-4.547,3.229-14.546-3.217-22.289-14.274c-7.83-11.097-10.4-22.678-5.853-25.906
+		c4.593-3.102,14.546,3.217,22.375,14.314C347.356,296.69,350.053,308.225,345.42,311.413z"/>
+	<path id="path71" d="M638.408,495.23c31.369,57.102,15.611,126.207-35.251,154.089c-50.901,27.968-117.546,4.232-149-52.91
+		c-31.329-57.188-15.61-126.207,35.251-154.088C540.309,414.352,606.994,438.002,638.408,495.23z"/>
+	<path id="path75" fill="none" stroke="#000000" stroke-width="4.5546" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M638.408,495.23c31.369,57.102,15.611,126.207-35.251,154.089c-50.901,27.968-117.546,4.232-149-52.91
+		c-31.329-57.188-15.61-126.207,35.251-154.088C540.309,414.352,606.994,438.002,638.408,495.23z"/>
+	<path id="path77" fill="#FFFF00" d="M404.068,481.392c-55.132-25.709-83.124-82.18-62.557-126.285
+		c20.527-44.02,81.819-58.962,136.951-33.253c55.132,25.708,83.084,82.266,62.557,126.286
+		C520.453,492.244,459.2,507.1,404.068,481.392z"/>
+	<path id="path81" fill="none" stroke="#000000" stroke-width="9.1392" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M404.068,481.392c-55.132-25.709-83.124-82.18-62.557-126.285c20.527-44.02,81.819-58.962,136.951-33.253
+		c55.132,25.708,83.084,82.266,62.557,126.286C520.453,492.244,459.2,507.1,404.068,481.392z"/>
+	<path id="path83" fill="#FFFFFF" d="M373.309,368.78c-22.053-10.284-31.529-36.516-21.286-58.483
+		c10.284-22.053,36.43-31.57,58.483-21.286c22.053,10.283,31.656,36.47,21.372,58.523
+		C421.635,369.501,395.362,379.064,373.309,368.78z"/>
+	<path id="path87" fill="none" stroke="#000000" stroke-width="10.6674" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M373.309,368.78c-22.053-10.284-31.529-36.516-21.286-58.483c10.284-22.053,36.43-31.57,58.483-21.286
+		c22.053,10.283,31.656,36.47,21.372,58.523C421.635,369.501,395.362,379.064,373.309,368.78z"/>
+	<path id="path89" d="M702.578,479.741c-79.047,15.683-154.46-28.607-168.371-98.858c-13.998-70.291,38.827-139.942,117.915-155.71
+		c79.046-15.682,154.46,28.608,168.371,98.858C834.45,394.409,781.625,464.06,702.578,479.741z"/>
+	<path id="path93" fill="none" stroke="#000000" stroke-width="7.611" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M702.578,479.741c-79.047,15.683-154.46-28.607-168.371-98.858c-13.998-70.291,38.827-139.942,117.915-155.71
+		c79.046-15.682,154.46,28.608,168.371,98.858C834.45,394.409,781.625,464.06,702.578,479.741z"/>
+	<path id="path95" fill="#00FF00" d="M731.211,452.297c-30.615,7.853-62.593-13.981-71.492-48.649
+		c-8.9-34.668,8.655-69.167,39.27-77.019c30.615-7.853,62.634,13.895,71.493,48.649
+		C779.382,409.946,761.826,444.444,731.211,452.297z"/>
+	<path id="path99" fill="none" d="M731.211,452.297c-30.615,7.853-62.593-13.981-71.492-48.649
+		c-8.9-34.668,8.655-69.167,39.27-77.019c30.615-7.853,62.634,13.895,71.493,48.649
+		C779.382,409.946,761.826,444.444,731.211,452.297z"/>
+	<path id="path101" d="M712.776,443.701c-30.614,7.853-62.593-13.98-71.491-48.649c-8.9-34.668,8.656-69.166,39.23-76.933
+		c30.615-7.853,62.634,13.895,71.533,48.563C760.947,401.35,743.305,435.808,712.776,443.701z"/>
+	<path id="path105" fill="none" d="M712.776,443.701c-30.614,7.853-62.593-13.98-71.491-48.649
+		c-8.9-34.668,8.656-69.166,39.23-76.933c30.615-7.853,62.634,13.895,71.533,48.563C760.947,401.35,743.305,435.808,712.776,443.701
+		z"/>
+	<path id="path109" fill="none" stroke="#0000FF" stroke-width="22.8331" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M789.433,343.633c7.833-57.28-69.507-72.474-103.424-67.21c-46.75,7.146-40.062,4.496-75.909,26.27
+		c-26.81,16.339-32.783,51.414-24.763,83.47c7.547,30.368,19.437,23.536,49.248,32.928c29.81,9.391,37.918,12.018,55.007-6.861
+		c21.422-23.676,7.193-65.13-8.027-94.565l-18.155-31.014"/>
+	<path id="path111" fill="#FF3366" d="M623.885,391.658c-18.09-8.436-25.74-30.041-17.183-48.39
+		c8.556-18.348,30.024-26.376,48.114-17.941c18.004,8.395,25.652,30,17.096,48.349C663.356,392.025,641.889,400.053,623.885,391.658
+		z"/>
+	<path id="path115" fill="none" d="M623.885,391.658c-18.09-8.436-25.74-30.041-17.183-48.39
+		c8.556-18.348,30.024-26.376,48.114-17.941c18.004,8.395,25.652,30,17.096,48.349C663.356,392.025,641.889,400.053,623.885,391.658
+		z"/>
+	<path id="path117" fill="#0000FF" d="M641.93,382.873c-10.559,2.627-21.367-3.882-24.087-14.693
+		c-2.759-10.725,3.53-21.741,14.003-24.408c10.513-2.754,21.368,3.881,24.127,14.606C658.693,369.19,652.443,380.119,641.93,382.873
+		z"/>
+	<path id="path121" fill="none" d="M641.93,382.873c-10.559,2.627-21.367-3.882-24.087-14.693
+		c-2.759-10.725,3.53-21.741,14.003-24.408c10.513-2.754,21.368,3.881,24.127,14.606C658.693,369.19,652.443,380.119,641.93,382.873
+		z"/>
+	<path id="path125" fill="none" stroke="#0000FF" stroke-width="22.8331" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M794.894,344.292c7.833-57.28-81.53-87.623-115.447-82.36c-46.75,7.146-39.326,4.944-75.174,26.718
+		c-26.77,16.253-32.613,65.441-24.594,97.497c7.549,30.368,22.886,31.437,52.61,40.788c29.81,9.391,39.309,14.659,56.524-4.266
+		c21.383-23.589,32.167-59.986,16.902-89.548l-42.305-46.47"/>
+	<path id="path127" fill="#FFFFFF" d="M505.367,430.36c-22.053-10.283-31.615-36.556-21.372-58.523
+		c10.284-22.053,36.516-31.53,58.569-21.246c22.053,10.284,31.569,36.43,21.286,58.483
+		C553.607,431.041,527.42,440.644,505.367,430.36z"/>
+	<path id="path131" fill="none" stroke="#000000" stroke-width="10.6674" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M505.367,430.36c-22.053-10.283-31.615-36.556-21.372-58.523c10.284-22.053,36.516-31.53,58.569-21.246
+		c22.053,10.284,31.569,36.43,21.286,58.483C553.607,431.041,527.42,440.644,505.367,430.36z"/>
+	<path id="path133" d="M383.875,349.271c-11.027-5.142-15.808-18.278-10.666-29.304c5.142-11.027,18.278-15.808,29.305-10.666
+		c11.026,5.142,15.722,18.238,10.58,29.265C407.952,349.591,394.901,354.413,383.875,349.271z"/>
+	<path id="path137" fill="none" d="M383.875,349.271c-11.027-5.142-15.808-18.278-10.666-29.304
+		c5.142-11.027,18.278-15.808,29.305-10.666c11.026,5.142,15.722,18.238,10.58,29.265
+		C407.952,349.591,394.901,354.413,383.875,349.271z"/>
+	<path id="path139" d="M517.236,408.732c-11.113-5.182-15.808-18.279-10.707-29.219c5.142-11.026,18.152-15.761,29.265-10.579
+		c11.026,5.142,15.762,18.152,10.62,29.178C541.313,409.052,528.262,413.874,517.236,408.732z"/>
+	<path id="path143" fill="none" d="M517.236,408.732c-11.113-5.182-15.808-18.279-10.707-29.219
+		c5.142-11.026,18.152-15.761,29.265-10.579c11.026,5.142,15.762,18.152,10.62,29.178
+		C541.313,409.052,528.262,413.874,517.236,408.732z"/>
+	<path id="path147" fill="none" stroke="#FF3366" stroke-width="13.6939" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M397.357,406.947c-16.697,25.46,53.443,82.183,63.645,35.342l1.085-2.326"/>
+	<path id="path151" fill="none" stroke="#000000" stroke-width="10.6674" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M466.379,315.38c8.486-22.471,27.9-43.413,27.352-68.104l0.923-23.795l-19.37,13.201l7.592,5.533"/>
+	<path id="path155" fill="none" stroke="#000000" stroke-width="10.6674" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M490.672,326.708c11.759-20.945,15.236-49.318,34.503-64.77l17.635-16.003l2.338,23.324l-9.12-2.26"/>
+	<path id="path157" fill="#FF3366" d="M190.744,447.674c-14.117-29.55,2.34-66.868,36.84-83.501
+		c34.546-16.508,73.997-5.976,88.201,23.614c14.117,29.551-2.341,66.868-36.886,83.375
+		C244.399,487.795,204.947,477.264,190.744,447.674z"/>
+	<path id="path161" fill="none" d="M190.744,447.674c-14.117-29.55,2.34-66.868,36.84-83.501
+		c34.546-16.508,73.997-5.976,88.201,23.614c14.117,29.551-2.341,66.868-36.886,83.375
+		C244.399,487.795,204.947,477.264,190.744,447.674z"/>
+	<path id="path165" fill="none" stroke="#000000" stroke-width="9.1392" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M382.992,472.613l-12.01,25.756l3.201,30.02l0,0"/>
+	<path id="path169" fill="none" stroke="#000000" stroke-width="9.1392" stroke-linejoin="round" stroke-miterlimit="10" d="
+		M414.434,487.275l-12.05,25.842l3.201,30.02l0,0"/>
+	<path id="path171" fill="#0000FF" d="M231.881,429.626c-6.401-13.263,4.154-31.624,23.588-40.914
+		c19.474-9.377,40.314-6.162,46.76,7.227c6.314,13.222-4.24,31.583-23.628,41C259.167,446.229,238.241,442.974,231.881,429.626z"/>
+	<path id="path175" fill="none" d="M231.881,429.626c-6.401-13.263,4.154-31.624,23.588-40.914
+		c19.474-9.377,40.314-6.162,46.76,7.227c6.314,13.222-4.24,31.583-23.628,41C259.167,446.229,238.241,442.974,231.881,429.626z"/>
+	<path id="path177" fill="#FF3366" d="M565.86,622.698c-31.798,8.139-65.223-15.313-74.743-52.473
+		c-9.474-37.034,8.574-73.714,40.245-81.808c31.797-8.14,65.224,15.313,74.784,52.386
+		C615.579,577.923,597.571,614.518,565.86,622.698z"/>
+	<path id="path181" fill="none" d="M565.86,622.698c-31.798,8.139-65.223-15.313-74.743-52.473
+		c-9.474-37.034,8.574-73.714,40.245-81.808c31.797-8.14,65.224,15.313,74.784,52.386
+		C615.579,577.923,597.571,614.518,565.86,622.698z"/>
+	<path id="path183" fill="#0000FF" d="M549.057,580.463c-14.274,3.623-30.218-10.315-35.548-31.048
+		c-5.375-20.86,1.907-40.746,16.266-44.328c14.228-3.749,30.173,10.189,35.547,31.049
+		C570.652,556.869,563.372,576.756,549.057,580.463z"/>
+	<path id="path187" fill="none" d="M549.057,580.463c-14.274,3.623-30.218-10.315-35.548-31.048
+		c-5.375-20.86,1.907-40.746,16.266-44.328c14.228-3.749,30.173,10.189,35.547,31.049
+		C570.652,556.869,563.372,576.756,549.057,580.463z"/>
+
+		<text transform="matrix(0.9063 0.4226 -0.4226 0.9063 660.7561 513.2013)" fill="#808080" font-family="'ArialMT'" font-size="15.2079px">T</text>
+
+		<text transform="matrix(0.9063 0.4226 -0.4226 0.9063 669.1085 517.0961)" fill="#808080" font-family="'ArialMT'" font-size="15.2079px">M</text>
+	<path id="path195" fill="#0000FF" d="M796.83,365.331c-6.942,1.168-14.899-11.457-17.826-28.344
+		c-3.054-16.84,0.203-31.472,7.058-32.68c6.856-1.207,14.899,11.457,17.826,28.344C806.857,349.451,803.686,364.123,796.83,365.331z
+		"/>
+	<path id="path199" fill="none" d="M796.83,365.331c-6.942,1.168-14.899-11.457-17.826-28.344
+		c-3.054-16.84,0.203-31.472,7.058-32.68c6.856-1.207,14.899,11.457,17.826,28.344C806.857,349.451,803.686,364.123,796.83,365.331z
+		"/>
+
+		<rect x="551.153" y="428.32" transform="matrix(0.4226 -0.9063 0.9063 0.4226 -70.9303 749.6747)" stroke="#000000" stroke-width="1.0588" stroke-miterlimit="10" width="3.517" height="4.372"/>
+</g>
+</svg>
+        Rendering Pod Distribution</header>
+        <div class="toc-glossary">
+            <table id="TOC">
+        <caption>Table of Contents</caption>
+        <tr class="toc-level-1">
+            <td class="toc-text"><a href="#rendering_strategy"><span class="toc-counter">1</span> Rendering Strategy</a></td>
+        </tr>
+        <tr class="toc-level-1">
+            <td class="toc-text"><a href="#creating_a_renderer"><span class="toc-counter">2</span> Creating a Renderer</a></td>
+        </tr>
+        <tr class="toc-level-1">
+            <td class="toc-text"><a href="#templates"><span class="toc-counter">3</span> Templates</a></td>
+        </tr>
+        <tr class="toc-level-2">
+            <td class="toc-text"><a href="#string_template"><span class="toc-counter">3.1</span> String Template</a></td>
+        </tr>
+        <tr class="toc-level-2">
+            <td class="toc-text"><a href="#block_templates"><span class="toc-counter">3.2</span> Block Templates</a></td>
+        </tr>
+        <tr class="toc-level-1">
+            <td class="toc-text"><a href="#change_the_templating_engine"><span class="toc-counter">4</span> Change the Templating Engine</a></td>
+        </tr>
+        <tr class="toc-level-1">
+            <td class="toc-text"><a href="#methods_provided_by_processedpod"><span class="toc-counter">5</span> Methods Provided by ProcessedPod</a></td>
+        </tr>
+        <tr class="toc-level-2">
+            <td class="toc-text"><a href="#replace-template"><span class="toc-counter">5.1</span> replace-template</a></td>
+        </tr>
+        <tr class="toc-level-2">
+            <td class="toc-text"><a href="#rewrite-target"><span class="toc-counter">5.2</span> rewrite-target</a></td>
+        </tr>
+        <tr class="toc-level-2">
+            <td class="toc-text"><a href="#process-pod"><span class="toc-counter">5.3</span> process-pod</a></td>
+        </tr>
+        <tr class="toc-level-2">
+            <td class="toc-text"><a href="#render-block"><span class="toc-counter">5.4</span> render-block</a></td>
+        </tr>
+        <tr class="toc-level-2">
+            <td class="toc-text"><a href="#render-tree"><span class="toc-counter">5.5</span> render-tree</a></td>
+        </tr>
+        <tr class="toc-level-2">
+            <td class="toc-text"><a href="#delete-pod-structure"><span class="toc-counter">5.6</span> delete-pod-structure</a></td>
+        </tr>
+        <tr class="toc-level-2">
+            <td class="toc-text"><a href="#file-wrap"><span class="toc-counter">5.7</span> file-wrap</a></td>
+        </tr>
+        <tr class="toc-level-2">
+            <td class="toc-text"><a href="#source-wrap"><span class="toc-counter">5.8</span> source-wrap</a></td>
+        </tr>
+        <tr class="toc-level-2">
+            <td class="toc-text"><a href="#individual_component_renderers"><span class="toc-counter">5.9</span> Individual component renderers</a></td>
+        </tr>
+        <tr class="toc-level-1">
+            <td class="toc-text"><a href="#class_attributes_that_may_be_useful"><span class="toc-counter">6</span> Class Attributes that may be useful</a></td>
+        </tr>
+        <tr class="toc-level-1">
+            <td class="toc-text"><a href="#minimum_template_set"><span class="toc-counter">7</span> Minimum Template Set</a></td>
+        </tr>
+    </table>
+
+        
+        </div>
+        <div class="pod-body">
+            <section name="___top"><h1 class="title" id="rendering_pod_distribution">Rendering Pod Distribution</h1><div class="subtitle"><p>A generic distribution to render Pod in a file (program or module) or in a cache (eg. the Raku documentation collection)</p></div><p>This distribution ('distribution' because it contains several modules and other resources) provides a generic class <code>ProcessedPod</code>
+            , which accepts templates, and renders one or more Pod trees. The class collects the information in the Pod files to create page components, such as Table of Contents, Glossary, Metadata (eg. Author, version, etc), and Footnotes.</p><p>The output depends entirely on the templates. The body of the text, TOC, Glossary, and Footnotes can be output or suppressed, and their position can be controlled using a combination of templates, or in the case of HTML, templates and CSS. It also means that the same generic class can be used for HTML and MarkDown.</p><p>Two other modules are provided: Pod::To::HTML and Pod::To::MarkDown. For more information on them, see <a href="pod2html.html">Pod::To::HTML</a>
+            . These have the functionality and default templates to be used in conjunction with the <strong>raku</strong> (aka perl6) compiler option <code>--doc=name</code>
+            .</p><p>The aim of ProcessedPod is to allow for a more flexible mechanism for rendering POD. For example, when multiple POD6 files are combined each individual source generates TOC, Glossary, Footnotes, and Metadata information. There is no single way these can be combined, and different uses will need a different approach. For example, a flat-file HTML page will need separate pages for each source, with a landing page and global TOC and glossary pages to link them all.</p><p>The <code>Pod::To::HTML</code>
+             has a simple way of handling customised CSS, but no way to access embedded images other than svg files. Modifying the templates, when there is information about the serving environment, can change this.</p><p>This module uses the Moustache templating system at <code>Template::Mustache</code>
+            . More later on how to change this.</p><h1 id="rendering_strategy"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Rendering Strategy</a></h1>
+            <p>A rendering strategy is required for a complex task consisting of many Pod sources.</p><p>A rendering strategy has to consider:</p>    <ul>
+        <li><p>The pod contained in a single file may be provided as one or more trees of Pod blocks. A pod tree may contain blocks to be referred to in a Table of Contents (TOC), and also it may contain anchors to which other documentation may point. This means that the pod in each separate file will automatically produces its own TOC (a list of headers in the order in which they appear in the pod tree(s), and its own Glossary (a list of terms that are encountered, perhaps multiple times for each term, within the text).</p></li>
+            <li><p>When only a single file source is used (such as when a Pod::To::name is called by the compiler), then the content, TOC and glossary have to be rendered together.</p></li>
+            <li><p>Multiple pod files will by definition exist in a collection that should be rendered together in a consistent manner. The content from a single source file will be called a <strong>Component</strong>. This will be handled in another module raku-render-collection There have to be the following facilities</p></li>
+            <li><p>A strategy to create one or more TOC's for the whole collection that collect and combine all the <strong>Component</strong> TOC's. The intent is to allow for TOCs that are designed and do not follow the alphabetical name of the <strong>Component</strong> source, together with a default alphabetical list.</p></li>
+            <li><p>A strategy to create one or more Glossary(ies) from all the <strong>Component</strong> glossaries</p></li>
+            
+    </ul>
+<h1 id="creating_a_renderer"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Creating a Renderer</a></h1>
+            <p>The first step in rendering is to create a renderer.</p><p>The renderer needs to take into account the output format, eg., html, incorporate non-default templates (eg., a designer may want to have customised classes in paragraphs or headers). The Pod renderer requires templates for a number of document elements, see TEMPLATES below.</p><p>Essentially, a hash of element keys pointing to Mustache strings is provided to the renderer. The <code>Pod::To::HTML</code>
+             and <code>Pod::To::MarkDown</code>
+             modules in this distribution provide default templates to the <code>ProcessedPod</code>
+             class.</p><p>The renderer can be customised on-the-fly by rewriting the keys of the template hash. For example,</p><pre class="pod-block-code">
+    use RenderPod;
+    my $renderer .= RenderPod.new;
+    $renderer.tmpl&lt;format-b&gt; =  '&lt;strong class=&quot;myStrongClass {{# addClass }}{{ addClass }}{{/ addClass }}&quot;&gt;{{{ contents }}}&lt;/strong&gt;';
+    # was 'format-b' =&gt; '&lt;strong{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/strong&gt;'
+    # the effect of this change is to add myStrongClass to all instances of B&lt;&gt; including any extra classes added by the POD
+</pre>
+<p>This would be wanted if a different rendering of bold is needed in some source file, or a page component. Bear in mind that for HTML, it is probably better to add another css class to a specific paragraph (for example) using the Pod config metadata. This is picked up by ProcessedPod (as can be seen in the above example where <code>addClass</code>
+             is used to add an extra class to the <code>&lt;strong&gt; </code>
+             container.</p><h1 id="templates"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Templates</a></h1>
+            <p>The nature of the templates and their interpretation depends on the <code>rendition</code>
+             method, which must be over-ridden for a different templating engine.</p><p>When a ProcessPod instance is instantiated, a templating object xxxx can be passed via the <code>:template</code>
+             parameter, eg.</p><pre class="pod-block-code">
+my $p = ProcessedPod.new(:templates( xxxx ) );
+</pre>
+<p>If the object is a Hash, then it is considered a Hash of the templates, and verified for completeness.</p><p>If the object is a String, then it is considered a <code>path/filename</code>
+             to a file containing a raku program that evaluates to a Hash, which is then verified as a Hash of templates.</p><p>The <code>Pod::To::HTML</code>
+             module <strong>only</strong> will look for a file 'html-templates.raku' in the current working directory, and evalate that.</p><p>Each entry in the template Hash can be either (a) a String or (b) a block.</p><h2 id="string_template"><a href="#rendering_pod_distribution" class="u" title="go to top of document">String Template</a></h2>
+            <p>For example if <code>'escaped' =</code>
+             '{{ contents }}', &gt; is a line in a hash declaration of the templatess, then the right hand side is the <code>Mustache</code>
+             template for the <code>escaped</code>
+             key. The template engine is called with a hash containing String data that are interpolated into the template. <code>contents</code>
+             is provided for all keys, but some keys have more complex data.</p><h2 id="block_templates"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Block Templates</a></h2>
+            <p><code>Mustache</code>
+             by design is not intended to have any logic. This is not always convenient. So the template Hash can be provided with a block that can pre-process the data provided to the Mustache engine, or change the template. The block must return a String with a valid Mustache template.</p><p>For example,</p><pre class="pod-block-code">
+'escaped' =&gt; -&gt; %params { %params&lt;contents&gt;.subst-mutate(/\'/, '&amp;39;', :g ); '{{ contents }}' }
+
+</pre>
+<p>The block is called with a Hash parameter that is assigned to <code>%params</code>
+            . The <code>contents</code>
+             key of <code>%params</code>
+            ) is adjusted because <code>Mustache</code>
+             does not escape single-quotes.</p><h1 id="change_the_templating_engine"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Change the Templating Engine</a></h1>
+            <p>In order to change the Templating Engine, <code>PodProcessed</code>
+             needs to be subclassed and a single method, namely <code>method rendition( Str $key, Hash %params --</code>
+             Str )&gt; needs to be overwritten.</p><p>Suppose that the templating engine is NewTemplateEngine, and that - like Template::Mustache - it is instantiates with <code>.new</code>
+            , and has a <code>.render</code>
+             method which takes a String template, and Hash of strings to interpolate, and which returns a String, viz <code>.render( Str $template, Hash %params --</code>
+             Str )&gt;.</p><p>Then the method would be:</p><pre class="pod-block-code">
+use NewTemplateEngine;
+use PodProcessed;
+use PodProcessed::Exceptions;
+
+class PodProcess::NewTemplateEngine is PodProcessed {
+
+    #| maps the key to template and renders the block
+    method rendition(Str $key, %params --&gt; Str) {
+        $.engine = NewTemplateEngine.new without $.engine;
+        return '' if $key eq 'zero';
+        # zero is a special case as it must be guaranteed to have no EOL.
+        X::ProcessedPod::Non-Existent-Template.new( :$key ).throw
+                unless %.tmpl{$key}:exists;
+        # templating engines like mustache do not handle logic or loops, which some Pod formats require.
+        # hence we pass a Subroutine instead of a string in the template
+        # the subroutine takes the same parameters as rendition and produces a mustache string
+        # eg P format template escapes containers
+
+        note &quot;At $?LINE rendering with \&lt;$key&gt;&quot; if $.debug;
+        $.engine.render(
+            %tmpl{ $key } ~~ Block ??
+            %.tmpl{$key}(  %params ) # if the template is a block, then run as sub and pass in the params
+            !! %.tmpl{$key}
+            , %params , :literal
+        )
+    }
+}
+
+</pre>
+<h1 id="methods_provided_by_processedpod"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Methods Provided by ProcessedPod</a></h1>
+            <h2 id="replace-template"><a href="#rendering_pod_distribution" class="u" title="go to top of document">replace-template</a></h2>
+            <pre class="pod-block-code">
+method replace-template( %new-templates )</pre>
+<p>Allows for templates to be replaced during pod processing</p><h2 id="rewrite-target"><a href="#rendering_pod_distribution" class="u" title="go to top of document">rewrite-target</a></h2>
+            <p>This method may need to be over-ridden, eg., for MarkDown which uses a different targetting function.</p><pre class="pod-block-code">
+method rewrite-target(Str $candidate-name is copy, :$unique --&gt; Str )</pre>
+<p>Rewrites targets (link destinations) to be made unique and to be cannonised depending on the output format. Takes the candidate name and whether it should be unique, returns with the cannonised link name Target names inside the POD file, eg., headers, glossary, footnotes The function is called to cannonise the target name and to ensure - if necessary - that The target name used in the link is unique. This method uses the default algorithm for HTML and POD</p><p>When indexing a unique target is needed even when same entry is repeated When a Heading is a target, the reference must come from the name</p><h2 id="process-pod"><a href="#rendering_pod_distribution" class="u" title="go to top of document">process-pod</a></h2>
+            <pre class="pod-block-code">
+method process-pod( $pod ) {</pre>
+<p>Process the pod block or tree passed to it, and concatenates it to previous pod tree. Returns a string representation of the tree in the required format</p><h2 id="render-block"><a href="#rendering_pod_distribution" class="u" title="go to top of document">render-block</a></h2>
+            <pre class="pod-block-code">
+method render-block( $pod )</pre>
+<p>Renders a pod tree, but probably a block Returns only the pod that was passed</p><h2 id="render-tree"><a href="#rendering_pod_distribution" class="u" title="go to top of document">render-tree</a></h2>
+            <pre class="pod-block-code">
+method render-tree( $pod )</pre>
+<p>Tenders the whole pod tree Is actually an alias to process-pod</p><h2 id="delete-pod-structure"><a href="#rendering_pod_distribution" class="u" title="go to top of document">delete-pod-structure</a></h2>
+            <pre class="pod-block-code">
+method delete-pod-structure</pre>
+<p>Deletes any previously processed pod, keeping the template engine cache Returns the pod-structure deleted as a Hash, for storage in an array when multiple files are processed.</p><h2 id="file-wrap"><a href="#rendering_pod_distribution" class="u" title="go to top of document">file-wrap</a></h2>
+            <pre class="pod-block-code">
+method file-wrap(:$filename = $.name, :$ext = 'html' )</pre>
+<p>Saves the rendered pod tree as a file, and its document structures, uses source wrap Filename defaults to the name of the pod tree, and ext defaults to html</p><h2 id="source-wrap"><a href="#rendering_pod_distribution" class="u" title="go to top of document">source-wrap</a></h2>
+            <pre class="pod-block-code">
+method source-wrap( --&gt; Str )</pre>
+<p>Renders all of the document structures, and wraps them and the body Uses the source-wrap template</p><h2 id="individual_component_renderers"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Individual component renderers</a></h2>
+            <p>The following are called by <code>source-wrap</code>
+             but could be called separately, eg., if a different textual template such as <code>format-b</code>
+             should be used inside the component.</p>    <ul>
+        <li><p>method render-toc( --&gt; Str )</p></li>
+            <li><p>method render-glossary(--&gt;Str)</p></li>
+            <li><p>method render-footnotes(--&gt; Str)</p></li>
+            <li><p>method render-meta(--&gt; Str)</p></li>
+            
+    </ul>
+<h1 id="class_attributes_that_may_be_useful"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Class Attributes that may be useful</a></h1>
+            <pre class="pod-block-code">
+# provided at instantiation or by attributes on Class instance
+has $.front-matter is rw = 'preface'; # Text between =TITLE and first header, this is used to refer for textual placenames
+has Str $.name is rw;
+has Str $.title is rw = $!name;
+has Str $.subtitle is rw = '';
+has Str $.path is rw; # should be path of original document, defaults to $.name
+has Str $.top is rw = $!default-top; # defaults to top, then becomes target for TITLE
+has &amp;.highlighter is rw; # a callable (eg. provided by external program) that converts [html] to highlighted raku code
+
+# Output rendering information
+has Bool $.no-meta is rw = False; # set to True eliminates meta data rendering
+has Bool $.no-footnotes is rw = False; # set to True eliminates rendering of footnotes
+has Bool $.no-toc is rw = False; # set to True to exclude TOC even if there are headers
+has Bool $.no-glossary is rw = False; # set to True to exclude Glossary even if there are internal anchors
+
+# debugging
+has Bool $.debug is rw; # outputs to STDERR information on processing
+has Bool $.verbose is rw; # outputs to STDERR more detail about errors.</pre>
+<h1 id="minimum_template_set"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Minimum Template Set</a></h1>
+            <p>There is a minumum set of templates that must be provided. A ProcessPod instance will not be generated if the minimum set of keys is not generated.</p><p>The following is a set of templates (the actual templates here are not guaranteed to be the default in Pod::To::HTML).</p><p>If the code below is copied to a file and the file provided to the <code>:templates</code>
+             argument, then <code>PodProcessed</code>
+             will generate an HTML file.</p><p>In <code>Pod::To::HTML</code>
+             the variables <code>$css-text</code>
+             and <code>$camelia-bug</code>
+             are populated with data in other directories in this distribution.</p><pre class="pod-block-code">
+use v6.d;
+my $css-text = '';
+my $camelia-bug = '';
+%(
+        :escaped&lt;{{ contents }}&gt;,
+        :raw&lt;{{{ contents }}}&gt;,
+
+        'block-code' =&gt; q:to/TEMPL/,
+            &lt;pre class=&quot;pod-block-code{{# addClass }} {{ addClass }}{{/ addClass}}&quot;&gt;
+            {{# contents }}{{{ contents }}}{{/ contents }}&lt;/pre&gt;
+            TEMPL
+
+        'comment' =&gt; '&lt;!-- {{{ contents }}} --&gt;',
+
+        'defn' =&gt; '&lt;dl&gt;&lt;dt&gt;{{ term }}&lt;/dt&gt;&lt;dd&gt;{{{ contents }}}&lt;/dd&gt;&lt;/dl&gt;
+        ',
+        'format-b' =&gt; '&lt;strong{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/strong&gt;',
+
+        'format-c' =&gt; '&lt;code{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/code&gt;
+        ',
+
+        'format-i' =&gt; '&lt;em{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/em&gt;',
+
+        'format-k' =&gt; '&lt;kbd{{# addClass }}class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/kbd&gt;
+        ',
+
+        'format-l' =&gt; '&lt;a href=&quot;{{ target }}&quot;{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass}}&gt;{{{ contents }}}&lt;/a&gt;
+        ',
+
+        'format-n' =&gt; '&lt;sup&gt;&lt;a name=&quot;{{ retTarget }}&quot; href=&quot;#{{ fnTarget }}&quot;&gt;[{{ fnNumber }}]&lt;/a&gt;&lt;/sup&gt;
+        ',
+
+        'format-p' =&gt; -&gt; %params {
+            %params&lt;contents&gt; = %params&lt;contents&gt;.=trans( [ '&lt;'   , '&gt;'  ] =&gt; [ '&amp;lt;', '&amp;gt;' ]);
+            '&lt;div{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;&lt;pre&gt;{{{ contents }}}&lt;/pre&gt;&lt;/div&gt;'
+        },
+
+        'format-r' =&gt; '&lt;var{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/var&gt;',
+
+        'format-t' =&gt; '&lt;samp{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/samp&gt;',
+
+        'format-u' =&gt; '&lt;u{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/u&gt;',
+
+        'format-x' =&gt; '{{^ header }}&lt;a name=&quot;{{ target }}&quot;&gt;&lt;/a&gt;{{/ header }}{{# text }}&lt;span class=&quot;glossary-entry{{# addClass }} {{ addClass }}{{/ addClass }}&quot;&gt;{{{ text }}}&lt;/span&gt;{{/ text }} ',
+
+        'heading' =&gt; '&lt;h{{# level }}{{ level }}{{/ level }} id=&quot;{{ target }}&quot;&gt;&lt;a href=&quot;#{{ top }}&quot; class=&quot;u&quot; title=&quot;go to top of document&quot;&gt;{{{ text }}}&lt;/a&gt;&lt;/h{{# level }}{{ level }}{{/ level }}&gt;
+        ',
+
+        'item' =&gt; '&lt;li{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/li&gt;
+        ',
+
+        'list' =&gt; q:to/TEMPL/,
+                &lt;ul&gt;
+                    {{# items }}{{{ . }}}{{/ items}}
+                &lt;/ul&gt;
+            TEMPL
+
+        'named' =&gt; q:to/TEMPL/,
+            &lt;section name=&quot;{{ name }}&quot;&gt;
+                &lt;h{{# level }}{{ level }}{{/ level }} id=&quot;{{ target }}&quot;&gt;&lt;a href=&quot;#{{ top }}&quot; class=&quot;u&quot; title=&quot;go to top of document&quot;&gt;{{{ name }}}&lt;/a&gt;&lt;/h{{# level }}{{ level }}{{/ level }}&gt;
+                {{{ contents }}}
+            &lt;/section&gt;
+            TEMPL
+
+        'notimplemented' =&gt; '&lt;span class=&quot;pod-block-notimplemented&quot;&gt;{{{ contents }}}&lt;/span&gt;',
+
+        'output' =&gt; '&lt;pre class=&quot;pod-output&quot;&gt;{{{ contents }}}&lt;/pre&gt;',
+
+        'para' =&gt; '&lt;p{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/p&gt;',
+
+        'section' =&gt; q:to/TEMPL/,
+            &lt;section name=&quot;{{ name }}&quot;&gt;{{{ contents }}}{{{ tail }}}
+            &lt;/section&gt;
+            TEMPL
+
+        'subtitle' =&gt; '&lt;div class=&quot;subtitle{{# addClass }} {{ addClass }}{{/ addClass }}&quot;&gt;{{{ contents }}}&lt;/div&gt;',
+
+        'table' =&gt; q:to/TEMPL/,
+            &lt;table class=&quot;pod-table{{# addClass }} {{ addClass }}{{/ addClass }}&quot;&gt;
+                {{# caption }}&lt;caption&gt;{{{ caption }}}&lt;/caption&gt;{{/ caption }}
+                {{# headers }}&lt;thead&gt;
+                    &lt;tr&gt;{{# cells }}&lt;th&gt;{{{ . }}}&lt;/th&gt;{{/ cells }}&lt;/tr&gt;
+                &lt;/thead&gt;{{/ headers }}
+                &lt;tbody&gt;
+                    {{# rows }}&lt;tr&gt;{{# cells }}&lt;td&gt;{{{ . }}}&lt;/td&gt;{{/ cells }}&lt;/tr&gt;{{/ rows }}
+                &lt;/tbody&gt;
+            &lt;/table&gt;
+            TEMPL
+
+        'title' =&gt; '&lt;h1 class=&quot;title{{# addClass }} {{ addClass }}{{/ addClass }}&quot; id=&quot;{{ target }}&quot;&gt;{{{ text }}}&lt;/h1&gt;',
+
+        # templates used by output methods, eg., source-wrap, file-wrap, etc
+        'source-wrap' =&gt; q:to/TEMPL1/ ~ $css-text ~ q:to/TEMPL2/ ~ $camelia-svg ~ q:to/TEMPL3/,
+            &lt;!doctype html&gt;
+            &lt;html lang=&quot;en&quot;&gt;
+                &lt;head&gt;
+                    &lt;title&gt;{{ title }}&lt;/title&gt;
+                    &lt;meta charset=&quot;UTF-8&quot; /&gt;
+            TEMPL1
+                {{# metadata }}{{{ metadata }}}{{/ metadata }}
+                &lt;/head&gt;
+                &lt;body class=&quot;pod&quot;&gt;
+                    &lt;header&gt;
+            TEMPL2
+                    {{ title }}&lt;/header&gt;
+                    &lt;div class=&quot;toc-glossary&quot;&gt;
+                    {{# toc }}{{{ toc }}}{{/ toc }}
+                    {{# glossary }}{{{ glossary }}}{{/ glossary }}
+                    &lt;/div&gt;
+                    &lt;div class=&quot;pod-body{{^ toc }} no-toc{{/ toc }}&quot;&gt;
+                        {{{ body }}}
+                    &lt;/div&gt;
+                    {{# footnotes }}{{{ footnotes }}}{{/ footnotes }}
+
+                    &lt;footer&gt;&lt;div&gt;Rendered from &lt;span class=&quot;path&quot;&gt;{{ path }}{{^ path }}Unknown{{/ path}}&lt;/span&gt;&lt;/div&gt;
+                         &lt;div&gt;at &lt;span class=&quot;time&quot;&gt;{{ renderedtime }}{{^ renderedtime }}a moment before time began!?{{/ renderedtime }}&lt;/span&gt;&lt;/div&gt;
+                    &lt;/footer&gt;
+                &lt;/body&gt;
+            &lt;/html&gt;
+            TEMPL3
+
+        'footnotes' =&gt; q:to/TEMPL/,
+            &lt;div class=&quot;footnotes&quot;&gt;
+                &lt;ol&gt;{{# notes }}
+                    &lt;li id=&quot;{{ fnTarget }}&quot;&gt;{{{ text }}}&lt;a class=&quot;footnote&quot; href=&quot;#{{ retTarget }}&quot;&gt; « Back »&lt;/a&gt;&lt;/li&gt;
+                    {{/ notes }}
+                &lt;/ol&gt;
+            &lt;/div&gt;
+            TEMPL
+
+        'glossary' =&gt; q:to/TEMPL/,
+                 &lt;table id=&quot;Glossary&quot;&gt;
+                    &lt;caption&gt;Glossary&lt;/caption&gt;
+                    &lt;tr&gt;&lt;th&gt;Term&lt;/th&gt;&lt;th&gt;Section Location&lt;/th&gt;&lt;/tr&gt;
+                    {{# glossary }}
+                    &lt;tr class=&quot;glossary-defn-row&quot;&gt;
+                        &lt;td class=&quot;glossary-defn&quot;&gt;{{{ text }}}&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;
+                        {{# refs }}&lt;tr class=&quot;glossary-place-row&quot;&gt;&lt;td&gt;&lt;/td&gt;&lt;td class=&quot;glossary-place&quot;&gt;&lt;a href=&quot;#{{ target }}&quot;&gt;{{{ place }}}&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;{{/ refs }}
+                    {{/ glossary }}
+                &lt;/table&gt;
+            TEMPL
+
+        'meta' =&gt; q:to/TEMPL/,
+                 {{# meta }}
+                    &lt;meta name=&quot;{{ name }}&quot; value=&quot;{{ value }}&quot; /&gt;
+                {{/ meta }}
+            TEMPL
+
+        'toc' =&gt; q:to/TEMPL/,
+                &lt;table id=&quot;TOC&quot;&gt;
+                    &lt;caption&gt;Table of Contents&lt;/caption&gt;
+                    {{# toc }}
+                    &lt;tr class=&quot;toc-level-{{ level }}&quot;&gt;
+                        &lt;td class=&quot;toc-text&quot;&gt;&lt;a href=&quot;#{{ target }}&quot;&gt;{{# counter }}&lt;span class=&quot;toc-counter&quot;&gt;{{ counter }}&lt;/span&gt;{{/ counter }} {{ text }}&lt;/a&gt;&lt;/td&gt;
+                    &lt;/tr&gt;
+                    {{/ toc }}
+                &lt;/table&gt;
+            TEMPL
+    )
+)
+</pre>
+
+</section>
+
+        </div>
+        
+
+        <footer><div>Rendered from <span class="path">RenderPod.pod6</span></div>
+             <div>at <span class="time">2020-06-28T20:27:55Z</span></div>
+        </footer>
+    </body>
+</html>
+

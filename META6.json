@@ -1,32 +1,38 @@
 {
-  "name": "raku-pod-render",
+  "name": "Raku::Pod::Render",
   "description": "A generic Pod Renderer for single or multiple files using templates, provides HTML and MarkDown",
   "version": "2.1",
   "perl": "6.*",
   "auth": "github:finanalyst",
   "depends": [
-    "Template::Mustache:auth<github.finanalyst>",
+    "Template::Mustache",
     "URI",
     "LibCurl"
   ],
   "build-depends": [],
   "test-depends": [
     "Test",
-    "Test::Output"
+    "Test::Output",
+    "Test::META"
   ],
   "provides": {
     "Pod::To::HTML": "lib/Pod/To/HTML.pm6",
     "Pod::To::MarkDown": "lib/Pod/To/MarkDown.pm6",
-    "ProcessedPod": "lib/ProcessedPod.pm6"
+    "ProcessedPod": "lib/ProcessedPod.pm6",
+    "ProcessedPod::Exceptions": "lib/ProcessedPod/Exceptions.pm6"
   },
   "resources": [
-    "pod.css"
+    "pod.css",
+    "Camelia.svg",
+    "favicon.ico"
   ],
   "support": {
-    "source": "https://github.com/finanalyst/raku-pod-render"
+    "source": "https://github.com/finanalyst/raku-pod-render.git",
+    "bugtracker": "https://github.com/finanalyst/raku-pod-render/issues",
+    "email": "richard@hainsworth.wales"
   },
   "license": "Artistic-2.0",
   "source-url": "git://github.com/finanalyst/raku-pod-render.git",
-  "author": "Richard Hainsworth",
+  "authors": [ "Richard Hainsworth" ],
   "source-type": "git"
 }

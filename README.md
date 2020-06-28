@@ -1,28 +1,11 @@
 # Generic Renderer for POD files
 
-Currently this project is still under development.
-
 Intended
 - to be a plugin replacement for original Pod::To::HTML and to pass all its tests.
 - use Templates for all output (P2HTML hard codes HTML)
-- use the same API for outputting MardDown and other output formats. Hence simply changing templates will generate new output
-- if cached templates are available, will use cached templates rather than re-reading templates.
+- use the same API for outputting MarkDown and other output formats. Hence simply changing templates will generate new output
 - generate Glossary, TOC and Footnote structures for each set of Pod trees.
 - can be used to generate HTML and Markdown with raku's --doc flag.
-
-This version relies heavily on a templating engine, (eg. Template::Mustache), and so caching is important.
-The cannonical version of Template::Mustache is not cached. I have PR with a cached version.
-Without caching, a large Pod file takes several seconds to render.
-
-The version of Template::Mustache under finanalyst is a cached version.
-
-Assuming the auth: "github:finanalyt" version is cloned to p6-Template-Mustache, then the following will work
-
-```
-prove -vre 'raku -Ilib -I../p6-Template-Mustache'
-```
-
-For more information look at the Pod in `lib/Pod/To/HTML`
 
 ## TOC, Footnotes, Glossaries and Links
 
@@ -62,11 +45,7 @@ applications, hovering is not convenient, and other solutions are being found.
 ProcessedPod creates an array in order of footnote creation with the number of the footnote, and target and return
 anchors.
 
-### Links
+# More Information
 
-A link contains both a text, which is shown to the reader, and an underlying target, usually of the form 'https://...'
-
-POD also provides for links within a document, and also to documents within a collection of POD files.
-
-There is a method 'register-links' which can be over-ridden in a subclass so that all links in a Processed Pod
-document can be collected, eg. to test whether links are 'live'.
+See [RenderPod](renderpod.html) for the generic module and [Pod::To::HTML](pod2html.html) for the HTML 
+specific module. `Pod::To::Markdown` follows `Pod::To::HTML` mostly.

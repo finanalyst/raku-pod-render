@@ -19,6 +19,7 @@ like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>'
 
 lives-ok { $processor = Pod::To::HTML.processor }, 'returns a renderer OK';
 like $processor.WHAT.perl, /ProcessedPod/, 'correct return type';
+
 $processor.process-pod($=pod[$pc++]);
 $rv = $processor.source-wrap;
 like $rv,
