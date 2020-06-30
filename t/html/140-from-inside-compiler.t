@@ -24,7 +24,7 @@ like $rv,
             \s* '<caption>Table of Contents</caption>'
             \s* '<tr class="toc-level-2">'
             \s* '<td class="toc-text">'
-            \s* '<a href="#this_is_a_heading">'
+            \s* '<a href="#This_is_a_heading">'
             .+ 'This is a heading</a>'
             \s* '</td>'
             \s* '</tr>'

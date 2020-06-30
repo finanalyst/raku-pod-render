@@ -6,7 +6,7 @@ use Pod::To::HTML;
 my $processor = Pod::To::HTML.processor;
 my $rv;
 my $pn = 0;
-
+#$processor.debug =True;
 plan 7;
 
 =begin pod
@@ -234,7 +234,7 @@ like $rv,
     .+ 'for re-using'
     .+ '</li>'
     \s* '</ul>'
-    \s* '<h3 id="*_glob">'
+    \s* '<h3 id="*_Glob">'
     \s* '<a href="'
     .+ 'class="u" title="go to top of document"><code>*</code>'
     \s* 'Glob</a></h3>'

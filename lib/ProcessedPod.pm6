@@ -6,13 +6,13 @@ use URI;
 use LibCurl::Easy;
 use trace;
 unit class ProcessedPod;
-
+    class Pseudo { has $.contents }; # required for the highlighter
     # template related variables independently of the templating system
     has %.tmpl;
     has @!required = < raw comment escaped glossary footnotes
             format-c block-code format-u para format-b named source-wrap defn output format-l
             format-x heading title format-n format-i format-k format-p meta list subtitle format-r
-            format-t table item notimplemented section toc >;
+            format-t table item notimplemented section toc pod >;
     has $.engine; # slot for template engine. Should only be set in first call to rendition, or after call to replace-template
 
     # defaults
@@ -26,6 +26,8 @@ unit class ProcessedPod;
     has Str $.path is rw; # should be path of original document, defaults to $.name
     has Str $.top is rw = $!default-top; # defaults to top, then becomes target for TITLE
     has &.highlighter is rw; # a callable (eg. provided by external program) that converts [html] to highlighted raku code
+    # highlighter is expected to be a callback, a sub expecting :node, which should have a method .contents, and :default
+    # which uses the value of node.contents to generate a string.
 
     # Output rendering information
     has Bool $.no-meta is rw = False; # set to True eliminates meta data rendering
@@ -37,15 +39,12 @@ unit class ProcessedPod;
     has Bool $.debug is rw; # outputs to STDERR information on processing
     has Bool $.verbose is rw; # outputs to STDERR more detail about errors.
 
-    # supplied via process-pod
-    has $!pod-tree; # pod tree supplied to renderer
-
     # populated by process-pod method
-    has Str $.pod-body is rw; # rendition of whole source, but not including toc or glossary
+    has Str $.pod-body is rw; # single process call
     has Str $.body is rw = ''; # concatenation of multiple process calls
     has @.metadata; # information to be included in eg html header
     has Str $!metadata; # metadata when rendered
-    has @.toc; # toc structure
+    has @.toc; # toc structure , collected and rendered separately to body
     has Str $!toc; # rendered toc
     has %.glossary; # glossary structure
     has Str $!glossary; # rendered glossary
@@ -74,6 +73,7 @@ unit class ProcessedPod;
         given $templates {
             when Hash { %!tmpl = $templates }
             when Str {
+                #use SEE_NO_EVAL;
                 %!tmpl = EVALFILE $templates ;
             } # a string is a filename with a compilable file
         }
@@ -154,7 +154,8 @@ unit class ProcessedPod;
 #		// CJK punctuations that are removed
 #		.replace(/[　。？！，、；：“”【】（）〔〕［］﹃﹄“”‘’﹁﹂—…－～《》〈〉「」]/g, '')
 #}
-        $candidate-name = $candidate-name.lc.subst(/\s+/,'_',:g);
+        return $!default-top if $candidate-name eq $!default-top; # don't rewrite the top
+        $candidate-name = $candidate-name.subst(/\s+/,'_',:g);
         if $unique {
             $candidate-name ~= '_0' if $candidate-name (<) $targets;
             ++$candidate-name while $targets{$candidate-name}; # will continue to loop until a unique name is found
@@ -168,8 +169,7 @@ unit class ProcessedPod;
     #| process the pod block or tree passed to it, and concatenates it to previous pod tree
     #| returns a string representation of the tree in the required format
     method process-pod( $pod --> Str ) {
-        $!pod-tree = $pod; # replace any pod, then process it
-        $!pod-body = [~] $!pod-tree>>.&handle( 0, self );
+        $!pod-body = [~] $pod>>.&handle( 0, self );
         $!body ~= $!pod-body # returns accumulated pod-bodies
     }
 
@@ -395,7 +395,7 @@ unit class ProcessedPod;
         }
         note "At $?LINE rendering with template ｢$key｣ list level $in-level" if $!debug;
         $rv ~= self.rendition($key, %params);
-        note "At $?LINE rv is { $rv.substr(0,150) } { '... (' ~ $rv.chars - 150 ~ 'more)' if $rv.chars > 150 } " if $!debug;
+        note "At $?LINE rv is { $rv.substr(0,150) } { '... (' ~ $rv.chars - 150 ~ ' more chars)' if $rv.chars > 150 } " if $!debug;
         $rv
     }
 
@@ -412,13 +412,16 @@ unit class ProcessedPod;
         # first completion is to flush a retained list before the contents of the block are processed
         my $retained-list = $pf.completion($in-level,'zero', %() );
         my $contents =  [~] $node.contents>>.&handle($in-level, $pf );
-        with $pf.highlighter { note "highlighter is defined";
-            $retained-list ~ $pf.highlighter( $contents )
+        my $t = $pf.completion($in-level, 'block-code', %( :$addClass, :$contents ) );
+        {
+            my $node = Pseudo.new(:$contents);
+            if $pf.highlighter -> &cb {
+                $t = cb :$node, default => sub ($node) {
+                    $t
+                }
+            }
         }
-        else {my $t = $pf.completion($in-level, 'block-code', %( :$addClass, :$contents ) );
-        #say $t;
-            $retained-list ~ $t
-        }
+        $retained-list ~ $t;
     }
 
     multi sub handle (Pod::Block::Comment $node, Int $in-level, ProcessedPod $pf, Context $context? = None  --> Str )  {
@@ -447,11 +450,11 @@ unit class ProcessedPod;
         note "At $?LINE node is { $node.WHAT.perl } with name { $node.name // 'na' }" if $pf.debug;
         my $name = $pf.top eq $pf.default-top ?? $pf.default-top !! 'pod' ; # $pf.default-top, until TITLE changes it. Will fail if multiple pod without TITLE
         my $contents =
-        $pf.completion($in-level, 'section', %(
-            :$name,
-            :contents( [~] $node.contents>>.&handle($in-level, $pf )),
-            :tail( $pf.completion(0, 'zero', %() ) )
-        ))
+            $pf.completion($in-level, 'pod', %(
+                :$name,
+                :contents( [~] $node.contents>>.&handle($in-level, $pf )),
+                :tail( $pf.completion(0, 'zero', %() ) )
+            ))
     }
 
     multi sub handle (Pod::Block::Named $node where $node.name eq 'TITLE', Int $in-level, ProcessedPod $pf, Context $context? = None --> Str )  {

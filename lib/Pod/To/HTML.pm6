@@ -34,6 +34,14 @@ class Pod::To::HTML {
         # and store response so its not re-calculated
     }
 
+    proto method processor( | ) {
+        my $p = {*};
+        if %*POD2HTML-CALLBACKS and %*POD2HTML-CALLBACKS<code>:exists {
+            $p.highlighter = %*POD2HTML-CALLBACKS<code>;
+        }
+        $p
+    }
+
     multi method processor( :$templates! ) {
         # providing new templates will eliminate the css functionality built into the default templates
         # but creating custom templates allows for css functionality any way.
@@ -67,7 +75,6 @@ class Pod::To::HTML {
     #| html-templates.json is used for testing using tests from another Pod::To::HTML Module
     method html-templates {
         %(
-            # templates that are used by process-pod
             # note that verbatim V<> does not have its own format because it affects what is inside it (see POD documentation)
             :escaped('{{ contents }}'),
             :raw('{{{ contents }}}'),
@@ -98,7 +105,7 @@ class Pod::To::HTML {
             ',
 
             'format-p' => -> %params {
-                %params<contents> = %params<contents>.=trans( [ '<'   , '>'  ] => [ '&lt;', '&gt;' ]);
+                %params<contents> = %params<contents>.=trans( ['<pre>', '</pre>'] => ['&lt;pre&gt;', '&lt;/pre&gt;' ] );
                 '<div{{# addClass }} class="{{ addClass }}"{{/ addClass }}><pre>{{{ contents }}}</pre></div>'
             },
 
@@ -134,6 +141,9 @@ class Pod::To::HTML {
             'output' => '<pre class="pod-output">{{{ contents }}}</pre>',
 
             'para' => '<p{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</p>',
+
+            'pod' => '<section name="{{ name }}"{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}{{{ tail }}}
+                </section>',
 
             'section' => q:to/TEMPL/,
                 <section name="{{ name }}">{{{ contents }}}{{{ tail }}}
@@ -228,12 +238,25 @@ class Pod::To::HTML {
 }
 
 #| Backwards compatibility for older Pod::To::HTML module
-sub node2html( $pod, :$debug = False ) is export {
+sub node2html( $pod ) is export {
     state $proc = Pod::To::HTML.processor ;
-    $proc.debug = $debug;
+   # $proc.debug = True;
     $proc.render-block( $pod )
 }
 #| Also provided by older Pod::To::HTML module
-sub pod2html( $pod ) is export {
-    node2html($pod)
+sub pod2html( $pod, *%options ) is export {
+    state $proc = Pod::To::HTML.processor ;
+
+    $proc.no-glossary = True; # old HTML did not provide a glossary
+    $proc.debug = True;
+    say "At $?LINE ", $proc.render-block( $pod );
+    $proc.source-wrap
+}
+
+use Pod::Load;
+multi sub render(IO::Path $file, |c) is export {
+    pod2html(load($file))
+}
+multi sub render(Str $string, |c) is export {
+    pod2html(load($string))
 }

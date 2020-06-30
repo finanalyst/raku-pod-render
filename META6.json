@@ -7,7 +7,8 @@
   "depends": [
     "Template::Mustache",
     "URI",
-    "LibCurl"
+    "LibCurl",
+    "Pod::Load"
   ],
   "build-depends": [],
   "test-depends": [

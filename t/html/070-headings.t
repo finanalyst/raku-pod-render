@@ -20,7 +20,7 @@ $rv = $processor.render-block( $=pod[$pn++] );
 like $rv,
         /
         '<section'
-        .+? '<h1 class="title" id="this_is_a_title">This is a title</h1>'  # the first header id
+        .+? '<h1 class="title" id="This_is_a_title">This is a title</h1>'  # the first header id
         \s* '<p>Some text</p>'
         \s* '</section>'
         /,
@@ -30,7 +30,7 @@ $rv = $processor.source-wrap;
 like $rv,
         /
         '<section'
-        .+? '<h1 class="title" id="this_is_a_title">This is a title</h1>'  # the first header id
+        .+? '<h1 class="title" id="This_is_a_title">This is a title</h1>'  # the first header id
         \s* '<p>Some text</p>'
         \s* '</section>'
         /,
@@ -59,11 +59,11 @@ $processor.delete-pod-structure;
 $rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
-        '<h1 class="title" id="a_second_pod_file">A Second Pod File</h1>'
+        '<h1 class="title" id="A_Second_Pod_File">A Second Pod File</h1>'
         \s* '<div class="subtitle">'
         \s* '<p>This is subtitled for testing</p>'
         .+ '<p>Some more text</p>'
-        \s* '<h2 id="this_is_a_heading"><a href="#a_second_pod_file" class="u" title="go to top of document">This is a heading</a></h2>'
+        \s* '<h2 id="This_is_a_heading"><a href="#A_Second_Pod_File" class="u" title="go to top of document">This is a heading</a></h2>'
         \s* '<p>Some text after a heading</p>'
         /, 'subtitle rendered';
 
@@ -74,14 +74,14 @@ like $rv,
         '<table id="TOC">'
         \s* '<caption>Table of Contents</caption>'
         \s* '<tr class="toc-level-2">'
-        \s* '<td class="toc-text"><a href="#this_is_a_heading"><span class="toc-counter">0.1</span> This is a heading</a></td>'
+        \s* '<td class="toc-text"><a href="#This_is_a_heading"><span class="toc-counter">0.1</span> This is a heading</a></td>'
         \s* '</tr>'
         \s* '<tr class="toc-level-1">'
-        \s* '<td class="toc-text"><a href="#an_upper_heading_after_a_second_level_one">'
+        \s* '<td class="toc-text"><a href="#An_upper_heading_after_a_second_level_one">'
         '<span class="toc-counter">1</span> An upper heading after a second level one</a></td>'
         \s* '</tr>'
         \s* '<tr class="toc-level-2">'
-        \s* '<td class="toc-text"><a href="#a_lower_heading_within_upper_one">'
+        \s* '<td class="toc-text"><a href="#A_lower_heading_within_upper_one">'
         \s* '<span class="toc-counter">1.1</span> A lower heading within upper one</a>'
         \s* '</td>'
         \s* '</tr>'
@@ -96,7 +96,7 @@ like $rv,
         '<table id="TOC">'
         \s* '<caption>Table of Contents</caption>'
         \s* '<tr class="toc-level-2">'
-        \s* '<td class="toc-text"><a href="#this_is_a_heading"><span class="toc-counter">0|1</span> This is a heading</a></td>'
+        \s* '<td class="toc-text"><a href="#This_is_a_heading"><span class="toc-counter">0|1</span> This is a heading</a></td>'
         /
         , 'TOC has new heading separator';
 
@@ -108,14 +108,14 @@ like $rv,
         '<table id="TOC">'
         \s* '<caption>Table of Contents</caption>'
         \s* '<tr class="toc-level-2">'
-        \s* '<td class="toc-text"><a href="#this_is_a_heading"> This is a heading</a></td>'
+        \s* '<td class="toc-text"><a href="#This_is_a_heading"> This is a heading</a></td>'
         \s* '</tr>'
         \s* '<tr class="toc-level-1">'
-        \s* '<td class="toc-text"><a href="#an_upper_heading_after_a_second_level_one">'
+        \s* '<td class="toc-text"><a href="#An_upper_heading_after_a_second_level_one">'
         \s* 'An upper heading after a second level one</a></td>'
         \s* '</tr>'
         \s* '<tr class="toc-level-2">'
-        \s* '<td class="toc-text"><a href="#a_lower_heading_within_upper_one">'
+        \s* '<td class="toc-text"><a href="#A_lower_heading_within_upper_one">'
         \s* 'A lower heading within upper one</a>'
         \s* '</td>'
         \s* '</tr>'
@@ -160,6 +160,6 @@ $processor.process-pod( $=pod[$pn++] );
 $rv = $processor.source-wrap
         .subst(/\s+/,' ',:g).trim;
 
-like $rv, /'h2 id="heading_2.2"' .+ '>Heading 2.2'/, 'Heading 2.2 has expected id';
+like $rv, /'h2 id="Heading_2.2"' .+ '>Heading 2.2'/, 'Heading 2.2 has expected id';
 
 like $rv, /'class="glossary-entry">Heading' .+ '2.2.2</a>' / , 'Heading 2.2.2 is in glossary as well';

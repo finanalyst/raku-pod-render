@@ -34,7 +34,7 @@ like $rv,
     \s* '<a name="an_item"></a>'
     \s* '<span class="glossary-entry">an item</span>'
     \s* 'the'
-    \s* '<a name="x_format"></a>'
+    \s* '<a name="X_format"></a>'
     \s* '<span class="glossary-entry">X format</span> is used.'
     .+ 'same text, eg.'
     \s* '<a name="an_item' .+ '></a>'
@@ -51,7 +51,7 @@ like $rv, /
     \s* '<tr><th>Term</th><th>Section Location</th></tr>'
     \s* '<tr class="glossary-defn-row">'
     \s*     '<td class="glossary-defn">X format</td><td></td></tr>'
-    \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#x_format">' .+ '</a></td></tr>'
+    \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#X_format">' .+ '</a></td></tr>'
     \s* '<tr class="glossary-defn-row">'
     \s*     '<td class="glossary-defn">an item</td><td></td></tr>'
     \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#an_item">' .+ '</a></td></tr>'
@@ -89,19 +89,20 @@ $rv = $processor.render-block( $=pod[$pn++] );
 like $rv,
     /
     'When indexing'
-    \s* '<a name="define_an_item"></a>'
+    \s* '<a name="Define_an_item"></a>'
     \s * '<span class="glossary-entry">an item</span>'
     .+ 'to index'
     \s* '<a name="' .+ '></a>'
     \s * '<span class="glossary-entry">hierarchical items</span>'
     .+ 'index the'
-    \s* '<a name="same' .+ '></a>'
+    \s* '<a name="Same' .+ '></a>'
     \s * '<span class="glossary-entry">same place</span>'
     .+ 'But' \s* '<a name' .+ '</a>' \s* 'without the text being marked.'
     .+ 'An empty' \s+ 'is ignored.'
     /,  'Text with indexed items correct';
 
 $rv = $processor.render-glossary;
+
 like $rv, /
     '<tr class="glossary-defn-row">' \s* '<td class="glossary-defn">Define an item</td><td></td>'
     /, 'glossary contains the right entry text';

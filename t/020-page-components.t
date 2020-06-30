@@ -8,7 +8,7 @@ my ProcessedPod $pro;
 my @templates = <raw comment escaped glossary footnotes
             format-c block-code format-u para format-b named source-wrap defn output format-l
             format-x heading title format-n format-i format-k format-p meta list subtitle format-r
-            format-t table item notimplemented section toc>;
+            format-t table item notimplemented section toc pod >;
 
 # the following pod creates Footnotes, Meta, TOC and Glossary structures, which will only render minimally as above,
 # Actual rendering will be tested in html tests.

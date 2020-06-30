@@ -33,7 +33,11 @@ u {
 .nested {
     margin-left: 3em;
 }
-dd
+.glossary-entry {
+    color: brown;
+    background-color: #c3d92b3d;
+    border-radius: 5px;
+}
 
 html,body {
  margin:0;

@@ -6,7 +6,7 @@ my $processor = Pod::To::HTML.processor;
 my $rv;
 my $pn = 0;
 
-plan 2;
+plan 3;
 
 =begin pod
 This ordinary paragraph introduces a code block:
@@ -47,7 +47,7 @@ like $rv,
     \s* '<pre class="pod-block-code">'
     \s* 'While this is not'
     \s* 'This is a code block</pre>'
-    \s* '<h1 id="mumble:_&quot;mumble&quot;">'
+    \s* '<h1 id="Mumble:_&quot;mumble&quot;">'
     \s* '<a' \s* [ 'class="u"' \s* | 'href="#___top"' \s* | 'title="go to top of document"' \s* ]**3 '>'
     \s* 'Mumble: &quot;mumble&quot;'
     \s* '</a>'
@@ -55,3 +55,10 @@ like $rv,
     \s* '<p>' \s* 'Surprisingly, this is not a code block (with fancy indentation too)' \s* '</p>'
     \s* '<p>' \s* 'But this is just a text. Again' \s* '</p>'
     /, 'mixed paragraphs and code';
+
+my %*POD2HTML-CALLBACKS = code => sub (:$node, :&default) {
+    ok $node.contents ~~ /:i code/, 'Callback for highlighter called';
+}
+
+# say $=pod[0].perl;
+pod2html $=pod[0];
