@@ -17,8 +17,8 @@ lives-ok { $rv = Pod::To::HTML.render($=pod[$pc]) }, 'captures Pod into HTML';
 
 like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'got consistent HTML';
 
-lives-ok { $processor = Pod::To::HTML.processor }, 'returns a renderer OK';
-like $processor.WHAT.perl, /ProcessedPod/, 'correct return type';
+lives-ok { $processor = Pod::To::HTML.new }, 'returns new object';
+like $processor.^name, /'Pod::To::HTML'/, 'correct return type';
 
 $processor.process-pod($=pod[$pc++]);
 $rv = $processor.source-wrap;

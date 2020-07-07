@@ -3,362 +3,366 @@
     <head>
         <title>Rendering Pod Distribution</title>
         <meta charset="UTF-8" />
-<style>header {
-  text-align: center;
-  position: sticky;
-  top: 0;
-  left: 0;
-  width: 100%;
-  font-family: sans-serif;
-  font-weight: bold;
-  border-radius: 0 0 1em 1em;
-  margin: 0 0 1em 0;
-  padding: 0.5em 0em 0.5em 0em;
-  line-height: 2em;
-  overflow: hidden;
-  border-top: none;
-  font-size: x-large;
-  background: #e6dbd0bd;
-  z-index: 10; }
-  header #Camelia_bug {
-    width: 100px;
-    height: 48px;
-    float: left; }
-
-kbd {
-  font-family: "Droid Sans Mono", "Luxi Mono", "Inconsolata", monospace; }
-
-samp {
-  font-family: "Terminus", "Courier", "Lucida Console", monospace; }
-
-u {
-  text-decoration: none; }
-
-.nested {
-  margin-left: 3em; }
-
-html, body {
-  margin: 0;
-  background: #EFEFEF !important;
-  font-family: sans-serif !important; }
-
-html {
-  padding: 0;
-  width: 100%;
-  position: relative;
-  min-height: 100%;
-  font-family: Helvetica, sans-serif;
-  font-size: 14px;
-  font-weight: normal; }
-
-body {
-  padding: 1px 10px 0;
-  margin: -1px 0 0;
-  width: auto; }
-
-.title {
-  margin-top: 0;
-  text-align: center; }
-
-.subtitle {
-  text-align: center;
-  font-style: italic; }
-
-pre {
-  background-color: rgba(120, 60, 0, 0.045);
-  border: 1px solid #CFCFCF;
-  padding: 0.6ex;
-  color: black;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-all; }
-
-code {
-  color: #666; }
-
-a {
-  text-decoration: none; }
-
-a code {
-  color: #00e; }
-
-pre a {
-  text-decoration: underline;
-  color: black; }
-
-pre a:hover {
-  text-decoration: none;
-  color: inherit; }
-
-img, svg {
-  max-width: 100%; }
-
-svg {
-  height: auto; }
-
-table.pod-table {
-  display: block;
-  overflow-x: auto; }
-
-table.pod-table tr:nth-child(odd) {
-  background-color: rgba(0, 0, 0, 0.031373); }
-
-table.pod-table tr:nth-child(even) {
-  background-color: transparent; }
-
-td, th {
-  padding: 0.4em; }
-
-td p, th p {
-  margin: 0; }
-
-.pretty-box {
-  border: 0.2em solid;
-  border-style: solid;
-  border-radius: 1em;
-  box-shadow: 0.5em 0.5em 1em #888888;
-  padding: 2em; }
-
-#header {
-  font-family: sans-serif;
-  font-weight: bold;
-  border-radius: 0 0 4em 4em;
-  margin: -2em auto 0;
-  padding: 3em 0em 0em 0em;
-  line-height: 2em;
-  overflow: hidden;
-  border-top: none; }
-
-#header > a {
-  color: #000000;
-  text-decoration: none;
-  font-size: 2em;
-  margin-left: 1.5em; }
-
-#logo {
-  display: inline-block;
-  margin: -0.75em 0 -0.5em -0.5em;
-  border: none;
-  vertical-align: middle; }
-
-#content {
-  margin: 2em auto;
-  overflow: hidden;
-  max-width: 800px;
-  min-height: 220px;
-  background: #FFF; }
-
-#content dt {
-  font-weight: bold;
-  margin-bottom: 0.2em; }
-
-#content dd {
-  margin-bottom: 1em; }
-
-#content hr {
-  border: none;
-  margin: 0 3em;
-  padding: 0;
-  height: 20px;
-  background-color: transparent;
-  background-image: radial-gradient(#F5EF7B 30%, transparent 30%);
-  background-size: 25px 25px;
-  background-repeat: round no-repeat;
-  background-position: 0 center; }
-
-#content p:nth-child(2) {
-  margin-top: 0;
-  padding-top: 0; }
-
-#content h1 a, #content h2 a, #content h3 a, #content h4 a, #content h5 a, #content h6 a {
-  color: black; }
-
-#content h1 {
-  padding-top: 0.25em; }
-
-#content:not(.content_HomePage):not(.content_404) {
-  background-repeat: no-repeat;
-  background-position: right 2rem top 2rem;
-  background-size: 243px;
-  background-image: url(/images/Camelia-faded.svg); }
-
-@media (min-width: 65em) {
-  #content {
-    max-width: none;
-    min-width: 65em;
-    width: 65em;
-    display: table;
-    background-image: none; }
-  div.pod-body {
-    min-width: 45em;
-    max-width: 45em;
-    margin-left: 22em; }
-  div.pod-body.no-toc {
-    margin-left: 0em;
-    max-width: none; }
-  nav.indexgroup {
-    float: left; }
-  table#TOC {
-    max-width: 20em; }
-  table#TOC a {
-    color: black; }
-  table#Glossary {
-    max-width: 20em; }
-    table#Glossary a {
-      color: black; } }
-
-@media (min-width: 80em) {
-  #content {
-    max-width: none;
-    min-width: 80em;
-    width: 80em; }
-  div.pod-body {
-    min-width: 60em;
-    max-width: 60em; } }
-
-.title-anchor {
-  visibility: hidden;
-  color: #333;
-  font-size: 60%;
-  margin-left: 10px;
-  display: inline-block;
-  text-decoration: none;
-  vertical-align: 0.5ex;
-  outline: none; }
-
-h1:hover .title-anchor, h2:hover .title-anchor, h3:hover .title-anchor, h4:hover .title-anchor, h5:hover .title-anchor, h6:hover .title-anchor {
-  visibility: visible; }
-
-footer.pretty-box {
-  padding: 5px;
-  text-align: center;
-  font-size: 80%;
-  margin: 0 auto 20px; }
-
-footer.pretty-box p {
-  margin: 3px 0; }
-
-.toc-glossary {
-  float: left; }
-
-table#TOC {
-  border-collapse: collapse;
-  margin: 0 0 0 12pt; }
-  table#TOC caption {
-    text-align: left;
-    font-size: 120%;
-    font-weight: bold; }
-  table#TOC tr {
-    background-color: transparent; }
-  table#TOC td {
-    padding: 0.25pt 5pt 0 0;
-    font-size: 11pt; }
-  table#TOC tr.toc-level-1:first-child td {
-    padding-top: 0; }
-  table#TOC td.toc-text {
-    position: relative;
-    left: 6pt; }
-  table#TOC tr.toc-level-1 td {
-    padding-top: 4pt;
-    font-weight: bold; }
-  table#TOC tr.toc-level-1 td.toc-text {
-    position: relative;
-    left: 0; }
-  table#TOC tr.toc-level-2 td {
-    padding-top: 3pt; }
-  table#TOC tr.toc-level-3 td {
-    padding-top: 2pt;
-    font-size: 0.9em; }
-  table#TOC tr.toc-level-3 td.toc-text {
-    padding-left: 12px; }
-  table#TOC tr.toc-level-4 td {
-    padding-top: 2pt;
-    font-size: 0.8em; }
-  table#TOC tr.toc-level-4 td.toc-text {
-    padding-left: 16px; }
-  table#TOC td.toc-number {
-    display: none; }
-  table#TOC code {
-    color: black; }
-
-table#Glossary {
-  border-collapse: collapse;
-  margin: 40px 0 0 12pt; }
-  table#Glossary caption {
-    text-align: left;
-    font-size: 120%;
-    font-weight: bold; }
-  table#Glossary tr {
-    background-color: transparent; }
-  table#Glossary td {
-    padding: 0.25pt 5pt 0 0;
-    font-size: 11pt; }
-  table#Glossary th {
-    text-align: left;
-    padding: 0 0 0 10px; }
-
-@media (max-width: 560px) {
-  #header {
-    border-radius: 10px; }
-  #header > a {
-    font-size: 1.1em;
-    display: block;
-    padding: 5px 10px 0;
-    margin: 0;
-    text-align: center; }
-  #home_logo {
-    display: none; }
-  body {
-    padding: 0; }
-  .pretty-box {
-    padding: 3px; }
-  .menu-items {
-    height: auto;
-    padding: 0 10px; }
-  .menu-items .menu-item + .menu-item {
-    border: none; }
-  .menu-item.selected {
-    box-shadow: none;
-    border-radius: 3px; }
-  table#TOC tr[class^=toc-level] td {
-    padding: 8px 0; }
-  table#TOC tr.toc-level-1 td {
-    padding-top: 18px; } }
-
-a[href*="//"]:not([href*="perl6.org"])::after, [href="https://perl6.org"]::after, [href="/webchat.html"]::after, [href="/examples.html"]::after {
-  padding-left: 2px;
-  content: url(/images/External-link-04-bold-12x12.svg); }
-
-.pod-table th {
-  text-align: left; }
-
-.pod-table [class*="headerSort"] {
-  padding-left: 20px;
-  background: transparent no-repeat 5px/10px; }
-
-.pod-table .headerSortDown {
-  background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="https://www.w3.org/2000/svg" xmlns:xlink="https://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 490.659 490.659" style="enable-background:new 0 0 490.659 490.659;" xml:space="preserve"><path d="M489.272,37.339c-1.92-3.307-5.44-5.333-9.259-5.333H10.68c-3.819,0-7.339,2.027-9.259,5.333 c-1.899,3.307-1.899,7.36,0.021,10.667l234.667,405.333c1.899,3.307,5.419,5.333,9.237,5.333s7.339-2.027,9.237-5.333 L489.251,48.005C491.149,44.72,491.149,40.645,489.272,37.339z"/></svg>'); }
-
-.pod-table .headerSortUp {
-  background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="https://www.w3.org/2000/svg" xmlns:xlink="https://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 490.659 490.659" style="enable-background:new 0 0 490.659 490.659;" xml:space="preserve"><path d="M489.229,442.468L254.563,37.135c-3.797-6.592-14.677-6.592-18.453,0L1.443,442.468c-1.92,3.307-1.92,7.36-0.021,10.667 c1.92,3.307,5.44,5.333,9.259,5.333h469.333c3.819,0,7.339-2.027,9.259-5.333C491.128,449.849,491.128,445.775,489.229,442.468z"/></svg>'); }
-
-footer {
-  display: flex;
-  align-content: space-between;
-  padding: 30px;
-  background-color: #e6dbd0;
-  justify-content: space-evenly;
-  font-size: medium;
-  border-radius: 10px; }
-  footer .path {
-    color: red; }
-  footer .time {
-    color: #3800ff; }
-</style>    
-    </head>
+        
+        <style>header {
+          text-align: center;
+          position: sticky;
+          top: 0;
+          left: 0;
+          width: 100%;
+          font-family: sans-serif;
+          font-weight: bold;
+          border-radius: 0 0 1em 1em;
+          margin: 0 0 1em 0;
+          padding: 0.5em 0em 0.5em 0em;
+          line-height: 2em;
+          overflow: hidden;
+          border-top: none;
+          font-size: x-large;
+          background: #e6dbd0bd;
+          z-index: 10; }
+          header #Camelia_bug {
+            width: 100px;
+            height: 48px;
+            float: left; }
+        
+        kbd {
+          font-family: "Droid Sans Mono", "Luxi Mono", "Inconsolata", monospace; }
+        
+        samp {
+          font-family: "Terminus", "Courier", "Lucida Console", monospace; }
+        
+        u {
+          text-decoration: none; }
+        
+        .nested {
+          margin-left: 3em; }
+        
+        .glossary-entry {
+          color: brown;
+          background-color: #c3d92b3d;
+          border-radius: 5px; }
+        
+        html, body {
+          margin: 0;
+          background: #EFEFEF !important;
+          font-family: sans-serif !important; }
+        
+        html {
+          padding: 0;
+          width: 100%;
+          position: relative;
+          min-height: 100%;
+          font-family: Helvetica, sans-serif;
+          font-size: 14px;
+          font-weight: normal; }
+        
+        body {
+          padding: 1px 10px 0;
+          margin: -1px 0 0;
+          width: auto; }
+        
+        .title {
+          margin-top: 0;
+          text-align: center; }
+        
+        .subtitle {
+          text-align: center;
+          font-style: italic; }
+        
+        pre {
+          background-color: rgba(120, 60, 0, 0.045);
+          border: 1px solid #CFCFCF;
+          padding: 0.6ex;
+          color: black;
+          overflow: auto;
+          white-space: pre-wrap;
+          word-break: break-all; }
+        
+        code {
+          color: #666; }
+        
+        a {
+          text-decoration: none; }
+        
+        a code {
+          color: #00e; }
+        
+        pre a {
+          text-decoration: underline;
+          color: black; }
+        
+        pre a:hover {
+          text-decoration: none;
+          color: inherit; }
+        
+        img, svg {
+          max-width: 100%; }
+        
+        svg {
+          height: auto; }
+        
+        table.pod-table {
+          display: block;
+          overflow-x: auto; }
+        
+        table.pod-table tr:nth-child(odd) {
+          background-color: rgba(0, 0, 0, 0.031373); }
+        
+        table.pod-table tr:nth-child(even) {
+          background-color: transparent; }
+        
+        td, th {
+          padding: 0.4em; }
+        
+        td p, th p {
+          margin: 0; }
+        
+        .pretty-box {
+          border: 0.2em solid;
+          border-style: solid;
+          border-radius: 1em;
+          box-shadow: 0.5em 0.5em 1em #888888;
+          padding: 2em; }
+        
+        #header {
+          font-family: sans-serif;
+          font-weight: bold;
+          border-radius: 0 0 4em 4em;
+          margin: -2em auto 0;
+          padding: 3em 0em 0em 0em;
+          line-height: 2em;
+          overflow: hidden;
+          border-top: none; }
+        
+        #header > a {
+          color: #000000;
+          text-decoration: none;
+          font-size: 2em;
+          margin-left: 1.5em; }
+        
+        #logo {
+          display: inline-block;
+          margin: -0.75em 0 -0.5em -0.5em;
+          border: none;
+          vertical-align: middle; }
+        
+        #content {
+          margin: 2em auto;
+          overflow: hidden;
+          max-width: 800px;
+          min-height: 220px;
+          background: #FFF; }
+        
+        #content dt {
+          font-weight: bold;
+          margin-bottom: 0.2em; }
+        
+        #content dd {
+          margin-bottom: 1em; }
+        
+        #content hr {
+          border: none;
+          margin: 0 3em;
+          padding: 0;
+          height: 20px;
+          background-color: transparent;
+          background-image: radial-gradient(#F5EF7B 30%, transparent 30%);
+          background-size: 25px 25px;
+          background-repeat: round no-repeat;
+          background-position: 0 center; }
+        
+        #content p:nth-child(2) {
+          margin-top: 0;
+          padding-top: 0; }
+        
+        #content h1 a, #content h2 a, #content h3 a, #content h4 a, #content h5 a, #content h6 a {
+          color: black; }
+        
+        #content h1 {
+          padding-top: 0.25em; }
+        
+        #content:not(.content_HomePage):not(.content_404) {
+          background-repeat: no-repeat;
+          background-position: right 2rem top 2rem;
+          background-size: 243px;
+          background-image: url(/images/Camelia-faded.svg); }
+        
+        @media (min-width: 65em) {
+          #content {
+            max-width: none;
+            min-width: 65em;
+            width: 65em;
+            display: table;
+            background-image: none; }
+          div.pod-body {
+            min-width: 45em;
+            max-width: 45em;
+            margin-left: 22em; }
+          div.pod-body.no-toc {
+            margin-left: 0em;
+            max-width: none; }
+          nav.indexgroup {
+            float: left; }
+          table#TOC {
+            max-width: 20em; }
+          table#TOC a {
+            color: black; }
+          table#Glossary {
+            max-width: 20em; }
+            table#Glossary a {
+              color: black; } }
+        
+        @media (min-width: 80em) {
+          #content {
+            max-width: none;
+            min-width: 80em;
+            width: 80em; }
+          div.pod-body {
+            min-width: 60em;
+            max-width: 60em; } }
+        
+        .title-anchor {
+          visibility: hidden;
+          color: #333;
+          font-size: 60%;
+          margin-left: 10px;
+          display: inline-block;
+          text-decoration: none;
+          vertical-align: 0.5ex;
+          outline: none; }
+        
+        h1:hover .title-anchor, h2:hover .title-anchor, h3:hover .title-anchor, h4:hover .title-anchor, h5:hover .title-anchor, h6:hover .title-anchor {
+          visibility: visible; }
+        
+        footer.pretty-box {
+          padding: 5px;
+          text-align: center;
+          font-size: 80%;
+          margin: 0 auto 20px; }
+        
+        footer.pretty-box p {
+          margin: 3px 0; }
+        
+        .toc-glossary {
+          float: left; }
+        
+        table#TOC {
+          border-collapse: collapse;
+          margin: 0 0 0 12pt; }
+          table#TOC caption {
+            text-align: left;
+            font-size: 120%;
+            font-weight: bold; }
+          table#TOC tr {
+            background-color: transparent; }
+          table#TOC td {
+            padding: 0.25pt 5pt 0 0;
+            font-size: 11pt; }
+          table#TOC tr.toc-level-1:first-child td {
+            padding-top: 0; }
+          table#TOC td.toc-text {
+            position: relative;
+            left: 6pt; }
+          table#TOC tr.toc-level-1 td {
+            padding-top: 4pt;
+            font-weight: bold; }
+          table#TOC tr.toc-level-1 td.toc-text {
+            position: relative;
+            left: 0; }
+          table#TOC tr.toc-level-2 td {
+            padding-top: 3pt; }
+          table#TOC tr.toc-level-3 td {
+            padding-top: 2pt;
+            font-size: 0.9em; }
+          table#TOC tr.toc-level-3 td.toc-text {
+            padding-left: 12px; }
+          table#TOC tr.toc-level-4 td {
+            padding-top: 2pt;
+            font-size: 0.8em; }
+          table#TOC tr.toc-level-4 td.toc-text {
+            padding-left: 16px; }
+          table#TOC td.toc-number {
+            display: none; }
+          table#TOC code {
+            color: black; }
+        
+        table#Glossary {
+          border-collapse: collapse;
+          margin: 40px 0 0 12pt; }
+          table#Glossary caption {
+            text-align: left;
+            font-size: 120%;
+            font-weight: bold; }
+          table#Glossary tr {
+            background-color: transparent; }
+          table#Glossary td {
+            padding: 0.25pt 5pt 0 0;
+            font-size: 11pt; }
+          table#Glossary th {
+            text-align: left;
+            padding: 0 0 0 10px; }
+        
+        @media (max-width: 560px) {
+          #header {
+            border-radius: 10px; }
+          #header > a {
+            font-size: 1.1em;
+            display: block;
+            padding: 5px 10px 0;
+            margin: 0;
+            text-align: center; }
+          #home_logo {
+            display: none; }
+          body {
+            padding: 0; }
+          .pretty-box {
+            padding: 3px; }
+          .menu-items {
+            height: auto;
+            padding: 0 10px; }
+          .menu-items .menu-item + .menu-item {
+            border: none; }
+          .menu-item.selected {
+            box-shadow: none;
+            border-radius: 3px; }
+          table#TOC tr[class^=toc-level] td {
+            padding: 8px 0; }
+          table#TOC tr.toc-level-1 td {
+            padding-top: 18px; } }
+        
+        a[href*="//"]:not([href*="perl6.org"])::after, [href="https://perl6.org"]::after, [href="/webchat.html"]::after, [href="/examples.html"]::after {
+          padding-left: 2px;
+          content: url(/images/External-link-04-bold-12x12.svg); }
+        
+        .pod-table th {
+          text-align: left; }
+        
+        .pod-table [class*="headerSort"] {
+          padding-left: 20px;
+          background: transparent no-repeat 5px/10px; }
+        
+        .pod-table .headerSortDown {
+          background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="https://www.w3.org/2000/svg" xmlns:xlink="https://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 490.659 490.659" style="enable-background:new 0 0 490.659 490.659;" xml:space="preserve"><path d="M489.272,37.339c-1.92-3.307-5.44-5.333-9.259-5.333H10.68c-3.819,0-7.339,2.027-9.259,5.333 c-1.899,3.307-1.899,7.36,0.021,10.667l234.667,405.333c1.899,3.307,5.419,5.333,9.237,5.333s7.339-2.027,9.237-5.333 L489.251,48.005C491.149,44.72,491.149,40.645,489.272,37.339z"/></svg>'); }
+        
+        .pod-table .headerSortUp {
+          background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="https://www.w3.org/2000/svg" xmlns:xlink="https://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 490.659 490.659" style="enable-background:new 0 0 490.659 490.659;" xml:space="preserve"><path d="M489.229,442.468L254.563,37.135c-3.797-6.592-14.677-6.592-18.453,0L1.443,442.468c-1.92,3.307-1.92,7.36-0.021,10.667 c1.92,3.307,5.44,5.333,9.259,5.333h469.333c3.819,0,7.339-2.027,9.259-5.333C491.128,449.849,491.128,445.775,489.229,442.468z"/></svg>'); }
+        
+        footer {
+          display: flex;
+          align-content: space-between;
+          padding: 30px;
+          background-color: #e6dbd0;
+          justify-content: space-evenly;
+          font-size: medium;
+          border-radius: 10px; }
+          footer .path {
+            color: red; }
+          footer .time {
+            color: #3800ff; }
+        </style>    </head>
     <body class="pod">
-        <header>
-<svg version="1.1" id="Camelia_bug" xmlns:svg="http://www.w3.org/2000/svg"
+        <header><svg version="1.1" id="Camelia_bug" xmlns:svg="http://www.w3.org/2000/svg"
 	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="146.887 35.071 679.648 628.263" enable-background="new 146.887 35.071 679.648 628.263" xml:space="preserve">
 <g>
@@ -524,76 +528,48 @@ footer {
 		<rect x="551.153" y="428.32" transform="matrix(0.4226 -0.9063 0.9063 0.4226 -70.9303 749.6747)" stroke="#000000" stroke-width="1.0588" stroke-miterlimit="10" width="3.517" height="4.372"/>
 </g>
 </svg>
-        Rendering Pod Distribution</header>
-        <div class="toc-glossary">
+Rendering Pod Distribution</header>        <div class="toc-glossary">
             <table id="TOC">
         <caption>Table of Contents</caption>
         <tr class="toc-level-1">
-            <td class="toc-text"><a href="#rendering_strategy"><span class="toc-counter">1</span> Rendering Strategy</a></td>
+            <td class="toc-text"><a href="#Rendering_Strategy"><span class="toc-counter">1</span> Rendering Strategy</a></td>
         </tr>
         <tr class="toc-level-1">
-            <td class="toc-text"><a href="#creating_a_renderer"><span class="toc-counter">2</span> Creating a Renderer</a></td>
+            <td class="toc-text"><a href="#Creating_a_Renderer"><span class="toc-counter">2</span> Creating a Renderer</a></td>
         </tr>
         <tr class="toc-level-1">
-            <td class="toc-text"><a href="#templates"><span class="toc-counter">3</span> Templates</a></td>
+            <td class="toc-text"><a href="#Templates"><span class="toc-counter">3</span> Templates</a></td>
         </tr>
         <tr class="toc-level-2">
-            <td class="toc-text"><a href="#string_template"><span class="toc-counter">3.1</span> String Template</a></td>
+            <td class="toc-text"><a href="#String_Template"><span class="toc-counter">3.1</span> String Template</a></td>
         </tr>
         <tr class="toc-level-2">
-            <td class="toc-text"><a href="#block_templates"><span class="toc-counter">3.2</span> Block Templates</a></td>
+            <td class="toc-text"><a href="#Block_Templates"><span class="toc-counter">3.2</span> Block Templates</a></td>
+        </tr>
+        <tr class="toc-level-2">
+            <td class="toc-text"><a href="#Partials_and_New_Templates"><span class="toc-counter">3.3</span> Partials and New Templates</a></td>
         </tr>
         <tr class="toc-level-1">
-            <td class="toc-text"><a href="#change_the_templating_engine"><span class="toc-counter">4</span> Change the Templating Engine</a></td>
+            <td class="toc-text"><a href="#Change_the_Templating_Engine"><span class="toc-counter">4</span> Change the Templating Engine</a></td>
         </tr>
         <tr class="toc-level-1">
-            <td class="toc-text"><a href="#methods_provided_by_processedpod"><span class="toc-counter">5</span> Methods Provided by ProcessedPod</a></td>
+            <td class="toc-text"><a href="#Methods_Provided_by_ProcessedPod"><span class="toc-counter">5</span> Methods Provided by ProcessedPod</a></td>
         </tr>
         <tr class="toc-level-2">
-            <td class="toc-text"><a href="#replace-template"><span class="toc-counter">5.1</span> replace-template</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#rewrite-target"><span class="toc-counter">5.2</span> rewrite-target</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#process-pod"><span class="toc-counter">5.3</span> process-pod</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#render-block"><span class="toc-counter">5.4</span> render-block</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#render-tree"><span class="toc-counter">5.5</span> render-tree</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#delete-pod-structure"><span class="toc-counter">5.6</span> delete-pod-structure</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#file-wrap"><span class="toc-counter">5.7</span> file-wrap</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#source-wrap"><span class="toc-counter">5.8</span> source-wrap</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#individual_component_renderers"><span class="toc-counter">5.9</span> Individual component renderers</a></td>
-        </tr>
-        <tr class="toc-level-1">
-            <td class="toc-text"><a href="#class_attributes_that_may_be_useful"><span class="toc-counter">6</span> Class Attributes that may be useful</a></td>
-        </tr>
-        <tr class="toc-level-1">
-            <td class="toc-text"><a href="#minimum_template_set"><span class="toc-counter">7</span> Minimum Template Set</a></td>
+            <td class="toc-text"><a href="#modify-templates"><span class="toc-counter">5.1</span> modify-templates</a></td>
         </tr>
     </table>
 
         
         </div>
         <div class="pod-body">
-            <section name="___top"><h1 class="title" id="rendering_pod_distribution">Rendering Pod Distribution</h1><div class="subtitle"><p>A generic distribution to render Pod in a file (program or module) or in a cache (eg. the Raku documentation collection)</p></div><p>This distribution ('distribution' because it contains several modules and other resources) provides a generic class <code>ProcessedPod</code>
+            <section name="___top"><h1 class="title" id="Rendering_Pod_Distribution">Rendering Pod Distribution</h1><div class="subtitle"><p>A generic distribution to render Pod in a file (program or module) or in a cache (eg. the Raku documentation collection)</p></div><p>This distribution ('distribution' because it contains several modules and other resources) provides a generic class <code>ProcessedPod</code>
             , which accepts templates, and renders one or more Pod trees. The class collects the information in the Pod files to create page components, such as Table of Contents, Glossary, Metadata (eg. Author, version, etc), and Footnotes.</p><p>The output depends entirely on the templates. The body of the text, TOC, Glossary, and Footnotes can be output or suppressed, and their position can be controlled using a combination of templates, or in the case of HTML, templates and CSS. It also means that the same generic class can be used for HTML and MarkDown.</p><p>Two other modules are provided: Pod::To::HTML and Pod::To::MarkDown. For more information on them, see <a href="pod2html.html">Pod::To::HTML</a>
             . These have the functionality and default templates to be used in conjunction with the <strong>raku</strong> (aka perl6) compiler option <code>--doc=name</code>
             .</p><p>The aim of ProcessedPod is to allow for a more flexible mechanism for rendering POD. For example, when multiple POD6 files are combined each individual source generates TOC, Glossary, Footnotes, and Metadata information. There is no single way these can be combined, and different uses will need a different approach. For example, a flat-file HTML page will need separate pages for each source, with a landing page and global TOC and glossary pages to link them all.</p><p>The <code>Pod::To::HTML</code>
              has a simple way of handling customised CSS, but no way to access embedded images other than svg files. Modifying the templates, when there is information about the serving environment, can change this.</p><p>This module uses the Moustache templating system at <code>Template::Mustache</code>
-            . More later on how to change this.</p><h1 id="rendering_strategy"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Rendering Strategy</a></h1>
-            <p>A rendering strategy is required for a complex task consisting of many Pod sources.</p><p>A rendering strategy has to consider:</p>    <ul>
+            . More later on how to change this.</p><h1 id="Rendering_Strategy"><a href="#Rendering_Pod_Distribution" class="u" title="go to top of document">Rendering Strategy</a></h1>
+            <p>A rendering strategy is required for a complex task consisting of many Pod sources.</p><p>A rendering strategy has to consider:</p>                                                    <ul>
         <li><p>The pod contained in a single file may be provided as one or more trees of Pod blocks. A pod tree may contain blocks to be referred to in a Table of Contents (TOC), and also it may contain anchors to which other documentation may point. This means that the pod in each separate file will automatically produces its own TOC (a list of headers in the order in which they appear in the pod tree(s), and its own Glossary (a list of terms that are encountered, perhaps multiple times for each term, within the text).</p></li>
             <li><p>When only a single file source is used (such as when a Pod::To::name is called by the compiler), then the content, TOC and glossary have to be rendered together.</p></li>
             <li><p>Multiple pod files will by definition exist in a collection that should be rendered together in a consistent manner. The content from a single source file will be called a <strong>Component</strong>. This will be handled in another module raku-render-collection There have to be the following facilities</p></li>
@@ -601,35 +577,38 @@ footer {
             <li><p>A strategy to create one or more Glossary(ies) from all the <strong>Component</strong> glossaries</p></li>
             
     </ul>
-<h1 id="creating_a_renderer"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Creating a Renderer</a></h1>
+<h1 id="Creating_a_Renderer"><a href="#Rendering_Pod_Distribution" class="u" title="go to top of document">Creating a Renderer</a></h1>
             <p>The first step in rendering is to create a renderer.</p><p>The renderer needs to take into account the output format, eg., html, incorporate non-default templates (eg., a designer may want to have customised classes in paragraphs or headers). The Pod renderer requires templates for a number of document elements, see TEMPLATES below.</p><p>Essentially, a hash of element keys pointing to Mustache strings is provided to the renderer. The <code>Pod::To::HTML</code>
              and <code>Pod::To::MarkDown</code>
              modules in this distribution provide default templates to the <code>ProcessedPod</code>
-             class.</p><p>The renderer can be customised on-the-fly by rewriting the keys of the template hash. For example,</p><pre class="pod-block-code">
+             class.</p><p>The renderer can be customised on-the-fly by modifying the keys of the template hash. For example,</p>                                                <pre class="pod-block-code">
     use RenderPod;
     my $renderer .= RenderPod.new;
-    $renderer.tmpl&lt;format-b&gt; =  '&lt;strong class=&quot;myStrongClass {{# addClass }}{{ addClass }}{{/ addClass }}&quot;&gt;{{{ contents }}}&lt;/strong&gt;';
-    # was 'format-b' =&gt; '&lt;strong{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/strong&gt;'
+    $renderer.modify-templates( %(format-b =&gt;
+        '&lt;strong class=&quot;myStrongClass {{# addClass }}{{ addClass }}{{/ addClass }}&quot;&gt;{{{ contents }}}&lt;/strong&gt;')
+    );
+    # The default template is something like
+    #       'format-b' =&gt; '&lt;strong{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/strong&gt;'
     # the effect of this change is to add myStrongClass to all instances of B&lt;&gt; including any extra classes added by the POD
 </pre>
 <p>This would be wanted if a different rendering of bold is needed in some source file, or a page component. Bear in mind that for HTML, it is probably better to add another css class to a specific paragraph (for example) using the Pod config metadata. This is picked up by ProcessedPod (as can be seen in the above example where <code>addClass</code>
              is used to add an extra class to the <code>&lt;strong&gt; </code>
-             container.</p><h1 id="templates"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Templates</a></h1>
+             container.</p><h1 id="Templates"><a href="#Rendering_Pod_Distribution" class="u" title="go to top of document">Templates</a></h1>
             <p>The nature of the templates and their interpretation depends on the <code>rendition</code>
              method, which must be over-ridden for a different templating engine.</p><p>When a ProcessPod instance is instantiated, a templating object xxxx can be passed via the <code>:template</code>
-             parameter, eg.</p><pre class="pod-block-code">
+             parameter, eg.</p>                                                <pre class="pod-block-code">
 my $p = ProcessedPod.new(:templates( xxxx ) );
 </pre>
 <p>If the object is a Hash, then it is considered a Hash of the templates, and verified for completeness.</p><p>If the object is a String, then it is considered a <code>path/filename</code>
              to a file containing a raku program that evaluates to a Hash, which is then verified as a Hash of templates.</p><p>The <code>Pod::To::HTML</code>
-             module <strong>only</strong> will look for a file 'html-templates.raku' in the current working directory, and evalate that.</p><p>Each entry in the template Hash can be either (a) a String or (b) a block.</p><h2 id="string_template"><a href="#rendering_pod_distribution" class="u" title="go to top of document">String Template</a></h2>
+             module <strong>only</strong> will look for a file 'html-templates.raku' in the current working directory, and evalate that.</p><p>Each entry in the template Hash can be either (a) a String or (b) a block.</p><h2 id="String_Template"><a href="#Rendering_Pod_Distribution" class="u" title="go to top of document">String Template</a></h2>
             <p>For example if <code>'escaped' =</code>
-             '{{ contents }}', &gt; is a line in a hash declaration of the templatess, then the right hand side is the <code>Mustache</code>
+             '{{ contents }}', &gt; is a line in a hash declaration of the templates, then the right hand side is the <code>Mustache</code>
              template for the <code>escaped</code>
              key. The template engine is called with a hash containing String data that are interpolated into the template. <code>contents</code>
-             is provided for all keys, but some keys have more complex data.</p><h2 id="block_templates"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Block Templates</a></h2>
+             is provided for all keys, but some keys have more complex data.</p><h2 id="Block_Templates"><a href="#Rendering_Pod_Distribution" class="u" title="go to top of document">Block Templates</a></h2>
             <p><code>Mustache</code>
-             by design is not intended to have any logic. This is not always convenient. So the template Hash can be provided with a block that can pre-process the data provided to the Mustache engine, or change the template. The block must return a String with a valid Mustache template.</p><p>For example,</p><pre class="pod-block-code">
+             by design is not intended to have any logic, although it does allow lambdas. Since the latter are not well documented and some template-specific preprocessing is required, or the default action of the Templating engine needs to be over-ridden, extra functionality is provided.</p><p>Instead of a plain text template being associated with a Template Hash key, the key can be associated with a block that can pre-process the data provided to the Mustache engine, or change the template. The block must return a String with a valid Mustache template.</p><p>For example,</p>                                                <pre class="pod-block-code">
 'escaped' =&gt; -&gt; %params { %params&lt;contents&gt;.subst-mutate(/\'/, '&amp;39;', :g ); '{{ contents }}' }
 
 </pre>
@@ -637,13 +616,25 @@ my $p = ProcessedPod.new(:templates( xxxx ) );
             . The <code>contents</code>
              key of <code>%params</code>
             ) is adjusted because <code>Mustache</code>
-             does not escape single-quotes.</p><h1 id="change_the_templating_engine"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Change the Templating Engine</a></h1>
+             does not escape single-quotes.</p><h2 id="Partials_and_New_Templates"><a href="#Rendering_Pod_Distribution" class="u" title="go to top of document">Partials and New Templates</a></h2>
+            <p>Mustache allows for other templates to be used as partials. Thus it is possible to create new templates that use the templates needed by ProcessedPod and incorporate them in output templates.</p><p>For example:</p>                                                <pre class="pod-block-code">
+$p.modify-templates( %(:newone(
+    '&lt;container&gt;{{ contents }}&lt;/container&gt;'
+    ),
+    :format-b('{{&gt; newone }}'))
+);
+
+</pre>
+<p>Now the pod line <code>This is some B&lt;boldish text&gt; in a line</code>
+             will result in</p>                                                <pre class="pod-block-code">
+&lt;p&gt;This is some &lt;container&gt;boldish text&lt;/container&gt; in a line&lt;/p&gt;</pre>
+<h1 id="Change_the_Templating_Engine"><a href="#Rendering_Pod_Distribution" class="u" title="go to top of document">Change the Templating Engine</a></h1>
             <p>In order to change the Templating Engine, <code>PodProcessed</code>
              needs to be subclassed and a single method, namely <code>method rendition( Str $key, Hash %params --</code>
-             Str )&gt; needs to be overwritten.</p><p>Suppose that the templating engine is NewTemplateEngine, and that - like Template::Mustache - it is instantiates with <code>.new</code>
+             Str )&gt; needs to be overwritten.</p><p>Assuming that the templating engine is NewTemplateEngine, and that - like Template::Mustache - it is instantiates with <code>.new</code>
             , and has a <code>.render</code>
-             method which takes a String template, and Hash of strings to interpolate, and which returns a String, viz <code>.render( Str $template, Hash %params --</code>
-             Str )&gt;.</p><p>Then the method would be:</p><pre class="pod-block-code">
+             method which takes a String template, and Hash of strings to interpolate, and which returns a String, viz <code>.render( Str $string, Hash %params, :from( %hash-of-templates) --</code>
+             Str )&gt;.</p><p>Then the method might be incorporated into a subclass as follows;</p>                                                <pre class="pod-block-code">
 use NewTemplateEngine;
 use PodProcessed;
 use PodProcessed::Exceptions;
@@ -660,81 +651,136 @@ class PodProcess::NewTemplateEngine is PodProcessed {
         # templating engines like mustache do not handle logic or loops, which some Pod formats require.
         # hence we pass a Subroutine instead of a string in the template
         # the subroutine takes the same parameters as rendition and produces a mustache string
-        # eg P format template escapes containers
+        # eg P format HTML template escapes PRE containers
 
         note &quot;At $?LINE rendering with \&lt;$key&gt;&quot; if $.debug;
+        my $interpolate = %!tmpl{$key} ~~ Block
+        ?? %.tmpl{$key}(%params)
+            # if the template is a block, then run as sub and pass in the params
+        !! %tmpl{$key}
+        ;
         $.engine.render(
-            %tmpl{ $key } ~~ Block ??
-            %.tmpl{$key}(  %params ) # if the template is a block, then run as sub and pass in the params
-            !! %.tmpl{$key}
-            , %params , :literal
+            $interpolate,
+            %params, :from( %.tmpl )
         )
     }
 }
 
 </pre>
-<h1 id="methods_provided_by_processedpod"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Methods Provided by ProcessedPod</a></h1>
-            <h2 id="replace-template"><a href="#rendering_pod_distribution" class="u" title="go to top of document">replace-template</a></h2>
-            <pre class="pod-block-code">
-method replace-template( %new-templates )</pre>
-<p>Allows for templates to be replaced during pod processing</p><h2 id="rewrite-target"><a href="#rendering_pod_distribution" class="u" title="go to top of document">rewrite-target</a></h2>
-            <p>This method may need to be over-ridden, eg., for MarkDown which uses a different targetting function.</p><pre class="pod-block-code">
-method rewrite-target(Str $candidate-name is copy, :$unique --&gt; Str )</pre>
-<p>Rewrites targets (link destinations) to be made unique and to be cannonised depending on the output format. Takes the candidate name and whether it should be unique, returns with the cannonised link name Target names inside the POD file, eg., headers, glossary, footnotes The function is called to cannonise the target name and to ensure - if necessary - that The target name used in the link is unique. This method uses the default algorithm for HTML and POD</p><p>When indexing a unique target is needed even when same entry is repeated When a Heading is a target, the reference must come from the name</p><h2 id="process-pod"><a href="#rendering_pod_distribution" class="u" title="go to top of document">process-pod</a></h2>
-            <pre class="pod-block-code">
-method process-pod( $pod ) {</pre>
-<p>Process the pod block or tree passed to it, and concatenates it to previous pod tree. Returns a string representation of the tree in the required format</p><h2 id="render-block"><a href="#rendering_pod_distribution" class="u" title="go to top of document">render-block</a></h2>
-            <pre class="pod-block-code">
-method render-block( $pod )</pre>
-<p>Renders a pod tree, but probably a block Returns only the pod that was passed</p><h2 id="render-tree"><a href="#rendering_pod_distribution" class="u" title="go to top of document">render-tree</a></h2>
-            <pre class="pod-block-code">
-method render-tree( $pod )</pre>
-<p>Tenders the whole pod tree Is actually an alias to process-pod</p><h2 id="delete-pod-structure"><a href="#rendering_pod_distribution" class="u" title="go to top of document">delete-pod-structure</a></h2>
-            <pre class="pod-block-code">
-method delete-pod-structure</pre>
-<p>Deletes any previously processed pod, keeping the template engine cache Returns the pod-structure deleted as a Hash, for storage in an array when multiple files are processed.</p><h2 id="file-wrap"><a href="#rendering_pod_distribution" class="u" title="go to top of document">file-wrap</a></h2>
-            <pre class="pod-block-code">
-method file-wrap(:$filename = $.name, :$ext = 'html' )</pre>
-<p>Saves the rendered pod tree as a file, and its document structures, uses source wrap Filename defaults to the name of the pod tree, and ext defaults to html</p><h2 id="source-wrap"><a href="#rendering_pod_distribution" class="u" title="go to top of document">source-wrap</a></h2>
-            <pre class="pod-block-code">
-method source-wrap( --&gt; Str )</pre>
-<p>Renders all of the document structures, and wraps them and the body Uses the source-wrap template</p><h2 id="individual_component_renderers"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Individual component renderers</a></h2>
-            <p>The following are called by <code>source-wrap</code>
-             but could be called separately, eg., if a different textual template such as <code>format-b</code>
-             should be used inside the component.</p>    <ul>
-        <li><p>method render-toc( --&gt; Str )</p></li>
-            <li><p>method render-glossary(--&gt;Str)</p></li>
-            <li><p>method render-footnotes(--&gt; Str)</p></li>
-            <li><p>method render-meta(--&gt; Str)</p></li>
-            
-    </ul>
-<h1 id="class_attributes_that_may_be_useful"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Class Attributes that may be useful</a></h1>
-            <pre class="pod-block-code">
-# provided at instantiation or by attributes on Class instance
-has $.front-matter is rw = 'preface'; # Text between =TITLE and first header, this is used to refer for textual placenames
-has Str $.name is rw;
-has Str $.title is rw = $!name;
-has Str $.subtitle is rw = '';
-has Str $.path is rw; # should be path of original document, defaults to $.name
-has Str $.top is rw = $!default-top; # defaults to top, then becomes target for TITLE
-has &amp;.highlighter is rw; # a callable (eg. provided by external program) that converts [html] to highlighted raku code
+<h1 id="Methods_Provided_by_ProcessedPod"><a href="#Rendering_Pod_Distribution" class="u" title="go to top of document">Methods Provided by ProcessedPod</a></h1>
+            <h2 id="modify-templates"><a href="#Rendering_Pod_Distribution" class="u" title="go to top of document">modify-templates</a></h2>
+                                                            <pre class="pod-block-code">
+method modify-templates( %new-templates )</pre>
+<p>Allows for templates to be modified or new ones added before or during pod processing.</p><p><strong>Note:</strong> Since the templating engine needs to be reinitialised in order to clear a template cache, it is probably not efficient to modify templates too many times during processing.</p><p><code>modify-templates</code>
+             <strong>replaces</strong> the keys in the <code>%new-templates</code>
+             hash. It will add new keys to the internal template store.</p><p>Example:</p>                                                <pre class="pod-block-code">
+=head2 rewrite-target
 
-# Output rendering information
-has Bool $.no-meta is rw = False; # set to True eliminates meta data rendering
-has Bool $.no-footnotes is rw = False; # set to True eliminates rendering of footnotes
-has Bool $.no-toc is rw = False; # set to True to exclude TOC even if there are headers
-has Bool $.no-glossary is rw = False; # set to True to exclude Glossary even if there are internal anchors
+This method may need to be over-ridden, eg., for MarkDown which uses a different targetting function.
 
-# debugging
-has Bool $.debug is rw; # outputs to STDERR information on processing
-has Bool $.verbose is rw; # outputs to STDERR more detail about errors.</pre>
-<h1 id="minimum_template_set"><a href="#rendering_pod_distribution" class="u" title="go to top of document">Minimum Template Set</a></h1>
-            <p>There is a minumum set of templates that must be provided. A ProcessPod instance will not be generated if the minimum set of keys is not generated.</p><p>The following is a set of templates (the actual templates here are not guaranteed to be the default in Pod::To::HTML).</p><p>If the code below is copied to a file and the file provided to the <code>:templates</code>
-             argument, then <code>PodProcessed</code>
-             will generate an HTML file.</p><p>In <code>Pod::To::HTML</code>
-             the variables <code>$css-text</code>
-             and <code>$camelia-bug</code>
-             are populated with data in other directories in this distribution.</p><pre class="pod-block-code">
+    method rewrite-target(Str $candidate-name is copy, :$unique --&gt; Str )
+
+Rewrites targets (link destinations) to be made unique and to be cannonised depending on the output format.
+Takes the candidate name and whether it should be unique, returns with the cannonised link name
+Target names inside the POD file, eg., headers, glossary, footnotes
+The function is called to cannonise the target name and to ensure - if necessary - that
+The target name used in the link is unique.
+This method uses the default algorithm for HTML and POD
+
+When indexing a unique target is needed even when same entry is repeated
+When a Heading is a target, the reference must come from the name
+
+=head2 process-pod
+
+    method process-pod( $pod ) {
+
+Process the pod block or tree passed to it, and concatenates it to previous pod tree.
+Returns a string representation of the tree in the required format
+
+=head2 render-block
+
+    method render-block( $pod )
+
+Renders a pod tree, but probably a block
+Returns only the pod that was passed
+
+=head2 render-tree
+
+    method render-tree( $pod )
+
+Tenders the whole pod tree
+Is actually an alias to process-pod
+
+=head2 delete-pod-structure
+
+    method delete-pod-structure
+
+Deletes any previously processed pod, keeping the template engine cache
+Returns the pod-structure deleted as a Hash, for storage in an array when multiple files
+are processed.
+
+=head2 file-wrap
+
+    method file-wrap(:$filename = $.name, :$ext = 'html' )
+
+Saves the rendered pod tree as a file, and its document structures, uses source wrap
+Filename defaults to the name of the pod tree, and ext defaults to html
+
+=head2 source-wrap
+
+    method source-wrap( --&gt; Str )
+
+Renders all of the document structures, and wraps them and the body
+Uses the source-wrap template
+
+=head2 Individual component renderers
+
+The following are called by C&lt;source-wrap&gt; but could be called separately, eg., if a different textual template such
+as C&lt;format-b&gt; should be used inside the component.
+
+=item method render-toc( --&gt; Str )
+=item method render-glossary(--&gt;Str)
+=item method render-footnotes(--&gt; Str)
+=item method render-meta(--&gt; Str)
+
+=head1 Class Attributes that may be useful
+
+    # provided at instantiation or by attributes on Class instance
+    has $.front-matter is rw = 'preface'; # Text between =TITLE and first header, this is used to refer for textual placenames
+    has Str $.name is rw;
+    has Str $.title is rw = $!name;
+    has Str $.subtitle is rw = '';
+    has Str $.path is rw; # should be path of original document, defaults to $.name
+    has Str $.top is rw = $!default-top; # defaults to top, then becomes target for TITLE
+    has &amp;.highlighter is rw; # a callable (eg. provided by external program) that converts [html] to highlighted raku code
+
+    # document level information
+    has $.lang is rw = 'en'; # language of pod file
+
+    # Output rendering information
+    has Bool $.no-meta is rw = False; # set to True eliminates meta data rendering
+    has Bool $.no-footnotes is rw = False; # set to True eliminates rendering of footnotes
+    has Bool $.no-toc is rw = False; # set to True to exclude TOC even if there are headers
+    has Bool $.no-glossary is rw = False; # set to True to exclude Glossary even if there are internal anchors
+
+    # debugging
+    has Bool $.debug is rw; # outputs to STDERR information on processing
+    has Bool $.verbose is rw; # outputs to STDERR more detail about errors.
+
+=head1 Minimum Template Set
+
+There is a minumum set of templates that must be provided. A ProcessPod instance will not be generated if the minimum set
+of keys is not generated.
+
+The following is a set of templates (the actual templates here are not guaranteed to be the default in Pod::To::HTML).
+
+If the code below is copied to a file and the file provided to the C&lt;:templates&gt; argument, then C&lt;PodProcessed&gt; will
+generate an HTML file.
+
+In C&lt;Pod::To::HTML&gt; the variables C&lt;$css-text&gt; and C&lt;$camelia-bug&gt; are populated with data in other directories in this
+distribution.
+
+=begin code
 use v6.d;
 my $css-text = '';
 my $camelia-bug = '';
@@ -897,14 +943,11 @@ my $camelia-bug = '';
 )
 </pre>
 
-</section>
-
+                </section>
         </div>
         
-
         <footer><div>Rendered from <span class="path">RenderPod.pod6</span></div>
-             <div>at <span class="time">2020-06-28T20:27:55Z</span></div>
-        </footer>
-    </body>
+                        <div>at <span class="time">2020-07-04T13:38:54Z</span></div>
+                        </footer>    </body>
 </html>
 

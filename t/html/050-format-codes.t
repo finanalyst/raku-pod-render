@@ -2,7 +2,7 @@ use v6.*;
 use Test;
 
 use Pod::To::HTML;
-my $processor = Pod::To::HTML.processor;
+my $processor = Pod::To::HTML.new;
 my $rv;
 my $pn = 0;
 
@@ -182,7 +182,7 @@ like $rv, /
 
 =begin pod
 
-We can L<Link to a place|https://docs.perl6.org> with no problem.
+We can L<Link to a place|https://docs.raku.org> with no problem.
 
 This L<link should fail|https://xxxxxioioioi.com> with a bad response code.
 
@@ -195,9 +195,9 @@ like $rv, /
     '<section'
     .+? '<p>'
     \s* 'We can'
-    \s* '<a href="https://docs.perl6.org">Link to a place</a>'
+    \s* '<a href="https://docs.raku.org">Link to a place</a>'
     \s* 'with no problem.'
-#    .+ '<a href="format-code-index-test-pod-file_2#an item">' \s* 'link to an index test code'
+    .+ '<a href="format-code-index-test-pod-file_2#an_item">' \s* 'link to an index test code'
     /, 'L format creates links';
 
 # todo a test about links not mangling.
@@ -221,6 +221,7 @@ like $rv, /
 
 Some thing F<a-filename.pod> between words.
 =end pod
+
 $rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
@@ -230,7 +231,6 @@ like $rv, /
     \s+ 'F&lt;a-filename.pod&gt;'
     \s+ 'between words.'
     /, 'Unknown format';
-
 
 =begin pod
 

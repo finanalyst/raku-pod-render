@@ -62,14 +62,16 @@ document elements, see TEMPLATES below.
 Essentially, a hash of element keys pointing to Mustache strings is provided to the renderer. The C<Pod::To::HTML> and C<Pod::To::MarkDown>
 modules in this distribution provide default templates to the C<ProcessedPod> class.
 
-The renderer
-can be customised on-the-fly by rewriting the keys of the template hash. For example,
+The renderer can be customised on-the-fly by modifying the keys of the template hash. For example,
 
 =begin code
     use RenderPod;
     my $renderer .= RenderPod.new;
-    $renderer.tmpl<format-b> =  '<strong class="myStrongClass {{# addClass }}{{ addClass }}{{/ addClass }}">{{{ contents }}}</strong>';
-    # was 'format-b' => '<strong{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</strong>'
+    $renderer.modify-templates( %(format-b =>
+        '<strong class="myStrongClass {{# addClass }}{{ addClass }}{{/ addClass }}">{{{ contents }}}</strong>')
+    );
+    # The default template is something like
+    #       'format-b' => '<strong{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</strong>'
     # the effect of this change is to add myStrongClass to all instances of B<> including any extra classes added by the POD
 =end code
 
@@ -100,14 +102,18 @@ Each entry in the template Hash can be either (a) a String or (b) a block.
 
 =head2 String Template
 
-For example if C<'escaped' => '{{ contents }}', > is a line in a hash declaration of the templatess, then the right hand side
+For example if C<'escaped' => '{{ contents }}', > is a line in a hash declaration of the templates, then the right hand side
 is the C<Mustache> template for the C<escaped> key. The template engine is called with a hash containing String data
 that are interpolated into the template.
 C<contents> is provided for all keys, but some keys have more complex data.
 
 =head2 Block Templates
 
-C<Mustache> by design is not intended to have any logic. This is not always convenient. So the template Hash can be provided with
+C<Mustache> by design is not intended to have any logic, although it does allow lambdas. Since the latter are not well documented
+and some template-specific preprocessing is required, or the default action of the Templating engine
+needs to be over-ridden, extra functionality is provided.
+
+Instead of a plain text template being associated with a Template Hash key, the key can be associated with
 a block that can pre-process the data provided to the Mustache engine, or change the template. The block must return a String
 with a valid Mustache template.
 
@@ -121,16 +127,36 @@ For example,
 The block is called with a Hash parameter that is assigned to C<%params>. The C<contents> key of C<%params>) is adjusted
 because C<Mustache> does not escape single-quotes.
 
+=head2 Partials and New Templates
+
+Mustache allows for other templates to be used as partials. Thus it is possible to create new
+templates that use the templates needed by ProcessedPod and incorporate them in output templates.
+
+For example:
+=begin code
+
+$p.modify-templates( %(:newone(
+    '<container>{{ contents }}</container>'
+    ),
+    :format-b('{{> newone }}'))
+);
+
+=end code
+
+Now the pod line C< This is some B<boldish text> in a line> will result in
+
+    <p>This is some <container>boldish text</container> in a line</p>
+
 =head1 Change the Templating Engine
 
 In order to change the Templating Engine, C<PodProcessed> needs to be subclassed and a single method, namely
 C<method rendition( Str $key, Hash %params --> Str )> needs to be overwritten.
 
-Suppose that the templating engine is NewTemplateEngine, and that - like Template::Mustache - it is instantiates
+Assuming that the templating engine is NewTemplateEngine, and that - like Template::Mustache - it is instantiates
 with C<.new>, and has a C<.render> method which takes a String template, and Hash of strings to interpolate, and
-which returns a String, viz C< .render( Str $template, Hash %params --> Str )>.
+which returns a String, viz C< .render( Str $string, Hash %params, :from( %hash-of-templates) --> Str )>.
 
-Then the method would be:
+Then the method might be incorporated into a subclass as follows;
 
 =begin code
 
@@ -150,14 +176,17 @@ class PodProcess::NewTemplateEngine is PodProcessed {
         # templating engines like mustache do not handle logic or loops, which some Pod formats require.
         # hence we pass a Subroutine instead of a string in the template
         # the subroutine takes the same parameters as rendition and produces a mustache string
-        # eg P format template escapes containers
+        # eg P format HTML template escapes PRE containers
 
         note "At $?LINE rendering with \<$key>" if $.debug;
+        my $interpolate = %!tmpl{$key} ~~ Block
+        ?? %.tmpl{$key}(%params)
+            # if the template is a block, then run as sub and pass in the params
+        !! %tmpl{$key}
+        ;
         $.engine.render(
-            %tmpl{ $key } ~~ Block ??
-            %.tmpl{$key}(  %params ) # if the template is a block, then run as sub and pass in the params
-            !! %.tmpl{$key}
-            , %params , :literal
+            $interpolate,
+            %params, :from( %.tmpl )
         )
     }
 }
@@ -166,11 +195,21 @@ class PodProcess::NewTemplateEngine is PodProcessed {
 
 =head1 Methods Provided by ProcessedPod
 
-=head2 replace-template
+=head2 modify-templates
 
-    method replace-template( %new-templates )
+    method modify-templates( %new-templates )
 
-Allows for templates to be replaced during pod processing
+Allows for templates to be modified or new ones added before or during pod processing.
+
+B<Note:> Since the templating engine needs to be reinitialised in order to clear a template
+cache, it is probably not efficient to modify templates too many times during processing.
+
+C<modify-templates> B<replaces> the keys in the C<%new-templates> hash. It will add new keys
+to the internal template store.
+
+Example:
+=begin code
+
 
 =head2 rewrite-target
 
@@ -251,6 +290,9 @@ as C<format-b> should be used inside the component.
     has Str $.path is rw; # should be path of original document, defaults to $.name
     has Str $.top is rw = $!default-top; # defaults to top, then becomes target for TITLE
     has &.highlighter is rw; # a callable (eg. provided by external program) that converts [html] to highlighted raku code
+
+    # document level information
+    has $.lang is rw = 'en'; # language of pod file
 
     # Output rendering information
     has Bool $.no-meta is rw = False; # set to True eliminates meta data rendering

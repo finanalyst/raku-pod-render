@@ -1,7 +1,9 @@
 use Test;
+#plan 1;
+#skip-rest 'repeat these tests with prove';
+#exit;
 
 plan 15;
-
 my $p = run 'raku', '-Ilib', '--doc=HTML', 't/rend-test-file.raku', :out;
 my $rv = $p.out.slurp.subst(/\s+/,' ',:g).trim;;
 $p.out.close;

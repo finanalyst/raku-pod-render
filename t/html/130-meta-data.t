@@ -2,7 +2,7 @@ use v6.*;
 use Test;
 
 use Pod::To::HTML;
-my $processor = Pod::To::HTML.processor;
+my $processor = Pod::To::HTML.new;
 my $rv;
 my $pn = 0;
 

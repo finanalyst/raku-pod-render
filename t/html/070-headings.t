@@ -2,7 +2,7 @@ use v6.*;
 use Test;
 
 use Pod::To::HTML;
-my $processor = Pod::To::HTML.processor;
+my $processor = Pod::To::HTML.new;
 my $rv;
 my $pn = 0;
 
@@ -151,14 +151,15 @@ unlike $rv,
 
 =head3 X<Heading> 2.2.2
 
+Note that only the word Heading is indexed
+
 =head1 Heading C<3>
 
 =end pod
 
 $processor.delete-pod-structure;
 $processor.process-pod( $=pod[$pn++] );
-$rv = $processor.source-wrap
-        .subst(/\s+/,' ',:g).trim;
+$rv = $processor.source-wrap;
 
 like $rv, /'h2 id="Heading_2.2"' .+ '>Heading 2.2'/, 'Heading 2.2 has expected id';
 

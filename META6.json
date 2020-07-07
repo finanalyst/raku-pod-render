@@ -19,8 +19,7 @@
   "provides": {
     "Pod::To::HTML": "lib/Pod/To/HTML.pm6",
     "Pod::To::MarkDown": "lib/Pod/To/MarkDown.pm6",
-    "ProcessedPod": "lib/ProcessedPod.pm6",
-    "ProcessedPod::Exceptions": "lib/ProcessedPod/Exceptions.pm6"
+    "ProcessedPod": "lib/ProcessedPod.pm6"
   },
   "resources": [
     "pod.css",

@@ -2,7 +2,7 @@ use v6.*;
 use Test;
 
 use Pod::To::HTML;
-my $processor = Pod::To::HTML.processor;
+my $processor = Pod::To::HTML.new;
 my $rv;
 my $pn = 0;
 
@@ -31,13 +31,13 @@ $rv = $processor.render-block( $=pod[$pn++] ).subst(/\s+/,' ',:g);
 like $rv,
     /
     'When creating an anchor (or indexing), eg. for a glossary, for '
-    \s* '<a name="an_item"></a>'
+    \s* '<a name="index-entry-an_item"></a>'
     \s* '<span class="glossary-entry">an item</span>'
     \s* 'the'
-    \s* '<a name="X_format"></a>'
+    \s* '<a name="index-entry-X_format"></a>'
     \s* '<span class="glossary-entry">X format</span> is used.'
     .+ 'same text, eg.'
-    \s* '<a name="an_item' .+ '></a>'
+    \s* '<a name="index-entry-an_item' .+ '></a>'
     \s* '<span class="glossary-entry">an item</span>'
     \s* ', in multiple places.'
     /, 'X format in text';
@@ -51,11 +51,11 @@ like $rv, /
     \s* '<tr><th>Term</th><th>Section Location</th></tr>'
     \s* '<tr class="glossary-defn-row">'
     \s*     '<td class="glossary-defn">X format</td><td></td></tr>'
-    \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#X_format">' .+ '</a></td></tr>'
+    \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#index-entry-X_format">' .+ '</a></td></tr>'
     \s* '<tr class="glossary-defn-row">'
     \s*     '<td class="glossary-defn">an item</td><td></td></tr>'
-    \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#an_item">' .+ '</a></td></tr>'
-    \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#an_item_0">' .+ '</a></td></tr>'
+    \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#index-entry-an_item">' .+ '</a></td></tr>'
+    \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#index-entry-an_item_0">' .+ '</a></td></tr>'
     \s* '</table>'
     /, 'glossary rendered later';
 
@@ -89,13 +89,13 @@ $rv = $processor.render-block( $=pod[$pn++] );
 like $rv,
     /
     'When indexing'
-    \s* '<a name="Define_an_item"></a>'
+    \s* '<a name="index-entry-Define_an_item-an_item"></a>'
     \s * '<span class="glossary-entry">an item</span>'
     .+ 'to index'
     \s* '<a name="' .+ '></a>'
     \s * '<span class="glossary-entry">hierarchical items</span>'
     .+ 'index the'
-    \s* '<a name="Same' .+ '></a>'
+    \s* '<a name="index-entry-Same' .+ '></a>'
     \s * '<span class="glossary-entry">same place</span>'
     .+ 'But' \s* '<a name' .+ '</a>' \s* 'without the text being marked.'
     .+ 'An empty' \s+ 'is ignored.'

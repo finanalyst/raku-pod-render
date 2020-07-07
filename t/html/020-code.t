@@ -2,7 +2,7 @@ use v6.*;
 use Test;
 
 use Pod::To::HTML;
-my $processor = Pod::To::HTML.processor;
+my $processor = Pod::To::HTML.new;
 my $rv;
 my $pn = 0;
 
@@ -56,9 +56,18 @@ like $rv,
     \s* '<p>' \s* 'But this is just a text. Again' \s* '</p>'
     /, 'mixed paragraphs and code';
 
-my %*POD2HTML-CALLBACKS = code => sub (:$node, :&default) {
-    ok $node.contents ~~ /:i code/, 'Callback for highlighter called';
+$processor.highlighter = sub ( $content --> Str ) {
+    "<highlighter>$content\</highlighter>"
 }
 
-# say $=pod[0].perl;
-pod2html $=pod[0];
+$rv = $processor.render-block( $=pod[0] ); # call initial code and highlight it
+
+like $rv,
+        /
+        \s* '<pre class="pod-block-code">'
+        \s* '<highlighter>'
+        \s* '$this = 1 * code(\'block\');'
+        \s* '$which.is_specified(:by&lt;indenting&gt;);'
+        \s* '</highlighter>'
+        \s* '</pre>'
+        /, 'highighter callback worked';

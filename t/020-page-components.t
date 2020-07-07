@@ -3,9 +3,9 @@ use ProcessedPod;
 
 plan 17;
 
-my ProcessedPod $pro;
+my ProcessedPod $pro .= new;
 
-my @templates = <raw comment escaped glossary footnotes
+my @templates = <raw comment escaped glossary footnotes head header footer dlist-start dlist-end
             format-c block-code format-u para format-b named source-wrap defn output format-l
             format-x heading title format-n format-i format-k format-p meta list subtitle format-r
             format-t table item notimplemented section toc pod >;
@@ -48,7 +48,7 @@ An empty X<> is ignored.
 
 my %templates  = @templates Z=> ( "\<$_>\{\{\{ contents }}}\</$_>" for @templates );
 
-$pro .= new(:%templates, :name<Testing> );
+$pro.templates(%templates);
 
 lives-ok { $pro.render-block( $=pod[0] ) }, 'main processing methods work, not interested in return values yet';
 
