@@ -7,8 +7,10 @@
 A simple default set of templates is provided with a default set of css and a header with the Camelia-bug image.
 
 Since no assumption can be made about the way the html is served, everything in the default templates assumes output to
-an html file that can be served as a file (eg., no embedded images from external files). This behaviour can be changed by
+an html file that can be served as a file (eg., no embedded images from external files). The default behaviour can be changed by
 changing one or more or all of the templates.
+
+The rationale for re-writing the whole Pod::To::HTML module is in the section L<Why Reinvent the Wheel?|#Why Reinvent the Wheel?>.
 
 =head1 Usage with compiler
 
@@ -28,7 +30,7 @@ PODRENDER='NoTOC NoMETA NoGloss NoFoot' raku --doc=HTML input.raku > output.html
 The following regexen are applied to PODRENDER and switch off the default rendering of the respective section:
 
 =begin table
-regen applied | Turns off if Match in True
+regex applied |  if Match, then Turns off
 ============================================
 /:i 'no' '-'? 'toc' / | Table of Contents
 /:i 'no' '-'? 'meta' / | Meta information (eg AUTHOR)
@@ -36,30 +38,30 @@ regen applied | Turns off if Match in True
 /:i 'no' '-'? 'footnotes' / | Footnotes.
 =end table
 
-Hence any or all of 'NoTOC' 'NoMETA' 'NoGloss' 'NoFoot' may be included in any order.
+Any or all of 'NoTOC' 'NoMETA' 'NoGloss' 'NoFoot' may be included in any order.
 Default is to include each section.
 
 =head1 Standalone usage mixing Pod and code
 
-This functionality is mainly for tests. But it illustrates some of the functionality.
+'Standalone ... mixing' means that the program itself contains pod definitions (some examples are given below).
+This functionality is mainly for tests, but can be adapted to render other pod sources.
 
-C<Pod::To::HTML> is a subclass of C<PodProcessed>, which contains the code for a generic Pod Render. It adds the functionality
-needed to be called by the compiler,
-by providing a default set of HTML templates, and by exporting some routines to pass the tests of earlier C<Pod::To::HTML> modules.
+C<Pod::To::HTML> is a subclass of C<PodProcessed>, which contains the code for a generic Pod Render.
+C<Pod::To::HTML> provides a default set of templates and minimal css. It also
+exports some routines (not documented here) to pass the tests of the legacy C<Pod::To::HTML> module (see below
+for the rationale for choosing a different API).
 
 C<Pod::To::HTML> also allows, as covered below, for a customised css file to be included, for individual template components to be
 changed on the fly, and also to provide a different set of templates.
 
-Inside a raku program, for a work flow that assumes the output as HTML snippets (as in a test file,
-or for a sequence of pod-trees that will be stitched together in a single file).
-
-Actually what is happening is that the raku compiler has compiled the Pod in the file, and the code then accesses the Pod segments.
-In fact the order of the Pod segments is irrelavant, but is shown interwoven with the code that accesses it for convenience.
+What is happening in this case is that the raku compiler has compiled the Pod in the file, and the code then accesses the Pod segments.
+In fact the order of the Pod segments is irrelavant, but it is conventional to show Pod definitions interwoven
+with the code that accesses it.
 
 =begin code :lang<raku>
 use Pod::To::HTML;
 # for repeated pod trees to be output as a single page or html snippets (as in a test file)
-my $renderer = Pod::To::HTML.processor(:name<Optional name defaults to UNNAMED>);
+my $renderer = Pod::To::HTML.new(:name<Optional name defaults to UNNAMED>);
 # later
 
 =begin pod
@@ -94,66 +96,18 @@ $renderer.file-wrap(:output-file<some-useful-name>, :ext<html>);
 
 =end code
 
-=head1 Rendering many Pod Sources
-
-As discussed in L<RenderPod|renderpod.html>, a complete render strategy has to deal with multiple Page components.
-
-The following sketches the use of the C<Pod::To::HTML> class.
-
-For example, suppose we want to render each POD source file as a separate html file, and combine the global page components
-separately.
-
-The the C<ProcessedPob> object expects a compiled Pod object. One way to do this is use the C<Pod::From::Cache> module.
-
-=begin code :lang<raku>
-use Pod::To::HTML;
-my $p = Pod::To::HTML.processor;
-my %pod-input; # key is the path-name for the output file, value is a Pod::Block
-my @processed;
-
-#
-# ... populate @pod-input, eg from a document cache, or use EVALFILE on each source
-#
-
-my $counter = 1; # a counter to illustrate how to change output file name
-
-for %pod-input.kv -> $nm, $pd {
-    with $p { # topicalises the processor
-        .name = $nm;
-        # change templates on a per file basis before calling process-pod,
-        # to be used with care because it forces a recache of the templates, which is slow
-        # also, the templates probably need to be returned to normal (not shown here), again requiring a recache
-        if $nm ~~ /^ 'Class' /
-        {
-            .replace-template( %(
-                format-b => '<strong class="myStrongClass {{# addClass }}{{ addClass }}{{/ addClass }}">{{{ contents }}}</strong>'
-                # was 'format-b' => '<strong{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</strong>'
-                # the effect of this change is to add myStrongClass to all instances of B<> including any extra classes added by the POD
-            ))
-        }
-        .process-pod( $pd );
-        # change output name from $nm if necessary
-        .file-wrap( "{ $counter++ }_$nm" );
-        # get the pod structure, delete the information to continue with a new pod tree, retain the cached templates
-        @processed.append: $p.delete-pod-structure; # beware, pod-structure also deletes body, toc, glossary, etc contents
-    }
-}
-# each instance of @processed will have TOC, Glossary and Footnote arrays that can be combined in some way
-for @processed {
-    # each file has been written, but now process the whole collection data and write collection files.
-}
-# code to write global TOC and Glossary html files.
-=end code
-
 =head1 CSS
 
 A minimal CSS is provided for the default templates and is placed in a <style>...</style> container.
 
-Two variables C<:css> and C<:src> are provided to customise the loading of css for the 'source-wrap' template provided here.
+Two variables C<:css-type> and C<:src> are provided to customise the loading of css for the 'source-wrap' template provided here.
 These can be specified as arguments to C<processor>.
 
-If the B<source-wrap> template is over-ridden with a custom template using C<replace-template>, these variables will not
-have any effect because C<replace-template> is a C<ProcessedPod> method.
+If the C<head-block> templates, which is used in the C<source-wrap> template, contain the Mustache stanza C«{{> css-text }}», which
+calls the partial template C<css-text>
+.
+When C<Pod::To::HTML> is instantiated using these variables, a style string is given to the css-text. In order to use the default
+css behaviour of C<Pod::To::HTML>, only over-ride some templates, keeping css-text, and use the C<css-text> or C<head-block> templates.
 
 If C<:css> is specified, then C<:src> must be specified.
 
@@ -161,30 +115,32 @@ If C<:css> is specified, then C<:src> must be specified.
 
 =begin code :lang<raku>
     use Pod::To::HTML;
-    my Pod::To::HTML $processor = $pd.processor(:css<link>, :src('assets/pod.css') );
+    my Pod::To::HTML $processor .= new(:css-type<load>, :src('path/to/custom.css') );
 =end code
 
-The contents of path/to/custom.css are slurped into a C< <style> > container by source-wrap.
+The contents of path/to/custom.css are slurped into a C< <style> > container and given to the template C<css=-text>.
 
 This is similar to the default action of the module, except that the pod.css file is in the module repository.
 
 =head2 CSS Link
 
-Normally, when HTML is served a separate CSS file is loaded from a path on the server, or an http/https link.
+Normally, when HTML is served a separate CSS file is loaded from a path on the server, or an http/https link. Then it
+is know where the source is, eg.,C<assets/pod.css>, or it might be loaded from another internet source, eg.
+C<https://somedomain.com/assets/pod.css>.
 
 =begin code :lang<raku>
     use Pod::To::HTML;
-    my Pod::To::HTML $processor = $pd.processor(:css<link>, :src('https:/somedomain.dom/assets/pod.css') );
+    my Pod::To::HTML $processor .= new(:css-type<link>, :src('https://somedomain.dom/assets/pod.css') );
 =end code
 
-This generates a <link> container in C< <head>...</head> >
-viz. C< <link rel="stylesheet" type="text/css" href="' ~ $!css-link ~ '" media="screen" title="default" /> >
+This generates a string that is given to the template C<css-text>. For example:
+C< <link rel="stylesheet" type="text/css" href="https://somedomain.com/assets/pod.css" media="screen" title="default" /> >
 
 =head2 Camelia Image
 
 The Camelia image is the mascot for Raku. It is provided in the Header by default.
 
-The behaviour can be changed by changing the source-wrap template
+The behaviour can be changed by changing the C<header> template
 
 =head1 Highlighting
 
@@ -237,25 +193,46 @@ For example,
 
 The default templating engine is Template::Mustache. A minimal default set of templates is provided with the Module.
 
-Each template can be changed. The mechanism for including custom css is included in the C<source-wrap> template.
+Each template can be changed using the C<modify-templates> method. Be careful when over-riding C<head-block> to ensure
+the css is properly referenced.
 
 A full set of new templates can be provided to ProcessedPod either by providing a path/filename to the processor method, eg.,
-C< .processor(:template<path/to/mytemplates.raku>) > or by having the file 'html-templates.raku' in the current working directory.
-The 'mytemplates.raku' or 'html-templates.raku' files must contain a raku program
-that evaluates to a Hash containing the templates. More about the hash can be found in L<RenderPod|renderpod.html>.
+
+=begin code
+use Pod::To::HTML;
+my Pod::To::HTML $p .= new;
+
+$p.templates<path/to/mytemplates.raku>;
+
+# or if all templates known
+
+$p.templates( %( format-b => '<b>{{ contents }}</b>' .... ) );
+
+=end code
+
+If :templates is given a string, then it expects a file that can be compiled by raku and evaluates to
+a Hash containing the templates. More about the hash can be found in L<RenderPod|renderpod.html>.
+
+When a C<Pod::To::HTML> object is instantiated, and the file 'html-templates.raku' exists in the current working directory,
+it will be evaluated and treated as the source of the templates hash (see above).
+
+This allows a developer to use the compiler option C<--doc=HTML> together with her own templates. Note that css
+must also be provided explicitly in the C<head-block> template.
 
 =head1 Exported Subroutines
 
-Two functions are exported to provide backwards compatability with an older Pod::To::HTML module. They map onto the methods
+Two functions are exported to provide backwards compatibility with legacy Pod::To::HTML module. They map onto the methods
 described above.
 
-=head2 node2html
+Only those options actually tested will be supported.
 
-    sub node2html( $pod, :$debug = False ) is export
+=item node2html
 
-=head2 pod2html
+    sub node2html( $pod ) is export
 
-    sub pod2html( $pod ) is export
+=item pod2html
+
+    sub pod2html( $pod, *%options ) is export
 
 =head1 Miscellaneous
 
@@ -264,5 +241,56 @@ In the contents, headers can be prefixed with their header levels in the form 1.
 The default separator (.) can be changed by setting (eg to _) as :counter-separator<_>
 
 The header levels can be omitted by setting :no-counters
+
+=head1 Why Reinvent the Wheel?
+
+The two original Pod rendering modules are C< Pod::To::HTML > (later B<legacy P2HTML> ) and C< Pod::To::BigPage >. So why
+rewrite the modules and create another API? There was an attempt to rewrite the existing modules, but the problems go deeper
+than a rewrite. The following difficulties can be found with the legacy Modules:
+
+=item Inside the code of
+legacy P2HTML there were several comments such as 'fix me'. The API provided a number of functions with different parameters that
+are not documented.
+
+=item Not all of the API is tested.
+
+=item One or two POD features are not implemented in legacy P2HTML, but are implemented in P2BigPage.
+
+=item Fundamentally: HTML snippets for different Pod Blocks is hard-coded into the software. Changing the
+structure of the HTML requires rewriting the software.
+
+=item Neither module deals with Indexes, or Glossaries. POD6 defines the B<X< >> format code to place text in a glossary (or index),
+but this information is not collected or used by P2HTML. The Table of Content data is not collected in the same pass through the
+document as the generation of the HTML code.
+
+This module deal with these problems as follows:
+
+=item All Pod Blocks are associated with templates and data for the templates. So the Generic Renderer passes off generation of
+the output format to a Template engine. (Currently, only the Template::Mustache engine is supported, but the code has been
+designed to allow for other template engines to be supported by over-ridding only the template rendering methods).
+
+=item Data for B<Page Components> such as C<Table of Contents>, C<Glossary>, C<Footnotes>, and C<MetaData> are collected in a single
+processing pass of the Generic Renderer. The subclass can provide templates for the whole document to incorporate the Page Components
+as desired.
+
+=item All the links (both external and internal) are collected together and can be accessed after processing the Pod source,
+thus allowing for testing of the links separately.
+
+=item There is a clear distinction between rendering a Pod tree (all of the pod in a source), a pod block (the text between
+the C< =begin pod> and C< =end pod> markers, and outputting the pod for a page or for the body of a page (without headers,
+footers, or page components). This distinction required a different API.
+
+=item There is a clear distinction between what is needed for a particular output format, eg., HTML or MarkDown, and what is
+needed to render Pod. Thus, HTML requires css and headers, etc. MarkDown requires the anchors to connect a Table of Contents
+to specific Headers in the text to be written in a specific way.
+
+=item C<Pod::To::HTML> subclass allows for a more flexible provision of css or other assets.
+
+    =item The C<source-wrap> template can be completely rewritten to allow for different assets.
+
+    =item css can be provided in a file that is B<slurped> into the header as a style component
+
+    =item css can be provided as a link to a source, when the location of the asset is known and
+    will be loaded by the HTML server.
 
 =end pod

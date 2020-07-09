@@ -3,7 +3,9 @@
     <head>
         <title>Rendering POD6 into HTML</title>
         <meta charset="UTF-8" />
-<style>header {
+        
+        
+        <style>header {
   text-align: center;
   position: sticky;
   top: 0;
@@ -36,6 +38,11 @@ u {
 
 .nested {
   margin-left: 3em; }
+
+.glossary-entry {
+  color: brown;
+  background-color: #c3d92b3d;
+  border-radius: 5px; }
 
 html, body {
   margin: 0;
@@ -354,11 +361,11 @@ footer {
     color: red; }
   footer .time {
     color: #3800ff; }
-</style>    
+</style>
+        
     </head>
     <body class="pod">
-        <header>
-<svg version="1.1" id="Camelia_bug" xmlns:svg="http://www.w3.org/2000/svg"
+        <header><svg version="1.1" id="Camelia_bug" xmlns:svg="http://www.w3.org/2000/svg"
 	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="146.887 35.071 679.648 628.263" enable-background="new 146.887 35.071 679.648 628.263" xml:space="preserve">
 <g>
@@ -524,55 +531,49 @@ footer {
 		<rect x="551.153" y="428.32" transform="matrix(0.4226 -0.9063 0.9063 0.4226 -70.9303 749.6747)" stroke="#000000" stroke-width="1.0588" stroke-miterlimit="10" width="3.517" height="4.372"/>
 </g>
 </svg>
-        Rendering POD6 into HTML</header>
-        <div class="toc-glossary">
-            <table id="TOC">
-        <caption>Table of Contents</caption>
-        <tr class="toc-level-1">
-            <td class="toc-text"><a href="#usage_with_compiler"><span class="toc-counter">1</span> Usage with compiler</a></td>
-        </tr>
-        <tr class="toc-level-1">
-            <td class="toc-text"><a href="#standalone_usage_mixing_pod_and_code"><span class="toc-counter">2</span> Standalone usage mixing Pod and code</a></td>
-        </tr>
-        <tr class="toc-level-1">
-            <td class="toc-text"><a href="#rendering_many_pod_sources"><span class="toc-counter">3</span> Rendering many Pod Sources</a></td>
-        </tr>
-        <tr class="toc-level-1">
-            <td class="toc-text"><a href="#css"><span class="toc-counter">4</span> CSS</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#css_load"><span class="toc-counter">4.1</span> CSS Load</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#css_link"><span class="toc-counter">4.2</span> CSS Link</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#camelia_image"><span class="toc-counter">4.3</span> Camelia Image</a></td>
-        </tr>
-        <tr class="toc-level-1">
-            <td class="toc-text"><a href="#highlighting"><span class="toc-counter">5</span> Highlighting</a></td>
-        </tr>
-        <tr class="toc-level-1">
-            <td class="toc-text"><a href="#templates"><span class="toc-counter">6</span> Templates</a></td>
-        </tr>
-        <tr class="toc-level-1">
-            <td class="toc-text"><a href="#exported_subroutines"><span class="toc-counter">7</span> Exported Subroutines</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#node2html"><span class="toc-counter">7.1</span> node2html</a></td>
-        </tr>
-        <tr class="toc-level-2">
-            <td class="toc-text"><a href="#pod2html"><span class="toc-counter">7.2</span> pod2html</a></td>
-        </tr>
-        <tr class="toc-level-1">
-            <td class="toc-text"><a href="#miscellaneous"><span class="toc-counter">8</span> Miscellaneous</a></td>
-        </tr>
-    </table>
+Rendering POD6 into HTML</header>        <div class="toc-glossary">
+        <table id="TOC">
+    <caption>Table of Contents</caption>
+    <tr class="toc-level-1">
+        <td class="toc-text"><a href="#Usage_with_compiler"><span class="toc-counter">1</span> Usage with compiler</a></td>
+    </tr>
+    <tr class="toc-level-1">
+        <td class="toc-text"><a href="#Standalone_usage_mixing_Pod_and_code"><span class="toc-counter">2</span> Standalone usage mixing Pod and code</a></td>
+    </tr>
+    <tr class="toc-level-1">
+        <td class="toc-text"><a href="#CSS"><span class="toc-counter">3</span> CSS</a></td>
+    </tr>
+    <tr class="toc-level-2">
+        <td class="toc-text"><a href="#CSS_Load"><span class="toc-counter">3.1</span> CSS Load</a></td>
+    </tr>
+    <tr class="toc-level-2">
+        <td class="toc-text"><a href="#CSS_Link"><span class="toc-counter">3.2</span> CSS Link</a></td>
+    </tr>
+    <tr class="toc-level-2">
+        <td class="toc-text"><a href="#Camelia_Image"><span class="toc-counter">3.3</span> Camelia Image</a></td>
+    </tr>
+    <tr class="toc-level-1">
+        <td class="toc-text"><a href="#Highlighting"><span class="toc-counter">4</span> Highlighting</a></td>
+    </tr>
+    <tr class="toc-level-1">
+        <td class="toc-text"><a href="#Templates"><span class="toc-counter">5</span> Templates</a></td>
+    </tr>
+    <tr class="toc-level-1">
+        <td class="toc-text"><a href="#Exported_Subroutines"><span class="toc-counter">6</span> Exported Subroutines</a></td>
+    </tr>
+    <tr class="toc-level-1">
+        <td class="toc-text"><a href="#Miscellaneous"><span class="toc-counter">7</span> Miscellaneous</a></td>
+    </tr>
+    <tr class="toc-level-1">
+        <td class="toc-text"><a href="#Why_Reinvent_the_Wheel?"><span class="toc-counter">8</span> Why Reinvent the Wheel?</a></td>
+    </tr>
+</table>
 
         
         </div>
         <div class="pod-body">
-            <section name="___top"><h1 class="title" id="rendering_pod6_into_html">Rendering POD6 into HTML</h1><div class="subtitle"><p>Renders POD6 sources into HTML using templates</p></div><p>A simple default set of templates is provided with a default set of css and a header with the Camelia-bug image.</p><p>Since no assumption can be made about the way the html is served, everything in the default templates assumes output to an html file that can be served as a file (eg., no embedded images from external files). This behaviour can be changed by changing one or more or all of the templates.</p><h1 id="usage_with_compiler"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">Usage with compiler</a></h1>
+            <section name="___top"><h1 class="title" id="Rendering_POD6_into_HTML">Rendering POD6 into HTML</h1><div class="subtitle"><p>Renders POD6 sources into HTML using templates</p></div><p>A simple default set of templates is provided with a default set of css and a header with the Camelia-bug image.</p><p>Since no assumption can be made about the way the html is served, everything in the default templates assumes output to an html file that can be served as a file (eg., no embedded images from external files). The default behaviour can be changed by changing one or more or all of the templates.</p><p>The rationale for re-writing the whole Pod::To::HTML module is in the section <a href="#Why_Reinvent_the_Wheel?">Why Reinvent the Wheel?</a>
+            .</p><h1 id="Usage_with_compiler"><a href="#Rendering_POD6_into_HTML" class="u" title="go to top of document">Usage with compiler</a></h1>
             <p>From the terminal:</p><pre class="pod-block-code">
 raku --doc=HTML input.raku &gt; output.html
 </pre>
@@ -583,21 +584,22 @@ PODRENDER='NoTOC NoMETA NoGloss NoFoot' raku --doc=HTML input.raku &gt; output.h
 <p>The following regexen are applied to PODRENDER and switch off the default rendering of the respective section:</p><table class="pod-table">
     
     <thead>
-        <tr><th>regen applied</th><th>Turns off if Match in True</th></tr>
+        <tr><th>regex applied</th><th>if Match, then Turns off</th></tr>
     </thead>
     <tbody>
         <tr><td>/:i 'no' '-'? 'toc' /</td><td>Table of Contents</td></tr><tr><td>/:i 'no' '-'? 'meta' /</td><td>Meta information (eg AUTHOR)</td></tr><tr><td>/:i 'no' '-'? 'glossary' /</td><td>Glossary</td></tr><tr><td>/:i 'no' '-'? 'footnotes' /</td><td>Footnotes.</td></tr>
     </tbody>
 </table>
-<p>Hence any or all of 'NoTOC' 'NoMETA' 'NoGloss' 'NoFoot' may be included in any order. Default is to include each section.</p><h1 id="standalone_usage_mixing_pod_and_code"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">Standalone usage mixing Pod and code</a></h1>
-            <p>This functionality is mainly for tests. But it illustrates some of the functionality.</p><p><code>Pod::To::HTML</code>
+<p>Any or all of 'NoTOC' 'NoMETA' 'NoGloss' 'NoFoot' may be included in any order. Default is to include each section.</p><h1 id="Standalone_usage_mixing_Pod_and_code"><a href="#Rendering_POD6_into_HTML" class="u" title="go to top of document">Standalone usage mixing Pod and code</a></h1>
+            <p>'Standalone ... mixing' means that the program itself contains pod definitions (some examples are given below). This functionality is mainly for tests, but can be adapted to render other pod sources.</p><p><code>Pod::To::HTML</code>
              is a subclass of <code>PodProcessed</code>
-            , which contains the code for a generic Pod Render. It adds the functionality needed to be called by the compiler, by providing a default set of HTML templates, and by exporting some routines to pass the tests of earlier <code>Pod::To::HTML</code>
-             modules.</p><p><code>Pod::To::HTML</code>
-             also allows, as covered below, for a customised css file to be included, for individual template components to be changed on the fly, and also to provide a different set of templates.</p><p>Inside a raku program, for a work flow that assumes the output as HTML snippets (as in a test file, or for a sequence of pod-trees that will be stitched together in a single file).</p><p>Actually what is happening is that the raku compiler has compiled the Pod in the file, and the code then accesses the Pod segments. In fact the order of the Pod segments is irrelavant, but is shown interwoven with the code that accesses it for convenience.</p><pre class="pod-block-code">
+            , which contains the code for a generic Pod Render. <code>Pod::To::HTML</code>
+             provides a default set of templates and minimal css. It also exports some routines (not documented here) to pass the tests of the legacy <code>Pod::To::HTML</code>
+             module (see below for the rationale for choosing a different API).</p><p><code>Pod::To::HTML</code>
+             also allows, as covered below, for a customised css file to be included, for individual template components to be changed on the fly, and also to provide a different set of templates.</p><p>What is happening in this case is that the raku compiler has compiled the Pod in the file, and the code then accesses the Pod segments. In fact the order of the Pod segments is irrelavant, but it is conventional to show Pod definitions interwoven with the code that accesses it.</p><pre class="pod-block-code">
 use Pod::To::HTML;
 # for repeated pod trees to be output as a single page or html snippets (as in a test file)
-my $renderer = Pod::To::HTML.processor(:name&lt;Optional name defaults to UNNAMED&gt;);
+my $renderer = Pod::To::HTML.new(:name&lt;Optional name defaults to UNNAMED&gt;);
 # later
 
 =begin pod
@@ -631,74 +633,39 @@ $renderer.file-wrap(:output-file&lt;some-useful-name&gt;, :ext&lt;html&gt;);
 # C&lt;some-useful-name&gt; could include a valid path.
 
 </pre>
-<h1 id="rendering_many_pod_sources"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">Rendering many Pod Sources</a></h1>
-            <p>As discussed in <a href="renderpod.html">RenderPod</a>
-            , a complete render strategy has to deal with multiple Page components.</p><p>The following sketches the use of the <code>Pod::To::HTML</code>
-             class.</p><p>For example, suppose we want to render each POD source file as a separate html file, and combine the global page components separately.</p><p>The the <code>ProcessedPob</code>
-             object expects a compiled Pod object. One way to do this is use the <code>Pod::From::Cache</code>
-             module.</p><pre class="pod-block-code">
-use Pod::To::HTML;
-my $p = Pod::To::HTML.processor;
-my %pod-input; # key is the path-name for the output file, value is a Pod::Block
-my @processed;
-
-#
-# ... populate @pod-input, eg from a document cache, or use EVALFILE on each source
-#
-
-my $counter = 1; # a counter to illustrate how to change output file name
-
-for %pod-input.kv -&gt; $nm, $pd {
-    with $p { # topicalises the processor
-        .name = $nm;
-        # change templates on a per file basis before calling process-pod,
-        # to be used with care because it forces a recache of the templates, which is slow
-        # also, the templates probably need to be returned to normal (not shown here), again requiring a recache
-        if $nm ~~ /^ 'Class' /
-        {
-            .replace-template( %(
-                format-b =&gt; '&lt;strong class=&quot;myStrongClass {{# addClass }}{{ addClass }}{{/ addClass }}&quot;&gt;{{{ contents }}}&lt;/strong&gt;'
-                # was 'format-b' =&gt; '&lt;strong{{# addClass }} class=&quot;{{ addClass }}&quot;{{/ addClass }}&gt;{{{ contents }}}&lt;/strong&gt;'
-                # the effect of this change is to add myStrongClass to all instances of B&lt;&gt; including any extra classes added by the POD
-            ))
-        }
-        .process-pod( $pd );
-        # change output name from $nm if necessary
-        .file-wrap( &quot;{ $counter++ }_$nm&quot; );
-        # get the pod structure, delete the information to continue with a new pod tree, retain the cached templates
-        @processed.append: $p.delete-pod-structure; # beware, pod-structure also deletes body, toc, glossary, etc contents
-    }
-}
-# each instance of @processed will have TOC, Glossary and Footnote arrays that can be combined in some way
-for @processed {
-    # each file has been written, but now process the whole collection data and write collection files.
-}
-# code to write global TOC and Glossary html files.
-</pre>
-<h1 id="css"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">CSS</a></h1>
-            <p>A minimal CSS is provided for the default templates and is placed in a &lt;style&gt;...&lt;/style&gt; container.</p><p>Two variables <code>:css</code>
+<h1 id="CSS"><a href="#Rendering_POD6_into_HTML" class="u" title="go to top of document">CSS</a></h1>
+            <p>A minimal CSS is provided for the default templates and is placed in a &lt;style&gt;...&lt;/style&gt; container.</p><p>Two variables <code>:css-type</code>
              and <code>:src</code>
              are provided to customise the loading of css for the 'source-wrap' template provided here. These can be specified as arguments to <code>processor</code>
-            .</p><p>If the <strong>source-wrap</strong> template is over-ridden with a custom template using <code>replace-template</code>
-            , these variables will not have any effect because <code>replace-template</code>
-             is a <code>ProcessedPod</code>
-             method.</p><p>If <code>:css</code>
+            .</p><p>If the <code>head-block</code>
+             templates, which is used in the <code>source-wrap</code>
+             template, contain the Mustache stanza <code>{{&gt; css-text }}</code>
+            , which calls the partial template <code>css-text</code>
+             . When <code>Pod::To::HTML</code>
+             is instantiated using these variables, a style string is given to the css-text. In order to use the default css behaviour of <code>Pod::To::HTML</code>
+            , only over-ride some templates, keeping css-text, and use the <code>css-text</code>
+             or <code>head-block</code>
+             templates.</p><p>If <code>:css</code>
              is specified, then <code>:src</code>
-             must be specified.</p><h2 id="css_load"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">CSS Load</a></h2>
+             must be specified.</p><h2 id="CSS_Load"><a href="#Rendering_POD6_into_HTML" class="u" title="go to top of document">CSS Load</a></h2>
             <pre class="pod-block-code">
     use Pod::To::HTML;
-    my Pod::To::HTML $processor = $pd.processor(:css&lt;link&gt;, :src('assets/pod.css') );
+    my Pod::To::HTML $processor .= new(:css-type&lt;load&gt;, :src('path/to/custom.css') );
 </pre>
 <p>The contents of path/to/custom.css are slurped into a <code>&lt;style&gt; </code>
-             container by source-wrap.</p><p>This is similar to the default action of the module, except that the pod.css file is in the module repository.</p><h2 id="css_link"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">CSS Link</a></h2>
-            <p>Normally, when HTML is served a separate CSS file is loaded from a path on the server, or an http/https link.</p><pre class="pod-block-code">
+             container and given to the template <code>css=-text</code>
+            .</p><p>This is similar to the default action of the module, except that the pod.css file is in the module repository.</p><h2 id="CSS_Link"><a href="#Rendering_POD6_into_HTML" class="u" title="go to top of document">CSS Link</a></h2>
+            <p>Normally, when HTML is served a separate CSS file is loaded from a path on the server, or an http/https link. Then it is know where the source is, eg.,<code>assets/pod.css</code>
+            , or it might be loaded from another internet source, eg. <code>https://somedomain.com/assets/pod.css</code>
+            .</p><pre class="pod-block-code">
     use Pod::To::HTML;
-    my Pod::To::HTML $processor = $pd.processor(:css&lt;link&gt;, :src('https:/somedomain.dom/assets/pod.css') );
+    my Pod::To::HTML $processor .= new(:css-type&lt;link&gt;, :src('https://somedomain.dom/assets/pod.css') );
 </pre>
-<p>This generates a &lt;link&gt; container in <code>&lt;head&gt;...&lt;/head&gt; </code>
-             viz. <code>&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;' ~ $!css-link ~ '&quot; media=&quot;screen&quot; title=&quot;default&quot; /&gt; </code>
-            </p><h2 id="camelia_image"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">Camelia Image</a></h2>
-            <p>The Camelia image is the mascot for Raku. It is provided in the Header by default.</p><p>The behaviour can be changed by changing the source-wrap template</p><h1 id="highlighting"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">Highlighting</a></h1>
+<p>This generates a string that is given to the template <code>css-text</code>
+            . For example: <code>&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://somedomain.com/assets/pod.css&quot; media=&quot;screen&quot; title=&quot;default&quot; /&gt; </code>
+            </p><h2 id="Camelia_Image"><a href="#Rendering_POD6_into_HTML" class="u" title="go to top of document">Camelia Image</a></h2>
+            <p>The Camelia image is the mascot for Raku. It is provided in the Header by default.</p><p>The behaviour can be changed by changing the <code>header</code>
+             template</p><h1 id="Highlighting"><a href="#Rendering_POD6_into_HTML" class="u" title="go to top of document">Highlighting</a></h1>
             <p>Generally it is desirable to highlight code contained in <code>=code </code>
              blocks. Since this is not easily accomplished for the generic situation when there is no information about the environment, eg., using the <code>--doc=HTML </code>
              compiler option, highlighting is added after the instantiation of the <code>ProcessedPod</code>
@@ -740,27 +707,72 @@ for @processed {
     $processor.highlighter = &amp;highlighter;
 
 </pre>
-<h1 id="templates"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">Templates</a></h1>
-            <p>The default templating engine is Template::Mustache. A minimal default set of templates is provided with the Module.</p><p>Each template can be changed. The mechanism for including custom css is included in the <code>source-wrap</code>
-             template.</p><p>A full set of new templates can be provided to ProcessedPod either by providing a path/filename to the processor method, eg., <code>.processor(:template&lt;path/to/mytemplates.raku&gt;) </code>
-             or by having the file 'html-templates.raku' in the current working directory. The 'mytemplates.raku' or 'html-templates.raku' files must contain a raku program that evaluates to a Hash containing the templates. More about the hash can be found in <a href="renderpod.html">RenderPod</a>
-            .</p><h1 id="exported_subroutines"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">Exported Subroutines</a></h1>
-            <p>Two functions are exported to provide backwards compatability with an older Pod::To::HTML module. They map onto the methods described above.</p><h2 id="node2html"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">node2html</a></h2>
-            <pre class="pod-block-code">
-sub node2html( $pod, :$debug = False ) is export</pre>
-<h2 id="pod2html"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">pod2html</a></h2>
-            <pre class="pod-block-code">
-sub pod2html( $pod ) is export</pre>
-<h1 id="miscellaneous"><a href="#rendering_pod6_into_html" class="u" title="go to top of document">Miscellaneous</a></h1>
-            <p>In the contents, headers can be prefixed with their header levels in the form 1.2.4</p><p>The default separator (.) can be changed by setting (eg to _) as :counter-separator&lt;_&gt;</p><p>The header levels can be omitted by setting :no-counters</p>
-</section>
+<h1 id="Templates"><a href="#Rendering_POD6_into_HTML" class="u" title="go to top of document">Templates</a></h1>
+            <p>The default templating engine is Template::Mustache. A minimal default set of templates is provided with the Module.</p><p>Each template can be changed using the <code>modify-templates</code>
+             method. Be careful when over-riding <code>head-block</code>
+             to ensure the css is properly referenced.</p><p>A full set of new templates can be provided to ProcessedPod either by providing a path/filename to the processor method, eg.,</p><pre class="pod-block-code">
+use Pod::To::HTML;
+my Pod::To::HTML $p .= new;
 
+$p.templates&lt;path/to/mytemplates.raku&gt;;
+
+# or if all templates known
+
+$p.templates( %( format-b =&gt; '&lt;b&gt;{{ contents }}&lt;/b&gt;' .... ) );
+
+</pre>
+<p>If :templates is given a string, then it expects a file that can be compiled by raku and evaluates to a Hash containing the templates. More about the hash can be found in <a href="renderpod.html">RenderPod</a>
+            .</p><h1 id="Exported_Subroutines"><a href="#Rendering_POD6_into_HTML" class="u" title="go to top of document">Exported Subroutines</a></h1>
+            <p>Two functions are exported to provide backwards compatibility with legacy Pod::To::HTML module. They map onto the methods described above.</p><p>Only those options actually tested will be supported.</p><ul>
+    <li><p>node2html</p></li>
+            
+</ul>
+<pre class="pod-block-code">
+sub node2html( $pod ) is export</pre>
+<ul>
+    <li><p>pod2html</p></li>
+            
+</ul>
+<pre class="pod-block-code">
+sub pod2html( $pod, *%options ) is export</pre>
+<h1 id="Miscellaneous"><a href="#Rendering_POD6_into_HTML" class="u" title="go to top of document">Miscellaneous</a></h1>
+            <p>In the contents, headers can be prefixed with their header levels in the form 1.2.4</p><p>The default separator (.) can be changed by setting (eg to _) as :counter-separator&lt;_&gt;</p><p>The header levels can be omitted by setting :no-counters</p><h1 id="Why_Reinvent_the_Wheel?"><a href="#Rendering_POD6_into_HTML" class="u" title="go to top of document">Why Reinvent the Wheel?</a></h1>
+            <p>The two original Pod rendering modules are <code>Pod::To::HTML </code>
+             (later <strong>legacy P2HTML</strong> ) and <code>Pod::To::BigPage </code>
+            . So why rewrite the modules and create another API? There was an attempt to rewrite the existing modules, but the problems go deeper than a rewrite. The following difficulties can be found with the legacy Modules:</p><ul>
+    <li><p>Inside the code of legacy P2HTML there were several comments such as 'fix me'. The API provided a number of functions with different parameters that are not documented.</p></li>
+            <li><p>Not all of the API is tested.</p></li>
+            <li><p>One or two POD features are not implemented in legacy P2HTML, but are implemented in P2BigPage.</p></li>
+            <li><p>Fundamentally: HTML snippets for different Pod Blocks is hard-coded into the software. Changing the structure of the HTML requires rewriting the software.</p></li>
+            <li><p>Neither module deals with Indexes, or Glossaries. POD6 defines the <strong> </strong> format code to place text in a glossary (or index), but this information is not collected or used by P2HTML. The Table of Content data is not collected in the same pass through the document as the generation of the HTML code.</p></li>
+            
+</ul>
+<p>This module deal with these problems as follows:</p><ul>
+    <li><p>All Pod Blocks are associated with templates and data for the templates. So the Generic Renderer passes off generation of the output format to a Template engine. (Currently, only the Template::Mustache engine is supported, but the code has been designed to allow for other template engines to be supported by over-ridding only the template rendering methods).</p></li>
+            <li><p>Data for <strong>Page Components</strong> such as <code>Table of Contents</code>
+            , <code>Glossary</code>
+            , <code>Footnotes</code>
+            , and <code>MetaData</code>
+             are collected in a single processing pass of the Generic Renderer. The subclass can provide templates for the whole document to incorporate the Page Components as desired.</p></li>
+            <li><p>All the links (both external and internal) are collected together and can be accessed after processing the Pod source, thus allowing for testing of the links separately.</p></li>
+            <li><p>There is a clear distinction between rendering a Pod tree (all of the pod in a source), a pod block (the text between the <code>=begin pod</code>
+             and <code>=end pod</code>
+             markers, and outputting the pod for a page or for the body of a page (without headers, footers, or page components). This distinction required a different API.</p></li>
+            <li><p>There is a clear distinction between what is needed for a particular output format, eg., HTML or MarkDown, and what is needed to render Pod. Thus, HTML requires css and headers, etc. MarkDown requires the anchors to connect a Table of Contents to specific Headers in the text to be written in a specific way.</p></li>
+            <li><p><code>Pod::To::HTML</code>
+             subclass allows for a more flexible provision of css or other assets.</p></li>
+            <li><p>The <code>source-wrap</code>
+             template can be completely rewritten to allow for different assets.</p></li>
+            <li><p>css can be provided in a file that is <strong>slurped</strong> into the header as a style component</p></li>
+            <li><p>css can be provided as a link to a source, when the location of the asset is known and will be loaded by the HTML server.</p></li>
+            
+</ul>
+
+                </section>
         </div>
         
-
         <footer><div>Rendered from <span class="path">Pod2HTML.pod6</span></div>
-             <div>at <span class="time">2020-06-28T20:27:59Z</span></div>
-        </footer>
-    </body>
+                        <div>at <span class="time">2020-07-09T17:08:06Z</span></div>
+                        </footer>    </body>
 </html>
 

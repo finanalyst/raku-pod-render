@@ -120,7 +120,7 @@ class ProcessedPod {
     has Bool $.no-counters is rw = False;
 
     # Structure to collect links, eg. to test whether they all work
-    has @!links;
+    has @.links;
 
     # variables to manage Pod state, where rendering is dependent on local context
     has @.itemlist;

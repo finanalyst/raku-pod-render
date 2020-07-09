@@ -1,7 +1,4 @@
 use v6.d;
-
-no precompilation;
-
 use ProcessedPod;
 
 class X::ProcessedPod::HTML::InvalidCSS::NoSpec is Exception {
@@ -23,11 +20,11 @@ class X::ProcessedPod::HTML::InvalidCSS::BadType is Exception {
 }
 # class variables as they used during object instantiation.
 our $camelia-svg =
-        '<camelia />' ; # much less text for debugging
-# %?RESOURCES<Camelia.svg>.slurp;
+#        '<camelia />' ; # much less text for debugging
+                %?RESOURCES<Camelia.svg>.slurp;
 our $default-css-text =
-        '<style>debug</style>'; # much less text for debugging
-# '<style>' ~ %?RESOURCES<pod.css>.slurp ~ '</style>';
+#        '<style>debug</style>'; # much less text for debugging
+                '<style>' ~ %?RESOURCES<pod.css>.slurp ~ '</style>';
 
 class Pod::To::HTML is ProcessedPod {
     has $.css is rw;
@@ -43,7 +40,8 @@ class Pod::To::HTML is ProcessedPod {
         my $pp = ProcessedPod.new(
                 :name($*PROGRAM-NAME)
                 );
-        $pp.templates(self.html-templates);
+        if 'html-templates.raku'.IO.f { $pp.templates('html-templates.raku') }
+        else { $pp.templates( self.html-templates ) }
         # takes the pod tree and wraps it in HTML.
         $pp.process-pod($pod-tree);
         # Outputs a string that describes a html page
@@ -238,7 +236,7 @@ class Pod::To::HTML is ProcessedPod {
                     <meta charset="UTF-8" />
                     {{# metadata }}{{{ metadata }}}{{/ metadata }}
                     {{# css }}<link rel="stylesheet" href="{{ css }}">{{/ css }}
-                    {{^ css }}{{> css-text }}}{{/ css }}
+                    {{^ css }}{{> css-text }}{{/ css }}
                     {{# head }}{{{ head }}}{{/ head }}
                 </head>
                 TEMPL
