@@ -1,51 +1,85 @@
-# Generic Renderer for POD files
+# Render Pod
+>Generic Renderer for POD files
 
+
+----
+## Table of Contents
+[Page Components](#page-components)
+[TOC](#toc)
+[Glossary](#glossary)
+[Footnotes](#footnotes)
+[Links](#links)
+[Meta data](#meta-data)
+[READyME or read-y-me.raku](#readyme-or-read-y-meraku)
+[More Information](#more-information)
+
+----
 Intended
-- to be a plugin replacement for original Pod::To::HTML and to pass all its tests.
-- use Templates for all output (P2HTML hard codes HTML)
-- use the same API for outputting MarkDown and other output formats. Hence simply changing templates will generate new output
-- generate Glossary, TOC and Footnote structures for each set of Pod trees.
-- can be used to generate HTML and Markdown with raku's --doc flag.
 
-## TOC, Footnotes, Glossaries and Links
+*  to be a plugin replacement for original Pod::To::HTML and to pass all its tests.
 
-Some explanations of terminology.
+*  to use Templates for all output (legacy Pod::To::HTML hard codes HTML)
 
-### TOC
-A TOC or Table of Contents contains each Header text and a target within the document. For an HTML or MarkDown
-file, the target will be an anchor name and will react to a mouse click.
+*  use the same API for outputting MarkDown and other output formats. Hence simply changing templates will generate new output
+
+*  generate Glossary, TOC and Footnote structures for each set of Pod trees.
+
+*  can be used to generate HTML and Markdown with raku's --doc flag.
+
+# Page Components
+A Pod6 source will generate body text and generate information for TOC, Footnotes, Glossaries, Links and Metadata
+
+## TOC
+A TOC or Table of Contents contains each Header text and a README.mdtarget within the document. For an HTML or MarkDown file, the target will be an anchor name and will react to a mouse click.
 
 For a dead tree format, or soft equivalent, the pointer will be a page number.
 
-ProcessedPod create as TOC structure that is an array in the order the headers appear, with the lable, destination
-anchor, return anchor and the level of the header.
+ProcessedPod create as TOC structure that is an array in the order the headers appear, with the lable, destination anchor, return anchor and the level of the header.
 
-### Glossary
+## Glossary
+A Glossary, or Index, is a list of words or phrases that may be used or defined in multiple places within a document and which the author / editor considers would be useful to the reader when searching. Glossary structures are also useful when creating SEARCH type functions.
 
-A Glossary, or Index, is a list of words or phrases that may be used or defined in multiple places within a document
-and which the author / editor considers would be useful to the reader when searching. Glossary structures are also
-useful when creating SEARCH type functions.
+The word 'index' is not used because in the HTML world, the file index.html is mostly used as the landing page for a collection of documents and in most cases is a Table of Contents rather than a Glossary.
 
-The word 'index' is not used because in the HTML world, the file index.html is mostly used as the landing page for a
-collection of documents and in most cases is a Table of Contents rather than a Glossary.
+In a POD file, glossary texts are created with the   formatting code.
 
-In a POD file, glossary texts are created with the X<> formatting code.
+ProcessedPod creates a structure as a hash of the entry names (a single   can have multiple entry names pointing to the same target), the destination anchors, the return anchor, and in the case where anchors are not possible, a location consisting of the most recent header text.
 
-ProcessedPod creates a structure as a hash of the entry names (a single X<> can have multiple entry names pointing
-to the same target), the destination anchors, the return anchor, and in the case where anchors are not possible,
-a location consisting of the most recent header text.
+## Footnotes
+When an author wishes to give more explanation to a phrase without interupting the logic of the text, the information is included in a footnote. In dead-tree formats, the footnotes tended to be at the end of a page (hence foot note). In HTML for PCs/Laptops, a popular format was to include text to be shown by hovering a mouse. For smartphone applications, hovering is not convenient, and other solutions are being found.
 
-### Footnotes
+ProcessedPod creates an array in order of footnote creation with the number of the footnote, and target and return anchors.
 
-When an author wishes to give more explanation to a phrase without interupting the logic of the text, the information
-is included in a footnote. In dead-tree formats, the footnotes tended to be at the end of a page (hence foot note).
-In HTML for PCs/Laptops, a popular format was to include text to be shown by hovering a mouse. For smartphone
-applications, hovering is not convenient, and other solutions are being found.
+## Links
+Links can be
 
-ProcessedPod creates an array in order of footnote creation with the number of the footnote, and target and return
-anchors.
+*  internal to the document
+
+*  external to the site (eg. on the internet)
+
+*  local to the site
+
+Links should be tested. While the data is collected, verifying links is left to other modules.
+
+## Meta data
+Pod6 allows for metadata such as AUTHOR or VERSION to be set. These can be included in HTML or other formats.
+
+# READyME or read-y-me.raku
+A useful tool provided here is `read-y-me.raku` This program is a GUI to Pod::To::MarkDown and takes a Pod module or Pod6 source and generates a README.md file from the Pod inside the module. The README.md version included here was generated by `read-y-me` from the Pod6 file.
+
+`read-y-me` requires the `Informative` module to be installed. However, there are currently problems installing `Informative` under Windows. So it has not be given as a Dependency for `RenderPod`.
+
+A command line version is available as `read-y-me.raku --filename="path/to/output" path/to/input` `filename` defaults to `README`. The `.md` extension is added autommtically. The extension for the input file is detected from `pod6 pod pm6 pm rakupod rakumod`.
 
 # More Information
+See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md) for information about the HTML specific module ``Pod::To::HTML``. ``Pod::To::Markdown``, see [MarkDown](MarkDown.md), follows ``Pod::To::HTML`` mostly.
 
-See [RenderPod](renderpod.html) for the generic module and [Pod::To::HTML](pod2html.html) for the HTML 
-specific module. `Pod::To::Markdown` follows `Pod::To::HTML` mostly.
+
+
+
+
+
+
+
+----
+Rendered from README.pod6 at 2020-07-12T20:27:38Z

@@ -58,11 +58,11 @@ like $rv,
 
 =end table
 
-$rv = $processor.render-block( $=pod[$pn++] ).subst(/\s+/,' ',:g);
+$rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
-    '<table class="pod-table sorttable">'
+    '<table class="' \s* 'pod-table' \s+ 'sorttable' \s* '">'
     \s*   '<thead>'
     \s*     '<tr>'
     \s*       '<th>H1</th>'
@@ -121,10 +121,8 @@ like $rv,
 
 =end table
 
+$rv = $processor.render-block( $=pod[$pn++] );
 todo 'Compiler does not give information about contents of POD table cells';
-
-$rv = $processor.render-block( $=pod[$pn++] ).subst(/\s+/,' ',:g);
-
 like $rv,
     /
     '<table class="pod-table sorttable">'
@@ -145,4 +143,4 @@ like $rv,
     \s*     '</tr>'
     \s*   '</tbody>'
     \s* '</table>'
-    /, 'table with class';
+    /, 'table with pod inside a cell';

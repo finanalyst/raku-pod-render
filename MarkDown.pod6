@@ -1,0 +1,49 @@
+=begin pod
+
+=head Usage with compiler
+
+From the terminal:
+=begin code :lang<shell>
+raku --doc=MarkDown input.raku > README.md
+=end code
+
+Possibly the compiler may run the legacy C<Pod::To::HTML> module. If so the following may work:
+=begin code :lang<shell>
+raku --doc=MarkDown2 input.raku > README.md
+=end code
+
+This takes the POD in the C<input.raku> file, transforms it into MarkDown.
+
+Some rendering options can be passed via the PODRENDER Environment variable. The options can be used to turn off components of the page.
+
+=begin code :lang<shell>
+PODRENDER='NoTOC NoFoot' raku --doc=MarkDown input.raku > README.md
+=end code
+
+The following regexen are applied to PODRENDER and switch off the default rendering of the respective section:
+
+=begin table
+regex applied |  if Match, then Turns off
+============================================
+/:i 'no' '-'? 'toc' / | Table of Contents
+/:i 'no' '-'? 'meta' / | Meta information (eg AUTHOR)
+/:i 'no' '-'? 'footnotes' / | Footnotes.
+=end table
+
+Any or all of 'NoTOC', 'NoMeta', or 'NoFoot' may be included in any order.
+Default is to include each section.
+
+=head2 More detail and differences from Pod::To::HTML
+
+See L<RenderPod> L<PodToHTML> for more detail. C<Pod::To::MarkDown> has
+templates to produce MarkDown and not HTML. In addition:
+
+=item The target rewrite function needs to be over-ridden.
+
+=item MarkDown is not intended for internal links. So there is no glossary and META data
+is treated as paragraphs.
+
+=item Footnotes have to be rendered at the end of the document, and there is
+no backward link from the footnote to the originating text.
+
+=end pod

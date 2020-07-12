@@ -3,7 +3,7 @@ use ProcessedPod;
 
 class X::ProcessedPod::HTML::InvalidCSS::NoSpec is Exception {
     method message() {
-        "If :css is supplied to processor method, so must :src"
+        "If :css-type is supplied to processor method, so must :css-src"
     }
 }
 class X::ProcessedPod::HTML::InvalidCSS::BadSource is Exception {
@@ -18,17 +18,22 @@ class X::ProcessedPod::HTML::InvalidCSS::BadType is Exception {
         "Only 'load' or 'link' acceptable, got '$.css-type'"
     }
 }
+class X::ProcessedPod::HTML::BadFavicon is Exception {
+    has $.favicon-src;
+    method message() {
+        "The favicon source is unavailable, got '$.favicon-src'"
+    }
+}
 # class variables as they used during object instantiation.
-our $camelia-svg =
-#        '<camelia />' ; # much less text for debugging
-                %?RESOURCES<Camelia.svg>.slurp;
-our $default-css-text =
-#        '<style>debug</style>'; # much less text for debugging
-                '<style>' ~ %?RESOURCES<pod.css>.slurp ~ '</style>';
+our $camelia-svg = %?RESOURCES<Camelia.svg>.slurp;
+our $default-css-text = '<style>' ~ %?RESOURCES<pod.css>.slurp ~ '</style>';
+our $camelia-ico = %?RESOURCES<camelia-ico.bin>.slurp;
 
 class Pod::To::HTML is ProcessedPod {
     has $.css is rw;
     has $.head is rw; # Only needed for legacy P2HTML
+    has $.def-ext is rw;
+    has Bool $.debug is rw = False;
     # needed for HTML rendering
 
     #| render is a class method that is called by the raku compiler
@@ -37,11 +42,7 @@ class Pod::To::HTML is ProcessedPod {
         return $rv with $rv;
         # Some implementations of raku/perl6 called the classes render method twice,
         # so it's necessary to prevent the same work being done repeatedly
-        my $pp = ProcessedPod.new(
-                :name($*PROGRAM-NAME)
-                );
-        if 'html-templates.raku'.IO.f { $pp.templates('html-templates.raku') }
-        else { $pp.templates( self.html-templates ) }
+        my $pp = self.new( :name($*PROGRAM-NAME) );
         # takes the pod tree and wraps it in HTML.
         $pp.process-pod($pod-tree);
         # Outputs a string that describes a html page
@@ -50,34 +51,48 @@ class Pod::To::HTML is ProcessedPod {
     }
 
     #| the constructor for this object
-    submethod TWEAK(:$templates, :$css-type, :$src, :$css-url ) {
+    submethod TWEAK(:$templates, :$css-type, :$css-src, :$css-url, :$favicon-src ) {
+        $!def-ext = 'html';
         $!css = $_ with $css-url;
+        my $css-text = $default-css-text;
+        my $favicon-bin = $camelia-ico;
+        my Bool $templates-needed = True;
+        if $!debug {
+            $camelia-svg = '<camelia />' ; # much less text for debugging
+            $css-text = '<style>debug</style>'; # much less text for debugging
+            $favicon-bin = '<meta>NoIcon</meta>';
+        }
         with $templates {
             self.templates( $templates );
+            $templates-needed = False
         }
-        without $templates {
-            if 'html-templates.raku'.IO.f { self.templates('html-templates.raku') }
-            else { self.templates( self.html-templates) }
+        if $templates-needed and 'html-templates.raku'.IO.f {
+            self.templates('html-templates.raku');
+            $templates-needed = False
         }
         with $css-type {
-            X::ProcessedPod::HTML::InvalidCSS::NoSpec.new.throw and return Nil without $src;
-            my $css-text;
+            X::ProcessedPod::HTML::InvalidCSS::NoSpec.new.throw and return Nil without $css-src;
             given $css-type {
                 when 'load' {
-                    X::ProcessedPod::HTML::InvalidCSS::BadSource.new(:fn($src)).throw and return Nil
-                    unless $src.IO.f;
-                    $css-text = '<style>' ~ $src.IO.slurp ~ '</style>';
+                    X::ProcessedPod::HTML::InvalidCSS::BadSource.new(:fn($css-src)).throw and return Nil
+                        unless $css-src.IO.f;
+                    $css-text = '<style>' ~ $css-src.IO.slurp ~ '</style>';
                 }
                 when 'link' {
-                    $css-text = '<link rel="stylesheet"  type="text/css" href="' ~ $src ~ '" media="screen" title="default" />'
+                    $css-text = '<link rel="stylesheet"  type="text/css" href="' ~ $css-src ~ '" media="screen" title="default" />'
                 }
                 default {
                     X::ProcessedPod::HTML::InvalidCSS::BadType.new(:$css-type).throw;
                     return Nil
                 }
             }
-            self.templates( self.html-templates(:$css-text) );
         }
+        with $favicon-src {
+            X::ProcessedPod::HTML::BadFavicon.new(:$favicon-src).throw
+                unless $favicon-src.IO.f;
+            $favicon-bin = $favicon-src.IO.slurp
+        }
+        self.templates( self.html-templates(:$css-text, :$favicon-bin) ) if $templates-needed ;
     }
 
     #| The Pod::To::HTML version, which uses css
@@ -90,6 +105,7 @@ class Pod::To::HTML is ProcessedPod {
             :$.head,
             :$.name,
             :$.title,
+            :$.title-target,
             :$.subtitle,
             :$.metadata,
             :$.lang,
@@ -105,12 +121,13 @@ class Pod::To::HTML is ProcessedPod {
     #| returns a hash of keys and Mustache templates
     #| Checks to see if in the working directory there is a file called html-templates.json. If so, then uses that data.
     #| html-templates.json is used for testing using tests from another Pod::To::HTML Module
-    method html-templates( :$css-text = $default-css-text ) {
+    method html-templates( :$css-text = $default-css-text, :$favicon-bin = $camelia-ico ) {
         %(
         # the following are extra for HTML files and are needed by the render (class) method
         # in the source-wrap template.
             'camelia-img' => $camelia-svg,
             'css-text' => $css-text,
+            'favicon' => '<link href="data:image/x-icon;base64,' ~ $favicon-bin ~ '" rel="icon" type="image/x-icon" />',
             # note that verbatim V<> does not have its own format because it affects what is inside it (see POD documentation)
             :escaped('{{ contents }}'),
             :raw('{{{ contents }}}'),
@@ -128,7 +145,7 @@ class Pod::To::HTML is ProcessedPod {
             'format-i' => '<em{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</em>',
             'format-k' => '<kbd{{# addClass }}class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</kbd>
             ',
-            'format-l' => '<a href="{{ target }}"{{# addClass }} class="{{ addClass }}"{{/ addClass}}>{{{ contents }}}</a>
+            'format-l' => '<a href="{{# internal }}#{{/ internal }}{{ target }}{{# local }}.html{{/ local }}">{{{ contents }}}</a>
             ',
             'format-n' => '<sup><a name="{{ retTarget }}" href="#{{ fnTarget }}">[{{ fnNumber }}]</a></sup>
             ',
@@ -145,6 +162,7 @@ class Pod::To::HTML is ProcessedPod {
             'item' => '<li{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</li>
             ',
             'list' => q:to/TEMPL/,
+
                 <ul>
                     {{# items }}{{{ . }}}{{/ items}}
                 </ul>
@@ -164,7 +182,7 @@ class Pod::To::HTML is ProcessedPod {
                 <section name="{{ name }}">{{{ contents }}}{{{ tail }}}
                 </section>
                 TEMPL
-            'subtitle' => '<div class="subtitle{{# addClass }} {{ addClass }}{{/ addClass }}">{{{ contents }}}</div>',
+            'subtitle' => '<div class="subtitle">{{{ subtitle }}}</div>',
             'table' => q:to/TEMPL/,
                 <table class="pod-table{{# addClass }} {{ addClass }}{{/ addClass }}">
                     {{# caption }}<caption>{{{ caption }}}</caption>{{/ caption }}
@@ -176,7 +194,7 @@ class Pod::To::HTML is ProcessedPod {
                     </tbody>
                 </table>
                 TEMPL
-            'title' => '<h1 class="title{{# addClass }} {{ addClass }}{{/ addClass }}" id="{{ target }}">{{{ text }}}</h1>',
+            'title' => '<h1 class="title" id="{{ title-target }}">{{{ title }}}</h1>',
             # templates used by output methods, eg., source-wrap, file-wrap, etc
             'source-wrap' => q:to/TEMPL/,
                 <!doctype html>
@@ -188,6 +206,7 @@ class Pod::To::HTML is ProcessedPod {
                         {{# toc }}{{{ toc }}}{{/ toc }}
                         {{# glossary }}{{{ glossary }}}{{/ glossary }}
                         </div>
+                        {{> subtitle }}
                         <div class="pod-body{{^ toc }} no-toc{{/ toc }}">
                             {{{ body }}}
                         </div>
@@ -234,6 +253,7 @@ class Pod::To::HTML is ProcessedPod {
                 <head>
                     <title>{{ title }}</title>
                     <meta charset="UTF-8" />
+                    {{> favicon }}
                     {{# metadata }}{{{ metadata }}}{{/ metadata }}
                     {{# css }}<link rel="stylesheet" href="{{ css }}">{{/ css }}
                     {{^ css }}{{> css-text }}{{/ css }}
@@ -241,7 +261,7 @@ class Pod::To::HTML is ProcessedPod {
                 </head>
                 TEMPL
             'head' => '',
-            'header' => '<header>{{> camelia-img }}{{ title }}</header>',
+            'header' => '<header>{{> camelia-img }}{{> title }}</header>',
             'footer' => '<footer><div>Rendered from <span class="path">{{ path }}{{^ path }}Unknown{{/ path}}</span></div>
                 <div>at <span class="time">{{ renderedtime }}{{^ renderedtime }}a moment before time began!?{{/ renderedtime }}</span></div>
                 </footer>',
@@ -289,7 +309,6 @@ sub node2html($pod) is export {
 #| Function provided by older Pod::To::HTML module to encapsulate a pod-tree in a file
 sub pod2html($pod, *%options) is export {
     my $proc = get-processor;
-    #    $proc.delete-pod-structure; # pod2html could be called multiple times in the same program.
     with %options<templates> {
         if  "$_/main.mustache".IO ~~ :f {
             $proc.modify-templates(%( source-wrap => "$_/main.mustache".IO.slurp))

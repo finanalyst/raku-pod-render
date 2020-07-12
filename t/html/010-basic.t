@@ -7,7 +7,7 @@ my $rv;
 my $processor;
 my $pc = 0;
 
-plan 11;
+plan 10;
 
 =begin pod
     Some pod
@@ -31,18 +31,13 @@ like $rv,
 unlike $rv,
         / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? '</body>' .*? '</html>' /, 'confirm there is not html wrapping';
 
-my $fn = 't/000-test-output';
+my $fn = 't/999-test-output';
 "$fn\.html".IO.unlink if "$fn\.html".IO ~~ :e;
-"$fn\.md".IO.unlink if "$fn\.md".IO ~~ :e;
 
 $processor.file-wrap(:filename($fn));
-ok "$fn\.html".IO ~~ :f, 'file is created with default extension';
+ok "$fn\.html".IO ~~ :f, 'file is created with html as default extension';
 
-$processor.file-wrap(:filename($fn), :ext<md>);
-
-ok "$fn\.md".IO ~~ :f, 'file with new extension';
 "$fn\.html".IO.unlink if "$fn\.html".IO ~~ :e;
-"$fn\.md".IO.unlink if "$fn\.md".IO ~~ :e;
 
 =begin pod
     Another fascinating mess

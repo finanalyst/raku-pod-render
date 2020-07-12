@@ -6,7 +6,7 @@ my $processor = Pod::To::HTML.new;
 my $rv;
 my $pn = 0;
 
-plan 9;
+plan 10;
 
 =begin pod
 =TITLE This is a title
@@ -17,22 +17,19 @@ Some text
 
 $rv = $processor.render-block( $=pod[$pn++] );
 
-like $rv,
+unlike $rv,
         /
-        '<section'
-        .+? '<h1 class="title" id="This_is_a_title">This is a title</h1>'  # the first header id
-        \s* '<p>Some text</p>'
-        \s* '</section>'
+        '<h1 class="title" id="This_is_a_title">This is a title</h1>'
         /,
-        'pod with title rendered';
+        'default html templates do not include title or subtitle with body';
 
 $rv = $processor.source-wrap;
 like $rv,
         /
-        '<section'
-        .+? '<h1 class="title" id="This_is_a_title">This is a title</h1>'  # the first header id
-        \s* '<p>Some text</p>'
-        \s* '</section>'
+        '<header>'
+        .+  '<h1 class="title" id="This_is_a_title">This is a title</h1>'
+        .* '</header>'
+        .+ '<p>Some text</p>'
         /,
         'pod with title rendered, target rewritten for source-wrap';
 
@@ -57,17 +54,19 @@ text
 
 $processor.delete-pod-structure;
 $rv = $processor.render-block( $=pod[$pn++] );
-
-like $rv, /
-        '<h1 class="title" id="A_Second_Pod_File">A Second Pod File</h1>'
-        \s* '<div class="subtitle">'
-        \s* '<p>This is subtitled for testing</p>'
-        .+ '<p>Some more text</p>'
-        \s* '<h2 id="This_is_a_heading"><a href="#A_Second_Pod_File" class="u" title="go to top of document">This is a heading</a></h2>'
-        \s* '<p>Some text after a heading</p>'
-        /, 'subtitle rendered';
+unlike $rv, /
+'<div class="subtitle">'
+/, 'no subtitle with default templates in block';
 
 $rv = $processor.source-wrap;
+
+like $rv, /
+'<div class="subtitle">'
+\s* '<p>This is subtitled for testing</p>'
+.+ '<p>Some more text</p>'
+\s* '<h2 id="This_is_a_heading"><a href="#A_Second_Pod_File" class="u" title="go to top of document">This is a heading</a></h2>'
+\s* '<p>Some text after a heading</p>'
+/, 'subtitle rendered in ';
 
 like $rv,
         /
@@ -125,7 +124,6 @@ like $rv,
 
 $processor.no-toc = True;
 $rv = $processor.render-toc;
-
 unlike $rv,
         /
         '<table id="TOC">'

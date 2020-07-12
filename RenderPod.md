@@ -1,67 +1,66 @@
-=begin pod
-=TITLE Rendering Pod Distribution
-=SUBTITLE A generic distribution to render Pod in a file (program or module) or in a cache (eg. the Raku documentation collection)
+# Rendering Pod Distribution
+>A generic distribution to render Pod in a file (program or module) or in a cache (eg. the Raku documentation collection)
 
-This distribution ('distribution' because it contains several modules and other resources)
-provides a generic class C<ProcessedPod>, which accepts templates, and renders one or more Pod trees. The class collects
-the information in the Pod files to create page components, such as I<Table of Contents>, I<Glossary>, I<Metadata> (eg. Author, version, etc),
-and I<Footnotes>.
 
-The output
-depends entirely on the templates. The body of the text, TOC, Glossary, and Footnotes can be output or suppressed, and their position
-can be controlled using a combination of templates, or in the case of HTML, templates and CSS.
-It also means that the same generic class can be used for HTML and MarkDown.
+----
+## Table of Contents
+[Rendering Strategy](#rendering-strategy)
+[Creating a Renderer](#creating-a-renderer)
+[Templates](#templates)
+[String Template](#string-template)
+[Block Templates](#block-templates)
+[Partials and New Templates](#partials-and-new-templates)
+[Change the Templating Engine](#change-the-templating-engine)
+[Rendering many Pod Sources](#rendering-many-pod-sources)
+[Methods Provided by ProcessedPod](#methods-provided-by-processedpod)
+[modify-templates](#modify-templates)
+[rewrite-target](#rewrite-target)
+[process-pod](#process-pod)
+[render-block](#render-block)
+[render-tree](#render-tree)
+[delete-pod-structure](#delete-pod-structure)
+[file-wrap](#file-wrap)
+[source-wrap](#source-wrap)
+[Individual component renderers](#individual-component-renderers)
+[Public Class Attributes](#public-class-attributes)
+[Minimum Template Set](#minimum-template-set)
 
-Two other modules are provided: C<Pod::To::HTML> and C<Pod::To::MarkDown>. For more information on them, see L<Pod::To::HTML|pod2html>. These have
-the functionality and default templates to be used in conjunction with the
-B<raku> (aka perl6) compiler option C<--doc=name>.
+----
+This distribution ('distribution' because it contains several modules and other resources) provides a generic class `ProcessedPod`, which accepts templates, and renders one or more Pod trees. The class collects the information in the Pod files to create page components, such as _Table of Contents_, _Glossary_, _Metadata_ (eg. Author, version, etc), and _Footnotes_.
 
-The aim of ProcessedPod is to allow for a more flexible mechanism for rendering POD. For example, when multiple POD6
-files are combined each individual source generates TOC, Glossary, Footnotes, and Metadata information. There is no single
-way these can be combined, and different uses will need a different approach. For example, a flat-file HTML page will need
-separate pages for each source, with a landing page and global TOC and glossary pages to link them all.
+The output depends entirely on the templates. The body of the text, TOC, Glossary, and Footnotes can be output or suppressed, and their position can be controlled using a combination of templates, or in the case of HTML, templates and CSS. It also means that the same generic class can be used for HTML and MarkDown.
 
-The C<Pod::To::HTML> has a simple way of handling customised CSS, but no way to access embedded images other than svg files.
-Modifying the templates, when there is information about the serving environment, can change this.
+Two other modules are provided: `Pod::To::HTML` and `Pod::To::MarkDown`. For more information on them, see [Pod::To::HTML](pod2html.md). These have the functionality and default templates to be used in conjunction with the **raku** (aka perl6) compiler option `--doc=name`.
 
-This module uses the Moustache templating system at C<Template::Mustache>. More later on how to change this.
+The aim of ProcessedPod is to allow for a more flexible mechanism for rendering POD. For example, when multiple POD6 files are combined each individual source generates TOC, Glossary, Footnotes, and Metadata information. There is no single way these can be combined, and different uses will need a different approach. For example, a flat-file HTML page will need separate pages for each source, with a landing page and global TOC and glossary pages to link them all.
 
-=head1 Rendering Strategy
+The `Pod::To::HTML` has a simple way of handling customised CSS, but no way to access embedded images other than svg files. Modifying the templates, when there is information about the serving environment, can change this.
 
+This module uses the Moustache templating system at `Template::Mustache`. More later on how to change this.
+
+# Rendering Strategy
 A rendering strategy is required for a complex task consisting of many Pod sources. A rendering strategy has to consider:
 
-=item The pod contained in a single file may be provided as one or more trees of Pod blocks. A pod tree may contain
-blocks to be referred to in a Table of Contents (TOC), and also it may contain anchors to which other documentation
-may point. This means that the pod in each separate file will automatically produces its own TOC (a list of headers in
-the order in which they appear in the pod tree(s), and its own Glossary (a list of terms that are encountered, perhaps
-multiple times for each term, within the text).
+*  The pod contained in a single file may be provided as one or more trees of Pod blocks. A pod tree may contain blocks to be referred to in a Table of Contents (TOC), and also it may contain anchors to which other documentation may point. This means that the pod in each separate file will automatically produces its own TOC (a list of headers in the order in which they appear in the pod tree(s), and its own Glossary (a list of terms that are encountered, perhaps multiple times for each term, within the text).
 
-=item When only a single file source is used (such as when a Pod::To::name is called by the compiler), then the content,
-TOC and glossary have to be rendered together.
+*  When only a single file source is used (such as when a Pod::To::name is called by the compiler), then the content, TOC and glossary have to be rendered together.
 
-=item Multiple pod files will by definition exist in a collection that should be rendered together in a consistent manner.
-The content from a single source file will be called a B<Component>.
-This will be handled in another module raku-render-collection
-There have to be the following facilities
-    =item A strategy to create one or more TOC's for the whole collection that collect and combine all the B<Component>
-    TOC's. The intent is to allow for TOCs that are designed and do not follow the alphabetical name of the B<Component>
-    source, together with a default alphabetical list.
-    =item A strategy to create one or more Glossary(ies) from all the B<Component> glossaries
+*  Multiple pod files will by definition exist in a collection that should be rendered together in a consistent manner. The content from a single source file will be called a **Component**. This will be handled in another module raku-render-collection There have to be the following facilities
 
-=head1 Creating a Renderer
+*  A strategy to create one or more TOC's for the whole collection that collect and combine all the **Component** TOC's. The intent is to allow for TOCs that are designed and do not follow the alphabetical name of the **Component** source, together with a default alphabetical list.
 
+*  A strategy to create one or more Glossary(ies) from all the **Component** glossaries
+
+# Creating a Renderer
 The first step in rendering is to create a renderer.
 
-The renderer needs to take into account the output format, eg., html, incorporate non-default templates (eg., a designer
-may want to have customised classes in paragraphs or headers). The Pod renderer requires templates for a number of
-document elements, see TEMPLATES below.
+The renderer needs to take into account the output format, eg., html, incorporate non-default templates (eg., a designer may want to have customised classes in paragraphs or headers). The Pod renderer requires templates for a number of document elements, see TEMPLATES below.
 
-Essentially, a hash of element keys pointing to Mustache strings is provided to the renderer. The C<Pod::To::HTML> and C<Pod::To::MarkDown>
-modules in this distribution provide default templates to the C<ProcessedPod> class.
+Essentially, a hash of element keys pointing to Mustache strings is provided to the renderer. The `Pod::To::HTML` and `Pod::To::MarkDown` modules in this distribution provide default templates to the `ProcessedPod` class.
 
 The renderer can be customised on-the-fly by modifying the keys of the template hash. For example,
 
-=begin code
+```
     use RenderPod;
     my $renderer .= RenderPod.new;
     $renderer.modify-templates( %(format-b =>
@@ -70,91 +69,70 @@ The renderer can be customised on-the-fly by modifying the keys of the template 
     # The default template is something like
     #       'format-b' => '<strong{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</strong>'
     # the effect of this change is to add myStrongClass to all instances of B<> including any extra classes added by the POD
-=end code
 
-This would be wanted if a different rendering of bold is needed in some source file, or a page component. Bear in mind that for
-HTML, it is probably better to add another css class to a specific paragraph (for example) using the Pod config metadata. This is
-picked up by ProcessedPod (as can be seen in the above example where C<addClass> is used to add an extra class to the C< <strong> > container.
+```
+This would be wanted if a different rendering of bold is needed in some source file, or a page component. Bear in mind that for HTML, it is probably better to add another css class to a specific paragraph (for example) using the Pod config metadata. This is picked up by ProcessedPod (as can be seen in the above example where `addClass` is used to add an extra class to the `<strong> ` container.
 
-=head1 Templates
+# Templates
+The nature of the templates and their interpretation depends on the `rendition` method, which must be over-ridden for a different templating engine.
 
-The nature of the templates and their interpretation depends on the C<rendition> method, which must be over-ridden for a different
-templating engine.
+When a ProcessPod instance is instantiated, a templating object xxxx can be passed via the `:template` parameter, eg.
 
-When a ProcessPod instance is instantiated, a templating object xxxx can be passed via the C<:template> parameter, eg.
-
-=begin code
+```
 my $p = ProcessedPod.new;
 $p.templates(:templates( xxxx ) );
-=end code
 
+```
 If the object is a Hash, then it is considered a Hash of the templates, and verified for completeness.
 
-If the object is a String, then it is considered a C<path/filename> to a file containing a raku program that
-evaluates to a Hash, which is then verified as a Hash of templates.
+If the object is a String, then it is considered a `path/filename` to a file containing a raku program that evaluates to a Hash, which is then verified as a Hash of templates.
 
 Each entry in the template Hash can be either (a) a String or (b) a block.
 
-=head2 String Template
+## String Template
+For example if `'escaped' =` '{{ contents }}', > is a line in a hash declaration of the templates, then the right hand side is the `Mustache` template for the `escaped` key. The template engine is called with a hash containing String data that are interpolated into the template. `contents` is provided for all keys, but some keys have more complex data.
 
-For example if C<'escaped' => '{{ contents }}', > is a line in a hash declaration of the templates, then the right hand side
-is the C<Mustache> template for the C<escaped> key. The template engine is called with a hash containing String data
-that are interpolated into the template.
-C<contents> is provided for all keys, but some keys have more complex data.
+## Block Templates
+`Mustache` by design is not intended to have any logic, although it does allow lambdas. Since the latter are not well documented and some template-specific preprocessing is required, or the default action of the Templating engine needs to be over-ridden, extra functionality is provided.
 
-=head2 Block Templates
-
-C<Mustache> by design is not intended to have any logic, although it does allow lambdas. Since the latter are not well documented
-and some template-specific preprocessing is required, or the default action of the Templating engine
-needs to be over-ridden, extra functionality is provided.
-
-Instead of a plain text template being associated with a Template Hash key, the key can be associated with
-a block that can pre-process the data provided to the Mustache engine, or change the template. The block must return a String
-with a valid Mustache template.
+Instead of a plain text template being associated with a Template Hash key, the key can be associated with a block that can pre-process the data provided to the Mustache engine, or change the template. The block must return a String with a valid Mustache template.
 
 For example,
-=begin code
 
+```
 'escaped' => -> %params { %params<contents>.subst-mutate(/\'/, '&39;', :g ); '{{ contents }}' }
 
-=end code
 
-The block is called with a Hash parameter that is assigned to C<%params>. The C<contents> key of C<%params>) is adjusted
-because C<Mustache> does not escape single-quotes.
+```
+The block is called with a Hash parameter that is assigned to `%params`. The `contents` key of `%params`) is adjusted because `Mustache` does not escape single-quotes.
 
-=head2 Partials and New Templates
-
-Mustache allows for other templates to be used as partials. Thus it is possible to create new
-templates that use the templates needed by ProcessedPod and incorporate them in output templates.
+## Partials and New Templates
+Mustache allows for other templates to be used as partials. Thus it is possible to create new templates that use the templates needed by ProcessedPod and incorporate them in output templates.
 
 For example:
-=begin code
 
+```
 $p.modify-templates( %(:newone(
     '<container>{{ contents }}</container>'
     ),
     :format-b('{{> newone }}'))
 );
 
-=end code
 
-Now the pod line C< This is some B<boldish text> in a line> will result in
+```
+Now the pod line `This is some B<boldish text> in a line` will result in
 
-    <p>This is some <container>boldish text</container> in a line</p>
+```
+<p>This is some <container>boldish text</container> in a line</p>
+```
+# Change the Templating Engine
+In order to change the Templating Engine, `PodProcessed` needs to be subclassed and a single method, namely `method rendition( Str $key, Hash %params --` Str )> needs to be overwritten.
 
-=head1 Change the Templating Engine
-
-In order to change the Templating Engine, C<PodProcessed> needs to be subclassed and a single method, namely
-C<method rendition( Str $key, Hash %params --> Str )> needs to be overwritten.
-
-Assuming that the templating engine is NewTemplateEngine, and that - like Template::Mustache - it is instantiates
-with C<.new>, and has a C<.render> method which takes a String template, and Hash of strings to interpolate, and
-which returns a String, viz C< .render( Str $string, Hash %params, :from( %hash-of-templates) --> Str )>.
+Assuming that the templating engine is NewTemplateEngine, and that - like Template::Mustache - it is instantiates with `.new`, and has a `.render` method which takes a String template, and Hash of strings to interpolate, and which returns a String, viz `.render( Str $string, Hash %params, :from( %hash-of-templates) --` Str )>.
 
 Then the method might be incorporated into a subclass as follows;
 
-=begin code
-
+```
 use NewTemplateEngine;
 use PodProcessed;
 use PodProcessed::Exceptions;
@@ -186,20 +164,18 @@ class PodProcess::NewTemplateEngine is PodProcessed {
     }
 }
 
-=end code
 
-=head1 Rendering many Pod Sources
-
+```
+# Rendering many Pod Sources
 A complete render strategy has to deal with multiple page components.
 
-The following sketches the use of the C<Pod::To::HTML> class.
+The following sketches the use of the `Pod::To::HTML` class.
 
-For example, suppose we want to render each POD source file as a separate html file, and combine the global page components
-separately.
+For example, suppose we want to render each POD source file as a separate html file, and combine the global page components separately.
 
-The the C<ProcessedPob> object expects a compiled Pod object. One way to do this is use the C<Pod::From::Cache> module.
+The the `ProcessedPob` object expects a compiled Pod object. One way to do this is use the `Pod::From::Cache` module.
 
-=begin code :lang<raku>
+```
     use Pod::To::HTML;
     my $p = Pod::To::HTML.new;
     my %pod-input; # key is the path-name for the output file, value is a Pod::Block
@@ -237,24 +213,22 @@ The the C<ProcessedPob> object expects a compiled Pod object. One way to do this
         # each file has been written, but now process the collection page component data and write the files for all the collection
     }
     # code to write global TOC and Glossary html files.
-=end code
 
-=head1 Methods Provided by ProcessedPod
-
-=head2 modify-templates
-
-    method modify-templates( %new-templates )
-
+```
+# Methods Provided by ProcessedPod
+## modify-templates
+```
+method modify-templates( %new-templates )
+```
 Allows for templates to be modified or new ones added before or during pod processing.
 
-B<Note:> Since the templating engine needs to be reinitialised in order to clear a template
-cache, it is probably not efficient to modify templates too many times during processing.
+**Note:** Since the templating engine needs to be reinitialised in order to clear a template cache, it is probably not efficient to modify templates too many times during processing.
 
-C<modify-templates> B<replaces> the keys in the C<%new-templates> hash. It will add new keys
-to the internal template store.
+`modify-templates` **replaces** the keys in the `%new-templates` hash. It will add new keys to the internal template store.
 
 Example:
-=begin code
+
+```
 use PodRender;
 my PodRender $p .= new;
 $p.templates( 'path/to/newtemplates.raku');
@@ -263,26 +237,19 @@ $p.replace-template( %(
                     # was 'format-b' => '<strong{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</strong>'
                     # the effect of this change is to add myStrongClass to all instances of B<> including any extra classes added by the POD
                 ))
-=end code
 
-=head2 rewrite-target
-
+```
+## rewrite-target
 This method may need to be over-ridden, eg., for MarkDown which uses a different targetting function.
 
-    method rewrite-target(Str $candidate-name is copy, :$unique --> Str )
+```
+method rewrite-target(Str $candidate-name is copy, :$unique --> Str )
+```
+Rewrites targets (link destinations) to be made unique and to be cannonised depending on the output format. Takes the candidate name and whether it should be unique, returns with the cannonised link name Target names inside the POD file, eg., headers, glossary, footnotes The function is called to cannonise the target name and to ensure - if necessary - that the target name used in the link is unique. The following method uses an algorithm designed to pass the legacy `Pod::To::HTML` tests.
 
-Rewrites targets (link destinations) to be made unique and to be cannonised depending on the output format.
-Takes the candidate name and whether it should be unique, returns with the cannonised link name
-Target names inside the POD file, eg., headers, glossary, footnotes
-The function is called to cannonise the target name and to ensure - if necessary - that
-the target name used in the link is unique.
-The following method uses an algorithm designed to pass the legacy C<Pod::To::HTML> tests.
+When indexing a unique target is needed even when same entry is repeated When a Heading is a target, the reference must come from the name
 
-When indexing a unique target is needed even when same entry is repeated
-When a Heading is a target, the reference must come from the name
-
-=begin code
-
+```
 method rewrite-target(Str $candidate-name is copy, :$unique --> Str) {
         return $!default-top if $candidate-name eq $!default-top;
         # don't rewrite the top
@@ -297,107 +264,98 @@ method rewrite-target(Str $candidate-name is copy, :$unique --> Str) {
         # now add to targets, no effect if not unique
         $candidate-name
     }
-=end code
 
-=head2 process-pod
+```
+## process-pod
+```
+method process-pod( $pod ) {
+```
+Process the pod block or tree passed to it, and concatenates it to previous pod tree. Returns a string representation of the tree in the required format
 
-    method process-pod( $pod ) {
+## render-block
+```
+method render-block( $pod )
+```
+Renders a pod tree, but probably a block Returns only the pod that was passed
 
-Process the pod block or tree passed to it, and concatenates it to previous pod tree.
-Returns a string representation of the tree in the required format
+## render-tree
+```
+method render-tree( $pod )
+```
+Tenders the whole pod tree Is actually an alias to process-pod
 
-=head2 render-block
+## delete-pod-structure
+```
+method delete-pod-structure
+```
+Deletes any previously processed pod, keeping the template engine cache Returns the pod-structure deleted as a Hash, for storage in an array when multiple files are processed.
 
-    method render-block( $pod )
+## file-wrap
+```
+method file-wrap(:$filename = $.name, :$ext = 'html' )
+```
+Saves the rendered pod tree as a file, and its document structures, uses source wrap Filename defaults to the name of the pod tree, and ext defaults to html
 
-Renders a pod tree, but probably a block
-Returns only the pod that was passed
+## source-wrap
+```
+method source-wrap( --> Str )
+```
+Renders all of the document structures, and wraps them and the body Uses the source-wrap template
 
-=head2 render-tree
+## Individual component renderers
+The following are called by `source-wrap` but could be called separately, eg., if a different textual template such as `format-b` should be used inside the component.
 
-    method render-tree( $pod )
+*  method render-toc( --> Str )
 
-Tenders the whole pod tree
-Is actually an alias to process-pod
+*  method render-glossary(-->Str)
 
-=head2 delete-pod-structure
+*  method render-footnotes(--> Str)
 
-    method delete-pod-structure
+*  method render-meta(--> Str)
 
-Deletes any previously processed pod, keeping the template engine cache
-Returns the pod-structure deleted as a Hash, for storage in an array when multiple files
-are processed.
+# Public Class Attributes
+```
+# provided at instantiation or by attributes on Class instance
+has $.front-matter is rw = 'preface'; # Text between =TITLE and first header, this is used to refer for textual placenames
+has Str $.name is rw;
+has Str $.title is rw = $!name;
+has Str $.subtitle is rw = '';
+has Str $.path is rw; # should be path of original document, defaults to $.name
+has Str $.top is rw = $!default-top; # defaults to top, then becomes target for TITLE
+has &.highlighter is rw; # a callable (eg. provided by external program) that converts [html] to highlighted raku code
 
-=head2 file-wrap
+# document level information
+has $.lang is rw = 'en'; # language of pod file
 
-    method file-wrap(:$filename = $.name, :$ext = 'html' )
+# Output rendering information
+has Bool $.no-meta is rw = False; # set to True eliminates meta data rendering
+has Bool $.no-footnotes is rw = False; # set to True eliminates rendering of footnotes
+has Bool $.no-toc is rw = False; # set to True to exclude TOC even if there are headers
+has Bool $.no-glossary is rw = False; # set to True to exclude Glossary even if there are internal anchors
 
-Saves the rendered pod tree as a file, and its document structures, uses source wrap
-Filename defaults to the name of the pod tree, and ext defaults to html
+# debugging
+has Bool $.debug is rw; # outputs to STDERR information on processing
+has Bool $.verbose is rw; # outputs to STDERR more detail about errors.
 
-=head2 source-wrap
-
-    method source-wrap( --> Str )
-
-Renders all of the document structures, and wraps them and the body
-Uses the source-wrap template
-
-=head2 Individual component renderers
-
-The following are called by C<source-wrap> but could be called separately, eg., if a different textual template such
-as C<format-b> should be used inside the component.
-
-=item method render-toc( --> Str )
-=item method render-glossary(-->Str)
-=item method render-footnotes(--> Str)
-=item method render-meta(--> Str)
-
-=head1 Public Class Attributes
-
-    # provided at instantiation or by attributes on Class instance
-    has $.front-matter is rw = 'preface'; # Text between =TITLE and first header, this is used to refer for textual placenames
-    has Str $.name is rw;
-    has Str $.title is rw = $!name;
-    has Str $.subtitle is rw = '';
-    has Str $.path is rw; # should be path of original document, defaults to $.name
-    has Str $.top is rw = $!default-top; # defaults to top, then becomes target for TITLE
-    has &.highlighter is rw; # a callable (eg. provided by external program) that converts [html] to highlighted raku code
-
-    # document level information
-    has $.lang is rw = 'en'; # language of pod file
-
-    # Output rendering information
-    has Bool $.no-meta is rw = False; # set to True eliminates meta data rendering
-    has Bool $.no-footnotes is rw = False; # set to True eliminates rendering of footnotes
-    has Bool $.no-toc is rw = False; # set to True to exclude TOC even if there are headers
-    has Bool $.no-glossary is rw = False; # set to True to exclude Glossary even if there are internal anchors
-
-    # debugging
-    has Bool $.debug is rw; # outputs to STDERR information on processing
-    has Bool $.verbose is rw; # outputs to STDERR more detail about errors.
-
-    # Structure to collect links, eg. to test whether they all work
-
-=head1 Minimum Template Set
-
+# Structure to collect links, eg. to test whether they all work
+```
+# Minimum Template Set
 There is a minimum set of templates that must be provided for a Pod file to be rendered. These are:
-=begin code
+
+```
     < raw comment escaped glossary footnotes footer
                 format-c block-code format-u para format-b named source-wrap defn dlist-start dlist-end
                 output format-l format-x heading title format-n format-i format-k format-p meta
                 list subtitle format-r format-t table item notimplemented section toc pod >
-=end code
 
-When the C<.templates> method is called, the templates will be checked against this list for completeness. An
-Exception will be thrown if all the templates are not provided. Extra templates can be included. C<Pod::To::HTML>
-uses this to have partial templates that use the required templates.
+```
+When the `.templates` method is called, the templates will be checked against this list for completeness. An Exception will be thrown if all the templates are not provided. Extra templates can be included. `Pod::To::HTML` uses this to have partial templates that use the required templates.
 
 The following is the method used to generate the files for Pod::To::HTML (at some point in the development cycle).
 
-The variables not explicitly declared in the subroutine are C<our> scoped to give the default texts.
+The variables not explicitly declared in the subroutine are `our` scoped to give the default texts.
 
-=begin code
-
+```
 method html-templates( :$css-text = $default-css-text ) {
         %(
         # the following are extra for HTML files and are needed by the render (class) method
@@ -540,6 +498,14 @@ method html-templates( :$css-text = $default-css-text ) {
                 </footer>',
         )
 }
-=end code
 
-=end pod
+```
+
+
+
+
+
+
+
+----
+Rendered from RenderPod.pod6 at 2020-07-12T20:28:37Z

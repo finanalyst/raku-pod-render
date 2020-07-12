@@ -186,9 +186,16 @@ We can L<Link to a place|https://docs.raku.org> with no problem.
 
 This L<link should fail|https://xxxxxioioioi.com> with a bad response code.
 
-We can L<link to an index test code|format-code-index-test-pod-file_2#an item> with more text.
+We also can L<link to an index test code|format-code-index-test-pod-file_2#an item> with more text.
+
+Linking inside the file is L<like this|#Here is a header>.
+
+Some stuff
+
+=head1 Here is a header
 
 =end pod
+
 $rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
@@ -197,7 +204,9 @@ like $rv, /
     \s* 'We can'
     \s* '<a href="https://docs.raku.org">Link to a place</a>'
     \s* 'with no problem.'
-    .+ '<a href="format-code-index-test-pod-file_2#an_item">' \s* 'link to an index test code'
+    .+ '<a href="format-code-index-test-pod-file_2#an item">link to an index test code</a>'
+    .+ '<a href="#Here_is_a_header">like this</a>'
+    .+ '<h1' .+ 'id="Here_is_a_header"'
     /, 'L format creates links';
 
 # todo a test about links not mangling.

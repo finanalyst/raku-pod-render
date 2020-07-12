@@ -12,11 +12,18 @@ changing one or more or all of the templates.
 
 The rationale for re-writing the whole Pod::To::HTML module is in the section L<Why Reinvent the Wheel?|#Why Reinvent the Wheel?>.
 
+For more information about methods not covered here see the L<PodProcess Class|RenderPod>. A sister class L<Markdown|MarkDown> is available.
+
 =head1 Usage with compiler
 
 From the terminal:
 =begin code :lang<shell>
 raku --doc=HTML input.raku > output.html
+=end code
+
+Possibly the compiler may run the legacy C<Pod::To::HTML> module. If so the following may work:
+=begin code :lang<shell>
+raku --doc=HTML2 input.raku > output.html
 =end code
 
 This takes the POD in the C<input.raku> file, transforms it into HTML, outputs a full HTML page including a Table of Contents, Glossary and Footnotes.
@@ -27,9 +34,10 @@ Some rendering options can be passed via the PODRENDER Environment variable. The
 PODRENDER='NoTOC NoMETA NoGloss NoFoot' raku --doc=HTML input.raku > output.html
 =end code
 
-The following regexen are applied to PODRENDER and switch off the default rendering of the respective section:
+The following regexen are applied to the contents of the PODRENDER environment variable
+and if one or more matchd, they switch off the default rendering of the respective section:
 
-=begin table
+=begin table :caption('Regexen and Page Component')
 regex applied |  if Match, then Turns off
 ============================================
 /:i 'no' '-'? 'toc' / | Table of Contents
@@ -96,11 +104,29 @@ $renderer.file-wrap(:output-file<some-useful-name>, :ext<html>);
 
 =end code
 
-=head1 CSS
+=head1 HTML Components: CSS, Classes & Favicon
 
 A minimal CSS is provided for the default templates and is placed in a <style>...</style> container.
+This default behaviour can be changed, see below.
 
-Two variables C<:css-type> and C<:src> are provided to customise the loading of css for the 'source-wrap' template provided here.
+In addition to the rendering of containers, extra styling can be achieved by adding classes via configuration parameters.
+For example C<myclass> can be added to a table as follows C<=begin table :classes<myclass> >. The CSS to affect the styling
+needs to be added to a customisable CSS.
+
+The different customisations are incompatible during object instantiation.
+
+=item If C<:templates> is specified, then the C<:css-type>, C<:css-src> and C<:favicon-src> will not have any effects.
+This should not be a concern because when providing templates, a raku program that evaluates to a Hash is run. Any
+desired customisation can be handled in the same program.
+
+=item If a file C<html-templates.raku> exists in the current directory, then it will be given to the object, see above.
+
+=item It is possible, though to retain the C<:css-type>, C<:css-src> and C<:favicon-src> customisations, but to change
+specific templates, via the C<modify-templates> method.
+
+=head2 Customisable CSS
+
+Two variables C<:css-type> and C<:css-src> are provided to customise the loading of css for the 'source-wrap' template provided here.
 These can be specified as arguments to C<processor>.
 
 If the C<head-block> templates, which is used in the C<source-wrap> template, contain the Mustache stanza C«{{> css-text }}», which
@@ -109,16 +135,16 @@ calls the partial template C<css-text>
 When C<Pod::To::HTML> is instantiated using these variables, a style string is given to the css-text. In order to use the default
 css behaviour of C<Pod::To::HTML>, only over-ride some templates, keeping css-text, and use the C<css-text> or C<head-block> templates.
 
-If C<:css> is specified, then C<:src> must be specified.
+If C<:css-type> is specified, then C<:css-src> must be specified.
 
 =head2 CSS Load
 
 =begin code :lang<raku>
     use Pod::To::HTML;
-    my Pod::To::HTML $processor .= new(:css-type<load>, :src('path/to/custom.css') );
+    my Pod::To::HTML $processor .= new(:css-type<load>, :css-src('path/to/custom.css') );
 =end code
 
-The contents of path/to/custom.css are slurped into a C< <style> > container and given to the template C<css=-text>.
+The contents of path/to/custom.css are slurped into a C< <style> > container and given to the template C<css-text>.
 
 This is similar to the default action of the module, except that the pod.css file is in the module repository.
 
@@ -130,7 +156,7 @@ C<https://somedomain.com/assets/pod.css>.
 
 =begin code :lang<raku>
     use Pod::To::HTML;
-    my Pod::To::HTML $processor .= new(:css-type<link>, :src('https://somedomain.dom/assets/pod.css') );
+    my Pod::To::HTML $processor .= new(:css-type<link>, :css-src('https://somedomain.dom/assets/pod.css') );
 =end code
 
 This generates a string that is given to the template C<css-text>. For example:
@@ -141,6 +167,27 @@ C< <link rel="stylesheet" type="text/css" href="https://somedomain.com/assets/po
 The Camelia image is the mascot for Raku. It is provided in the Header by default.
 
 The behaviour can be changed by changing the C<header> template
+
+=head2 Favicon
+
+The Camelia icon is inserted by default. Since the most generic form has no other links, the favicon has to be
+provided as a Base64 encoding of a standard icon.
+
+If another favicon is required, then it can be inserted by
+
+=item convert the favicon to base64 coding, eg. a site such as L<MotoBit|https://www.motobit.com/util/base64-decoder-encoder.asp>
+
+=item store the text string produced in a file, eg 'assets/favicon.bin'
+
+=item provide that filename when instantiating a C<Pod::To::HTML> object, eg.,
+
+=begin code
+use Pod::To::HTML;
+my Pod::To::HTML $p .= new(:favicon-src('assets/favicon.bin') );
+...
+=end code
+
+Note that the validity of the favicon cannot be tested here, and that different browsers have different favicon requirements.
 
 =head1 Highlighting
 
@@ -211,7 +258,7 @@ $p.templates( %( format-b => '<b>{{ contents }}</b>' .... ) );
 =end code
 
 If :templates is given a string, then it expects a file that can be compiled by raku and evaluates to
-a Hash containing the templates. More about the hash can be found in L<RenderPod|renderpod.html>.
+a Hash containing the templates. More about the hash can be found in L<RenderPod|renderpod>.
 
 When a C<Pod::To::HTML> object is instantiated, and the file 'html-templates.raku' exists in the current working directory,
 it will be evaluated and treated as the source of the templates hash (see above).
