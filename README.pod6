@@ -1,7 +1,7 @@
 =begin pod
-=TITLE Render Pod
+=TITLE Generic Pod Renderer
 
-=SUBTITLE Generic Renderer for POD files
+=SUBTITLE Transforms POD in a Raku module/pod to HTML and MarkDown.
 
 Intended
 

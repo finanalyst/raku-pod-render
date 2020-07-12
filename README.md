@@ -1,5 +1,5 @@
-# Render Pod
->Generic Renderer for POD files
+# Generic Pod Renderer
+>Transforms POD in a Raku module/pod to HTML and MarkDown.
 
 
 ----
@@ -82,4 +82,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README.pod6 at 2020-07-12T20:27:38Z
+Rendered from README.pod6 at 2020-07-12T22:04:27Z
