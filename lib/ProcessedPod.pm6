@@ -20,18 +20,21 @@ class X::ProcessedPod::MissingTemplates is Exception {
 }
 class X::ProcessedPod::Non-Existent-Template is Exception {
     has $.key;
-    method message() {
-        "Cannot process non-existent template ｢$.key｣"
+    has %.params;
+    multi method message() {
+        "Stopping processing because non-existent template ｢$.key｣ encountered with the following parameters:\n"
+                ~ %.params.fmt("\t%s: %s")
+                ~ "\nHave you provided a custom block without a custom template?"
     }
 }
 class X::ProcessedPod::Unexpected-Nil is Exception {
-    method message() {
+    multi method message() {
         "Unexpected handle with Nil value enountered"
     }
 }
 class X::ProcessedPod::TemplateFailure is Exception {
     has $.error;
-    method message() {
+    multi method message() {
         "Problems getting templates: $!error"
     }
 }
@@ -128,8 +131,11 @@ class ProcessedPod {
     has Str $.counter-separator is rw = '.';
     has Bool $.no-counters is rw = False;
 
-    # Structure to collect links, eg. to test whether they all work
+    #| Structure to collect links, eg. to test whether they all work
     has %.links;
+
+    #| custom blocks and templates
+    has @.custom = <diagram object>;
 
     # variables to manage Pod state, where rendering is dependent on local context
     #| for multilevel lists
@@ -156,7 +162,7 @@ class ProcessedPod {
         X::ProcessedPod::MissingTemplates.new.throw unless $!templates-loaded;
         return '' if $key eq 'zero';
         # special case this as there must be no EOL.
-        X::ProcessedPod::Non-Existent-Template.new(:$key).throw
+        X::ProcessedPod::Non-Existent-Template.new(:$key, :%params).throw
         unless %!tmpl{$key}:exists;
         # templating engines like mustache do not handle logic or loops, which some Pod formats require.
         # hence we pass a Subroutine instead of a string in the template
@@ -183,6 +189,9 @@ class ProcessedPod {
         # This will force a re-instantiation of the template engine.
         # a new instance is not made here because using a new template engine would require two functions to be over-ridden
     }
+    #| accepts a string filename that must evalutate to a hash
+    #| or a hash of templates
+    #| the keys must be a superset of the required templates
     method templates($templates) {
         given $templates {
             when Hash { %!tmpl = $templates }
@@ -647,6 +656,16 @@ class ProcessedPod {
                 :defn($context == Definition))
     }
 
+    multi method handle(Pod::Block::Named $node where .name ~~ any(@.custom), Int $in-level,
+                        Context $context? = None  --> Str) {
+        note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
+        $.completion($in-level, 'zero', %(), :defn($context == Definition))
+                ~ $.completion($in-level, $node.name.lc,
+                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level) }),
+                $node.config ),
+                :defn($context == Definition))
+    }
+
     multi method handle(Pod::Block::Para $node, Int $in-level, Context $context where *== Output --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
         $.completion($in-level, 'zero', %(), :defn($context == Definition))
@@ -944,54 +963,3 @@ class ProcessedPod {
         $.completion($in-level, 'format-p', %( :$contents, :$html), :defn($context == Definition))
     }
 }
-    =begin takeout
-            In S26 the following Pod specification was made. These are not completely followed in this Renderer.
-        The reason is that not all of the url schemas have been thought necessary.
-
-            A second kind of link—the P<> or placement link—works in the opposite direction. Instead of directing focus out to another document, it allows you to assimilate the contents of another document into your own.
-        In other words, the P<> formatting code takes a URI and (where possible) inserts the contents of the corresponding document inline in place of the code itself.
-        P<> codes are handy for breaking out standard elements of your documentation set into reusable components that can then be incorporated directly into multiple documents. For example:
-        COPYRIGHT
-        P<file:/shared/docs/std_copyright.pod>
-        DISCLAIMER
-        P<http://www.MegaGigaTeraPetaCorp.com/std/disclaimer.txt>
-        might produce:
-        Copyright
-        This document is copyright (c) MegaGigaTeraPetaCorp, 2006. All rights reserved.
-        Disclaimer
-        ABSOLUTELY NO WARRANTY IS IMPLIED. NOT EVEN OF ANY KIND. WE HAVE SOLD YOU THIS SOFTWARE WITH NO HINT OF A SUGGESTION THAT IT IS EITHER USEFUL OR USABLE. AS FOR GUARANTEES OF CORRECTNESS...DON'T MAKE US LAUGH! AT SOME TIME IN THE FUTURE WE MIGHT DEIGN TO SELL YOU UPGRADES THAT PURPORT TO ADDRESS SOME OF THE APPLICATION'S MANY DEFICIENCIES, BUT NO PROMISES THERE EITHER. WE HAVE MORE LAWYERS ON STAFF THAN YOU HAVE TOTAL EMPLOYEES, SO DON'T EVEN *THINK* ABOUT SUING US. HAVE A NICE DAY.
-        If a renderer cannot find or access the external data source for a placement link, it must issue a warning and render the URI directly in some form, possibly as an outwards link. For example:
-        Copyright
-        See: std_copyright.pod
-        Disclaimer
-        See: http://www.MegaGigaTeraPetaCorp.com/std/disclaimer.txt
-
-        You can use any of the following URI forms (see Links) in a placement link:
-            http: and https:
-            file:
-            man:
-            doc:
-            toc:
-
-        The toc: form is a special pseudo-scheme that inserts a table of contents in place of the P<> code. After the colon, list the block types that you wish to include in the table of contents. For example, to place a table of contents listing only top- and second-level headings:
-
-        P<toc: head1 head2>
-
-        To place a table of contents that lists the top four levels of headings, as well as any tables:
-
-        P<toc: head1 head2 head3 head4 table>
-
-        To place a table of diagrams (assuming a user-defined Diagram block):
-
-        P<toc: Diagram>
-
-        Note also that, for P<toc:...>, all semantic blocks are treated as equivalent to head1 headings, and the =item1/=item equivalence is preserved.
-
-        A document may have as many P<toc:...> placements as necessary.
-
-        # NYI
-        # multi method handle(Pod::Block::Ambient $node) {
-        #   $node.perl.say;
-        #   $node.contents>>.handle;
-        # }
-    =end takeout

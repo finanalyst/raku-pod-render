@@ -29,7 +29,7 @@ our $camelia-svg = %?RESOURCES<Camelia.svg>.slurp;
 our $default-css-text = '<style>' ~ %?RESOURCES<pod.css>.slurp ~ '</style>';
 our $camelia-ico = %?RESOURCES<camelia-ico.bin>.slurp;
 
-class Pod::To::HTML is ProcessedPod {
+class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
     has $.css is rw;
     has $.head is rw; # Only needed for legacy P2HTML
     has $.def-ext is rw;
@@ -56,6 +56,7 @@ class Pod::To::HTML is ProcessedPod {
         $!css = $_ with $css-url;
         my $css-text = $default-css-text;
         my $favicon-bin = $camelia-ico;
+        self.custom = <Image>;
         my Bool $templates-needed = True;
         if $!debug {
             $camelia-svg = '<camelia />' ; # much less text for debugging
@@ -159,6 +160,10 @@ class Pod::To::HTML is ProcessedPod {
             'format-x' => '<a name="{{ target }}"></a>{{# text }}<span class="glossary-entry{{# addClass }} {{ addClass }}{{/ addClass }}">{{{ text }}}</span>{{/ text }} ',
             'heading' => '<h{{# level }}{{ level }}{{/ level }} id="{{ target }}"><a href="#{{ top }}" class="u" title="go to top of document">{{{ text }}}</a></h{{# level }}{{ level }}{{/ level }}>
             ',
+            'image' => '<img src="{{# src }}{{ src }}{{/ src }}{{^ src }}path/to/image{{/ src }}"'
+                    ~ ' width="{{# width }}{{ width }}{{/ width }}{{^ width }}100px{{/ width }}"'
+                    ~ ' height="{{# height }}{{ height }}{{/ height }}{{^ height }}auto{{/ height }}"'
+                    ~ ' alt="{{# alt }}{{ alt }}{{/ alt }}{{^ alt }}XXXXX{{/ alt }}">',
             'item' => '<li{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</li>
             ',
             'list' => q:to/TEMPL/,

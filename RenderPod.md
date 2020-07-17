@@ -4,13 +4,14 @@
 
 ----
 ## Table of Contents
-[Rendering Strategy](#rendering-strategy)
 [Creating a Renderer](#creating-a-renderer)
 [Templates](#templates)
 [String Template](#string-template)
 [Block Templates](#block-templates)
 [Partials and New Templates](#partials-and-new-templates)
 [Change the Templating Engine](#change-the-templating-engine)
+[Custom Pod and Template](#custom-pod-and-template)
+[Rendering Strategy](#rendering-strategy)
 [Rendering many Pod Sources](#rendering-many-pod-sources)
 [Methods Provided by ProcessedPod](#methods-provided-by-processedpod)
 [modify-templates](#modify-templates)
@@ -37,19 +38,6 @@ The aim of ProcessedPod is to allow for a more flexible mechanism for rendering 
 The `Pod::To::HTML` has a simple way of handling customised CSS, but no way to access embedded images other than svg files. Modifying the templates, when there is information about the serving environment, can change this.
 
 This module uses the Moustache templating system at `Template::Mustache`. More later on how to change this.
-
-# Rendering Strategy
-A rendering strategy is required for a complex task consisting of many Pod sources. A rendering strategy has to consider:
-
-*  The pod contained in a single file may be provided as one or more trees of Pod blocks. A pod tree may contain blocks to be referred to in a Table of Contents (TOC), and also it may contain anchors to which other documentation may point. This means that the pod in each separate file will automatically produces its own TOC (a list of headers in the order in which they appear in the pod tree(s), and its own Glossary (a list of terms that are encountered, perhaps multiple times for each term, within the text).
-
-*  When only a single file source is used (such as when a Pod::To::name is called by the compiler), then the content, TOC and glossary have to be rendered together.
-
-*  Multiple pod files will by definition exist in a collection that should be rendered together in a consistent manner. The content from a single source file will be called a **Component**. This will be handled in another module raku-render-collection There have to be the following facilities
-
-*  A strategy to create one or more TOC's for the whole collection that collect and combine all the **Component** TOC's. The intent is to allow for TOCs that are designed and do not follow the alphabetical name of the **Component** source, together with a default alphabetical list.
-
-*  A strategy to create one or more Glossary(ies) from all the **Component** glossaries
 
 # Creating a Renderer
 The first step in rendering is to create a renderer.
@@ -166,6 +154,44 @@ class PodProcess::NewTemplateEngine is PodProcessed {
 
 
 ```
+# Custom Pod and Template
+Standard Pod allows for Pod::Blocks to be named and configuration data provided. This allows us to leverage the standard syntax to allow for non-standard blocks and templates.
+
+For example, the HTML module adds the `Image` custom block and provides the `image` template. (In keeping with other named blocks, _Title_ case may be conventionally used for the block name and _Lower_ case is required for the template.
+
+Suppose we wish to have a diagram block with a source and to assign classes to it. We want the HTML container to be `figure`.
+
+In the pod source code, we would have:
+
+```
+    =for diagram :src<https://someplace.nice/fabulous.png> :class<float left>
+    This is the caption.
+
+```
+Note that the `for` takes configuration parameters to be fed to the template, and ends at the first blank line or next `pod` instruction.
+
+Then in the rendering program we need to provide to ProcessedPod the new object name, and the corresponding template. These must be the same name. Thus we would have:
+
+```
+    use Pod::To::HTML;
+    my Pod::To::HTML $r .= new;
+    $r.custom = <diagram>;
+    $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
+
+```
+# Rendering Strategy
+A rendering strategy is required for a complex task consisting of many Pod sources. A rendering strategy has to consider:
+
+*  The pod contained in a single file may be provided as one or more trees of Pod blocks. A pod tree may contain blocks to be referred to in a Table of Contents (TOC), and also it may contain anchors to which other documentation may point. This means that the pod in each separate file will automatically produces its own TOC (a list of headers in the order in which they appear in the pod tree(s), and its own Glossary (a list of terms that are encountered, perhaps multiple times for each term, within the text).
+
+*  When only a single file source is used (such as when a Pod::To::name is called by the compiler), then the content, TOC and glossary have to be rendered together.
+
+*  Multiple pod files will by definition exist in a collection that should be rendered together in a consistent manner. The content from a single source file will be called a **Component**. This will be handled in another module raku-render-collection There have to be the following facilities
+
+*  A strategy to create one or more TOC's for the whole collection that collect and combine all the **Component** TOC's. The intent is to allow for TOCs that are designed and do not follow the alphabetical name of the **Component** source, together with a default alphabetical list.
+
+*  A strategy to create one or more Glossary(ies) from all the **Component** glossaries
+
 # Rendering many Pod Sources
 A complete render strategy has to deal with multiple page components.
 
@@ -508,4 +534,4 @@ method html-templates( :$css-text = $default-css-text ) {
 
 
 ----
-Rendered from RenderPod.pod6 at 2020-07-12T20:28:37Z
+Rendered from RenderPod.pod6 at 2020-07-17T22:38:09Z

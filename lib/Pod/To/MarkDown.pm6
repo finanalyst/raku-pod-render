@@ -1,5 +1,5 @@
 use ProcessedPod;
-unit class Pod::To::MarkDown is ProcessedPod;
+unit class Pod::To::MarkDown:auth<github:finanalyst> is ProcessedPod;
 has $.def-ext is rw;
 
 submethod TWEAK {

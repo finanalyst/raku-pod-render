@@ -82,4 +82,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README.pod6 at 2020-07-12T22:04:27Z
+Rendered from README.pod6 at 2020-07-17T21:38:49Z

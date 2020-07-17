@@ -12,6 +12,7 @@
 [CSS Link](#css-link)
 [Camelia Image](#camelia-image)
 [Favicon](#favicon)
+[Custom Pod and Template](#custom-pod-and-template)
 [Highlighting](#highlighting)
 [Templates](#templates)
 [Exported Subroutines](#exported-subroutines)
@@ -172,6 +173,31 @@ my Pod::To::HTML $p .= new(:favicon-src('assets/favicon.bin') );
 ```
 Note that the validity of the favicon cannot be tested here, and that different browsers have different favicon requirements.
 
+# Custom Pod and Template
+Standard Pod allows for Pod::Blocks to be named and configuration data provided. This allows us to leverage the standard syntax to allow for non-standard blocks and templates.
+
+For example, the HTML module adds the `Image` custom block and provides the `image` template. (In keeping with other named blocks, _Title_ case may be conventionally used for the block name and _Lower_ case is required for the template.
+
+Suppose we wish to have a diagram block with a source and to assign classes to it. We want the HTML container to be `figure`.
+
+In the pod source code, we would have:
+
+```
+    =for diagram :src<https://someplace.nice/fabulous.png> :class<float left>
+    This is the caption.
+
+```
+Note that the `for` takes configuration parameters to be fed to the template, and ends at the first blank line or next `pod` instruction.
+
+Then in the rendering program we need to provide to ProcessedPod the new object name, and the corresponding template. These must be the same name. Thus we would have:
+
+```
+    use Pod::To::HTML;
+    my Pod::To::HTML $r .= new;
+    $r.custom = <diagram>;
+    $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
+
+```
 # Highlighting
 Generally it is desirable to highlight code contained in `=code ` blocks. Since this is not easily accomplished for the generic situation when there is no information about the environment, eg., using the `--doc=HTML ` compiler option, highlighting is added after the instantiation of the `ProcessedPod` ( `Pod::To::HTML.processor` call).
 
@@ -303,4 +329,4 @@ This module deal with these problems as follows:
 
 
 ----
-Rendered from Pod2HTML.pod6 at 2020-07-12T20:28:18Z
+Rendered from Pod2HTML.pod6 at 2020-07-17T22:47:35Z

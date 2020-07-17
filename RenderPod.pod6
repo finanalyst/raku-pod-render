@@ -12,7 +12,7 @@ depends entirely on the templates. The body of the text, TOC, Glossary, and Foot
 can be controlled using a combination of templates, or in the case of HTML, templates and CSS.
 It also means that the same generic class can be used for HTML and MarkDown.
 
-Two other modules are provided: C<Pod::To::HTML> and C<Pod::To::MarkDown>. For more information on them, see L<Pod::To::HTML|pod2html>. These have
+Two other modules are provided: C<Pod::To::HTML> and C<Pod::To::MarkDown>. For more information on them, see L<Pod::To::HTML|Pod2HTML>. These have
 the functionality and default templates to be used in conjunction with the
 B<raku> (aka perl6) compiler option C<--doc=name>.
 
@@ -25,28 +25,6 @@ The C<Pod::To::HTML> has a simple way of handling customised CSS, but no way to 
 Modifying the templates, when there is information about the serving environment, can change this.
 
 This module uses the Moustache templating system at C<Template::Mustache>. More later on how to change this.
-
-=head1 Rendering Strategy
-
-A rendering strategy is required for a complex task consisting of many Pod sources. A rendering strategy has to consider:
-
-=item The pod contained in a single file may be provided as one or more trees of Pod blocks. A pod tree may contain
-blocks to be referred to in a Table of Contents (TOC), and also it may contain anchors to which other documentation
-may point. This means that the pod in each separate file will automatically produces its own TOC (a list of headers in
-the order in which they appear in the pod tree(s), and its own Glossary (a list of terms that are encountered, perhaps
-multiple times for each term, within the text).
-
-=item When only a single file source is used (such as when a Pod::To::name is called by the compiler), then the content,
-TOC and glossary have to be rendered together.
-
-=item Multiple pod files will by definition exist in a collection that should be rendered together in a consistent manner.
-The content from a single source file will be called a B<Component>.
-This will be handled in another module raku-render-collection
-There have to be the following facilities
-    =item A strategy to create one or more TOC's for the whole collection that collect and combine all the B<Component>
-    TOC's. The intent is to allow for TOCs that are designed and do not follow the alphabetical name of the B<Component>
-    source, together with a default alphabetical list.
-    =item A strategy to create one or more Glossary(ies) from all the B<Component> glossaries
 
 =head1 Creating a Renderer
 
@@ -187,6 +165,59 @@ class PodProcess::NewTemplateEngine is PodProcessed {
 }
 
 =end code
+
+=head1 Custom Pod and Template
+
+Standard Pod allows for Pod::Blocks to be named and configuration data provided. This allows us to leverage the standard
+syntax to allow for non-standard blocks and templates.
+
+For example, the HTML module adds the C<Image> custom block and provides the C<image> template. (In keeping
+with other named blocks, I<Title> case may be conventionally used for the block name
+and I<Lower> case is required for the template.
+
+Suppose we wish to have a diagram block with a source and to assign classes to it.
+We want the HTML container to be C<figure>.
+
+In the pod source code, we would have:
+=begin code
+    =for diagram :src<https://someplace.nice/fabulous.png> :class<float left>
+    This is the caption.
+=end code
+
+Note that the C<for> takes configuration parameters to be fed to the template, and ends at the first
+blank line or next C<pod> instruction.
+
+Then in the rendering program we need to provide to ProcessedPod the new object name, and the corresponding template.
+These must be the same name. Thus we would have:
+=begin code
+    use v6;
+    use Pod::To::HTML;
+    my Pod::To::HTML $r .= new;
+    $r.custom = <diagram>;
+    $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
+=end code
+
+=head1 Rendering Strategy
+
+A rendering strategy is required for a complex task consisting of many Pod sources. A rendering strategy has to consider:
+
+=item The pod contained in a single file may be provided as one or more trees of Pod blocks. A pod tree may contain
+blocks to be referred to in a Table of Contents (TOC), and also it may contain anchors to which other documentation
+may point. This means that the pod in each separate file will automatically produces its own TOC (a list of headers in
+the order in which they appear in the pod tree(s), and its own Glossary (a list of terms that are encountered, perhaps
+multiple times for each term, within the text).
+
+=item When only a single file source is used (such as when a Pod::To::name is called by the compiler), then the content,
+TOC and glossary have to be rendered together.
+
+=item Multiple pod files will by definition exist in a collection that should be rendered together in a consistent manner.
+The content from a single source file will be called a B<Component>.
+This will be handled in another module raku-render-collection
+There have to be the following facilities
+    =item A strategy to create one or more TOC's for the whole collection that collect and combine all the B<Component>
+    TOC's. The intent is to allow for TOCs that are designed and do not follow the alphabetical name of the B<Component>
+    source, together with a default alphabetical list.
+    =item A strategy to create one or more Glossary(ies) from all the B<Component> glossaries
 
 =head1 Rendering many Pod Sources
 

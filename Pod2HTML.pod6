@@ -189,6 +189,37 @@ my Pod::To::HTML $p .= new(:favicon-src('assets/favicon.bin') );
 
 Note that the validity of the favicon cannot be tested here, and that different browsers have different favicon requirements.
 
+=head1 Custom Pod and Template
+
+Standard Pod allows for Pod::Blocks to be named and configuration data provided. This allows us to leverage the standard
+syntax to allow for non-standard blocks and templates.
+
+For example, the HTML module adds the C<Image> custom block and provides the C<image> template. (In keeping
+with other named blocks, I<Title> case may be conventionally used for the block name
+and I<Lower> case is required for the template.
+
+Suppose we wish to have a diagram block with a source and to assign classes to it.
+We want the HTML container to be C<figure>.
+
+In the pod source code, we would have:
+=begin code
+    =for diagram :src<https://someplace.nice/fabulous.png> :class<float left>
+    This is the caption.
+=end code
+
+Note that the C<for> takes configuration parameters to be fed to the template, and ends at the first
+blank line or next C<pod> instruction.
+
+Then in the rendering program we need to provide to ProcessedPod the new object name, and the corresponding template.
+These must be the same name. Thus we would have:
+=begin code
+    use v6;
+    use Pod::To::HTML;
+    my Pod::To::HTML $r .= new;
+    $r.custom = <diagram>;
+    $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
+=end code
+
 =head1 Highlighting
 
 Generally it is desirable to highlight code contained in C< =code > blocks. Since this is not easily accomplished for

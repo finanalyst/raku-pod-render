@@ -1,6 +1,5 @@
 #!/usr/bin/env perl6
-use lib 'lib';
-use Pod::To::MarkDown;
+use Pod::To::MarkDown:auth<github:finanalyst>;
 
 multi sub MAIN(Str $fn, Str :$filename = 'README' ) {
     my @tried = $fn «~« <.pod6 .pod .pm6 .pm .rakumod .rakupod>;
@@ -16,7 +15,7 @@ multi sub MAIN(Str $fn, Str :$filename = 'README' ) {
     my Pod::To::MarkDown $p .= new(:name($found));
     $p.render-tree(load($found));
     $p.file-wrap(:$filename);
-    "$found has been converted to $filename"
+    "$found has been converted to $filename.md"
 }
 
 multi sub MAIN( ) {
