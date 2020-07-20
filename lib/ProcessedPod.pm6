@@ -4,8 +4,6 @@ use Template::Mustache;
 use URI;
 use LibCurl::Easy;
 
-no precompilation;
-
 class X::ProcessedPod::MissingTemplates is Exception {
     has @.missing;
     method message() {
