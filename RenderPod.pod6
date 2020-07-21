@@ -54,6 +54,18 @@ This would be wanted if a different rendering of bold is needed in some source f
 HTML, it is probably better to add another css class to a specific paragraph (for example) using the Pod config metadata. This is
 picked up by ProcessedPod (as can be seen in the above example where C<addClass> is used to add an extra class to the C< <strong> > container.
 
+=head1 Pod Source Configuration
+
+Most Pod source files will begin with C<=begin pod>. Any line with C<=begin xxx> may have configuration data, eg.
+=begin code
+    =begin pod :kind<Language> :subkind<Language> :class<Major text>
+    ...
+=end code
+
+The first C<=begin pod> to be rendered after initiation, or after the C<.delete-pod-structure> method, will have its
+configuration data transferred to the C<ProcessedPod> object's C<%.pod-config-data> attribute.
+
+When multiple files are rendered, any meta data associated with the pod can be accessed during the Rendering Iteration.
 =head1 Templates
 
 The nature of the templates and their interpretation depends on the C<rendition> method, which must be over-ridden for a different
@@ -122,49 +134,16 @@ Now the pod line C< This is some B<boldish text> in a line> will result in
 
 =head1 Change the Templating Engine
 
-In order to change the Templating Engine, C<PodProcessed> needs to be subclassed and a single method, namely
-C<method rendition( Str $key, Hash %params --> Str )> needs to be overwritten.
+In order to change the Templating Engine, a Templater Role needs to be created using the MustacheTemplater role in
+this distribution as a model. Then a new class similar to ProcessedPod can be created as
+
+    class NewProcessedPod is GenericPod does myNewTemplater {}
+
+The new role may only need to over-ride C<method rendition( Str $key, Hash %params --> Str )>.
 
 Assuming that the templating engine is NewTemplateEngine, and that - like Template::Mustache - it is instantiates
 with C<.new>, and has a C<.render> method which takes a String template, and Hash of strings to interpolate, and
 which returns a String, viz C< .render( Str $string, Hash %params, :from( %hash-of-templates) --> Str )>.
-
-Then the method might be incorporated into a subclass as follows;
-
-=begin code
-
-use NewTemplateEngine;
-use PodProcessed;
-use PodProcessed::Exceptions;
-
-class PodProcess::NewTemplateEngine is PodProcessed {
-
-    #| maps the key to template and renders the block
-    method rendition(Str $key, %params --> Str) {
-        $.engine = NewTemplateEngine.new without $.engine;
-        return '' if $key eq 'zero';
-        # zero is a special case as it must be guaranteed to have no EOL.
-        X::ProcessedPod::Non-Existent-Template.new( :$key ).throw
-                unless %.tmpl{$key}:exists;
-        # templating engines like mustache do not handle logic or loops, which some Pod formats require.
-        # hence we pass a Subroutine instead of a string in the template
-        # the subroutine takes the same parameters as rendition and produces a mustache string
-        # eg P format HTML template escapes PRE containers
-
-        note "At $?LINE rendering with \<$key>" if $.debug;
-        my $interpolate = %!tmpl{$key} ~~ Block
-        ?? %.tmpl{$key}(%params)
-            # if the template is a block, then run as sub and pass in the params
-        !! %tmpl{$key}
-        ;
-        $.engine.render(
-            $interpolate,
-            %params, :from( %.tmpl )
-        )
-    }
-}
-
-=end code
 
 =head1 Custom Pod and Template
 

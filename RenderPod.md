@@ -5,6 +5,7 @@
 ----
 ## Table of Contents
 [Creating a Renderer](#creating-a-renderer)
+[Pod Source Configuration](#pod-source-configuration)
 [Templates](#templates)
 [String Template](#string-template)
 [Block Templates](#block-templates)
@@ -31,7 +32,7 @@ This distribution ('distribution' because it contains several modules and other 
 
 The output depends entirely on the templates. The body of the text, TOC, Glossary, and Footnotes can be output or suppressed, and their position can be controlled using a combination of templates, or in the case of HTML, templates and CSS. It also means that the same generic class can be used for HTML and MarkDown.
 
-Two other modules are provided: `Pod::To::HTML` and `Pod::To::MarkDown`. For more information on them, see [Pod::To::HTML](pod2html.md). These have the functionality and default templates to be used in conjunction with the **raku** (aka perl6) compiler option `--doc=name`.
+Two other modules are provided: `Pod::To::HTML` and `Pod::To::MarkDown`. For more information on them, see [Pod::To::HTML](Pod2HTML.md). These have the functionality and default templates to be used in conjunction with the **raku** (aka perl6) compiler option `--doc=name`.
 
 The aim of ProcessedPod is to allow for a more flexible mechanism for rendering POD. For example, when multiple POD6 files are combined each individual source generates TOC, Glossary, Footnotes, and Metadata information. There is no single way these can be combined, and different uses will need a different approach. For example, a flat-file HTML page will need separate pages for each source, with a landing page and global TOC and glossary pages to link them all.
 
@@ -60,6 +61,18 @@ The renderer can be customised on-the-fly by modifying the keys of the template 
 
 ```
 This would be wanted if a different rendering of bold is needed in some source file, or a page component. Bear in mind that for HTML, it is probably better to add another css class to a specific paragraph (for example) using the Pod config metadata. This is picked up by ProcessedPod (as can be seen in the above example where `addClass` is used to add an extra class to the `<strong> ` container.
+
+# Pod Source Configuration
+Most Pod source files will begin with `=begin pod`. Any line with `=begin xxx` may have configuration data, eg.
+
+```
+    =begin pod :kind<Language> :subkind<Language> :class<Major text>
+    ...
+
+```
+The first `=begin pod` to be rendered after initiation, or after the `.delete-pod-structure` method, will have its configuration data transferred to the `ProcessedPod` object's `%.pod-config-data` attribute.
+
+When multiple files are rendered, any meta data associated with the pod can be accessed during the Rendering Iteration.
 
 # Templates
 The nature of the templates and their interpretation depends on the `rendition` method, which must be over-ridden for a different templating engine.
@@ -114,46 +127,15 @@ Now the pod line `This is some B<boldish text> in a line` will result in
 <p>This is some <container>boldish text</container> in a line</p>
 ```
 # Change the Templating Engine
-In order to change the Templating Engine, `PodProcessed` needs to be subclassed and a single method, namely `method rendition( Str $key, Hash %params --` Str )> needs to be overwritten.
+In order to change the Templating Engine, a Templater Role needs to be created using the MustacheTemplater role in this distribution as a model. Then a new class similar to ProcessedPod can be created as
+
+```
+class NewProcessedPod is GenericPod does myNewTemplater {}
+```
+The new role may only need to over-ride `method rendition( Str $key, Hash %params --` Str )>.
 
 Assuming that the templating engine is NewTemplateEngine, and that - like Template::Mustache - it is instantiates with `.new`, and has a `.render` method which takes a String template, and Hash of strings to interpolate, and which returns a String, viz `.render( Str $string, Hash %params, :from( %hash-of-templates) --` Str )>.
 
-Then the method might be incorporated into a subclass as follows;
-
-```
-use NewTemplateEngine;
-use PodProcessed;
-use PodProcessed::Exceptions;
-
-class PodProcess::NewTemplateEngine is PodProcessed {
-
-    #| maps the key to template and renders the block
-    method rendition(Str $key, %params --> Str) {
-        $.engine = NewTemplateEngine.new without $.engine;
-        return '' if $key eq 'zero';
-        # zero is a special case as it must be guaranteed to have no EOL.
-        X::ProcessedPod::Non-Existent-Template.new( :$key ).throw
-                unless %.tmpl{$key}:exists;
-        # templating engines like mustache do not handle logic or loops, which some Pod formats require.
-        # hence we pass a Subroutine instead of a string in the template
-        # the subroutine takes the same parameters as rendition and produces a mustache string
-        # eg P format HTML template escapes PRE containers
-
-        note "At $?LINE rendering with \<$key>" if $.debug;
-        my $interpolate = %!tmpl{$key} ~~ Block
-        ?? %.tmpl{$key}(%params)
-            # if the template is a block, then run as sub and pass in the params
-        !! %tmpl{$key}
-        ;
-        $.engine.render(
-            $interpolate,
-            %params, :from( %.tmpl )
-        )
-    }
-}
-
-
-```
 # Custom Pod and Template
 Standard Pod allows for Pod::Blocks to be named and configuration data provided. This allows us to leverage the standard syntax to allow for non-standard blocks and templates.
 
@@ -534,4 +516,4 @@ method html-templates( :$css-text = $default-css-text ) {
 
 
 ----
-Rendered from RenderPod.pod6 at 2020-07-17T22:38:09Z
+Rendered from RenderPod.pod6 at 2020-07-21T19:15:05Z

@@ -14,7 +14,8 @@
   "test-depends": [
     "Test",
     "Test::Output",
-    "Test::META"
+    "Test::META",
+    "Test::Deeply::Relaxed"
   ],
   "provides": {
     "Pod::To::HTML": "lib/Pod/To/HTML.pm6",

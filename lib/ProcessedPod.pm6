@@ -1,6 +1,4 @@
 use v6.d;
-use Template::Mustache;
-
 use URI;
 use LibCurl::Easy;
 
@@ -37,28 +35,89 @@ class X::ProcessedPod::TemplateFailure is Exception {
     }
 }
 
-class ProcessedPod {
+class GenericPod { ... }
+role MustacheTemplater { ... }
+# class ProcessedPod is GenericPod does MustacheTemplater { ... };
+
+role MustacheTemplater {
+    use Template::Mustache;
     # templating parameters. Should be abstracted to a role
     has %.tmpl;
     has $!engine;
+    #| maps the key to template and renders the block
+    method rendition(Str $key, %params --> Str) {
+        $!engine = Template::Mustache.new without $!engine;
+        X::ProcessedPod::MissingTemplates.new.throw unless $.templates-loaded;
+        return '' if $key eq 'zero';
+        # special case this as there must be no EOL.
+        X::ProcessedPod::Non-Existent-Template.new(:$key, :%params).throw
+        unless %!tmpl{$key}:exists;
+        # templating engines like mustache do not handle logic or loops, which some Pod formats require.
+        # hence we pass a Subroutine instead of a string in the template
+        # the subroutine takes the same parameters as rendition and produces a mustache string
+        # eg P format template escapes containers
+
+        note "At $?LINE rendering with \<$key>" if $.debug;
+        my $interpolate = %!tmpl{$key} ~~ Block
+                ?? %!tmpl{$key}(%params)
+                # if the template is a block, then run as sub and pass in the params
+                !! %!tmpl{$key};
+        $!engine.render(
+                $interpolate,
+                %params, :from(%!tmpl)
+                )
+    }
+
+    #| allows for templates to be replaced during pod processing
+    #| repeatedly generating the template engine is expensive
+    method modify-templates(%new-templates)
+    {
+        { %!tmpl{$^a} = $^b } for %new-templates.kv;
+        $!engine = Nil;
+        # This will force a re-instantiation of the template engine.
+        # a new instance is not made here because using a new template engine would require two functions to be over-ridden
+    }
+    #| accepts a string filename that must evalutate to a hash
+    #| or a hash of templates
+    #| the keys must be a superset of the required templates
+    method templates($templates) {
+        given $templates {
+            when Hash { %!tmpl = $templates }
+            when Str {
+                #use SEE_NO_EVAL;
+                %!tmpl = EVALFILE $templates;
+            }
+        }
+        # a string is a filename with a compilable file
+        CATCH {
+            when !X::ProcessedPod::MissingTemplates { .throw }
+            default {
+                X::ProcessedPod::TemplateFailure.new(:error(.message)).throw
+            }
+        }
+
+        X::ProcessedPod::MissingTemplates.new(:missing((@.required (-) %!tmpl.keys).keys.flat)).throw
+            unless %!tmpl.keys (>=) @.required;
+        # the keys on the RHS above are required in %.tmpl. To throw here, the templates supplied are not
+        # a superset of the required keys.
+        $.templates-loaded = True;
+    }
+}
+
+class GenericPod {
     #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
-    has @!required = < raw comment escaped glossary footnotes footer
+    has @.required = < raw comment escaped glossary footnotes footer
                 format-c block-code format-u para format-b named source-wrap defn dlist-start dlist-end
                 output format-l format-x heading title format-n format-i format-k format-p meta
                 list subtitle format-r format-t table item notimplemented section toc pod >;
     #| must have templates. Generically, no templates loaded.
     has Bool $.templates-loaded is rw = False;
 
-    # defaults
-
     #| the name of the anchor at the top of a source file
     has $.default-top = '___top';
-
-    # provided at instantiation or by attributes on Class instance
-
     #| Text between =TITLE and first header, this is used to refer for textual placenames
     has $.front-matter is rw = 'preface';
-
+    #| Name to be used in titles and files.
     has Str $.name is rw = 'UNNAMED';
     #| The string part of a Title.
     has Str $.title is rw = $!name;
@@ -123,6 +182,12 @@ class ProcessedPod {
     has Str $.renderedtime is rw = '';
     #| the set of targets used in a rendering process
     has SetHash $.targets .= new;
+    #| config data given to the first =begin pod line encountered
+    #| there may be multiple pod blocks in a file, and they may be
+    #| sequentially rendered.
+    has %.pod-config-data is rw;
+    #| A pod line may have no config data, so flag if pod block processed
+    has Bool $.pod-block-processed is rw = False;
 
     # A separator and counters for Headers
     has Int @.counters is default(0);
@@ -150,67 +215,6 @@ class ProcessedPod {
         }
         note "Debug is { $!debug ?? 'ON' !! 'OFF' } and Verbose is { $!verbose ?? 'ON' !! 'OFF' }."
         if $!debug or $!verbose;
-    }
-
-    # methods to be over-ridden for a different template system.
-
-    #| maps the key to template and renders the block
-    method rendition(Str $key, %params --> Str) {
-        $!engine = Template::Mustache.new without $!engine;
-        X::ProcessedPod::MissingTemplates.new.throw unless $!templates-loaded;
-        return '' if $key eq 'zero';
-        # special case this as there must be no EOL.
-        X::ProcessedPod::Non-Existent-Template.new(:$key, :%params).throw
-        unless %!tmpl{$key}:exists;
-        # templating engines like mustache do not handle logic or loops, which some Pod formats require.
-        # hence we pass a Subroutine instead of a string in the template
-        # the subroutine takes the same parameters as rendition and produces a mustache string
-        # eg P format template escapes containers
-
-        note "At $?LINE rendering with \<$key>" if $.debug;
-        my $interpolate = %!tmpl{$key} ~~ Block
-                ?? %!tmpl{$key}(%params)
-                # if the template is a block, then run as sub and pass in the params
-                !! %!tmpl{$key};
-        $!engine.render(
-                $interpolate,
-                %params, :from(%!tmpl)
-                )
-    }
-
-    #| allows for templates to be replaced during pod processing
-    #| repeatedly generating the template engine is expensive
-    method modify-templates(%new-templates)
-    {
-        { %!tmpl{$^a} = $^b } for %new-templates.kv;
-        $!engine = Nil;
-        # This will force a re-instantiation of the template engine.
-        # a new instance is not made here because using a new template engine would require two functions to be over-ridden
-    }
-    #| accepts a string filename that must evalutate to a hash
-    #| or a hash of templates
-    #| the keys must be a superset of the required templates
-    method templates($templates) {
-        given $templates {
-            when Hash { %!tmpl = $templates }
-            when Str {
-                #use SEE_NO_EVAL;
-                %!tmpl = EVALFILE $templates;
-            }
-        }
-        # a string is a filename with a compilable file
-        CATCH {
-            when !X::ProcessedPod::MissingTemplates { .throw }
-            default {
-                X::ProcessedPod::TemplateFailure.new(:error(.message)).throw
-            }
-        }
-
-        X::ProcessedPod::MissingTemplates.new(:missing((@!required (-) %!tmpl.keys).keys.flat)).throw
-        unless %!tmpl.keys (>=) @!required;
-        # the keys on the RHS above are required in %.tmpl. To throw here, the templates supplied are not
-        # a superset of the required keys.
-        $!templates-loaded = True;
     }
 
     # The next function is placed here because it may need to be over-ridden. (see Pod::To::Markdown)
@@ -293,6 +297,7 @@ class ProcessedPod {
                 :$!renderedtime,
                 :$!targets,
                 :%!links,
+                :%!pod-config-data,
                 :raw-metadata(@!raw-metadata.clone),
                 :raw-toc(@!raw-toc.clone),
                 :raw-glossary(%!raw-glossary.clone),
@@ -302,6 +307,8 @@ class ProcessedPod {
                 = $!glossary = $!footnotes = $!body = $!path = $!renderedtime = Nil;
         @!raw-metadata = @!raw-toc = @!raw-footnotes = ();
         %!raw-glossary = Empty;
+        %!pod-config-data = Empty;
+        $.pod-block-processed = False;
         $!targets = Nil;
         %h
     }
@@ -592,6 +599,10 @@ class ProcessedPod {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         my $name = $.top eq $.default-top ?? $.default-top !! 'pod';
         # $.default-top, until TITLE changes it. Will fail if multiple pod without TITLE
+        unless $.pod-block-processed {
+            %.pod-config-data = $node.config;
+            $.pod-block-processed = True;
+        }
         my $contents =
                 $.completion($in-level, 'pod', %(
                     :$name,
@@ -961,3 +972,5 @@ class ProcessedPod {
         $.completion($in-level, 'format-p', %( :$contents, :$html), :defn($context == Definition))
     }
 }
+
+class ProcessedPod is GenericPod does MustacheTemplater { }
