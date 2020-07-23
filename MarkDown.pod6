@@ -33,7 +33,15 @@ regex applied |  if Match, then Turns off
 Any or all of 'NoTOC', 'NoMeta', or 'NoFoot' may be included in any order.
 Default is to include each section.
 
-=head2 More detail and differences from Pod::To::HTML
+=head1 Extract Pod in a Module to README.md
+
+The utility function C<read-y-me.raku> is provided to take and Pod in the input source and
+turn it into a README.md file (for github etc).
+
+A GUI version works but only if Informative is installed, which is known not to install on Windows.
+So, only the command line version is available. This will be corrected in the future.
+
+=head1 More detail and differences from Pod::To::HTML
 
 See L<RenderPod> L<PodToHTML> for more detail. C<Pod::To::MarkDown> has
 templates to produce MarkDown and not HTML. In addition:
