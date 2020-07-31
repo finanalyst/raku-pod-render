@@ -133,38 +133,37 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
             :escaped('{{ contents }}'),
             :raw('{{{ contents }}}'),
             'block-code' => q:to/TEMPL/,
-                <pre class="pod-block-code{{# addClass }} {{ addClass }}{{/ addClass}}">
+                <pre class="pod-block-code{{# class }} {{ class }}{{/ class}}">
                 {{# contents }}{{{ contents }}}{{/ contents }}</pre>
                 TEMPL
             'comment' => '<!-- {{{ contents }}} -->',
             'dlist-start' => "<dl>\n",
             'defn' => '<dt>{{ term }}</dt><dd>{{{ contents }}}</dd>',
             'dlist-end' => "\n</dl>",
-            'format-b' => '<strong{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</strong>',
-            'format-c' => '<code{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</code>
+            'format-b' => '<strong{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</strong>',
+            'format-c' => '<code{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</code>
             ',
-            'format-i' => '<em{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</em>',
-            'format-k' => '<kbd{{# addClass }}class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</kbd>
+            'format-i' => '<em{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</em>',
+            'format-k' => '<kbd{{# class }}class="{{ class }}"{{/ class }}>{{{ contents }}}</kbd>
             ',
-            'format-l' => '<a href="{{# internal }}#{{/ internal }}{{ target }}{{# local }}.html{{/ local }}">{{{ contents }}}</a>
-            ',
+            'format-l' => '<a href="{{# internal }}#{{/ internal }}{{ target }}{{# local }}.html{{/ local }}">{{{ contents }}}</a>',
             'format-n' => '<sup><a name="{{ retTarget }}" href="#{{ fnTarget }}">[{{ fnNumber }}]</a></sup>
             ',
             'format-p' => -> %params {
                 %params<contents> = %params<contents>.=trans(['<pre>', '</pre>'] => ['&lt;pre&gt;', '&lt;/pre&gt;']);
-                '<div{{# addClass }} class="{{ addClass }}"{{/ addClass }}><pre>{{{ contents }}}</pre></div>'
+                '<div{{# class }} class="{{ class }}"{{/ class }}><pre>{{{ contents }}}</pre></div>'
             },
-            'format-r' => '<var{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</var>',
-            'format-t' => '<samp{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</samp>',
-            'format-u' => '<u{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</u>',
-            'format-x' => '<a name="{{ target }}"></a>{{# text }}<span class="glossary-entry{{# addClass }} {{ addClass }}{{/ addClass }}">{{{ text }}}</span>{{/ text }} ',
+            'format-r' => '<var{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</var>',
+            'format-t' => '<samp{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</samp>',
+            'format-u' => '<u{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</u>',
+            'format-x' => '<a name="{{ target }}"></a>{{# text }}<span class="glossary-entry{{# class }} {{ class }}{{/ class }}">{{{ text }}}</span>{{/ text }} ',
             'heading' => '<h{{# level }}{{ level }}{{/ level }} id="{{ target }}"><a href="#{{ top }}" class="u" title="go to top of document">{{{ text }}}</a></h{{# level }}{{ level }}{{/ level }}>
             ',
             'image' => '<img src="{{# src }}{{ src }}{{/ src }}{{^ src }}path/to/image{{/ src }}"'
                     ~ ' width="{{# width }}{{ width }}{{/ width }}{{^ width }}100px{{/ width }}"'
                     ~ ' height="{{# height }}{{ height }}{{/ height }}{{^ height }}auto{{/ height }}"'
                     ~ ' alt="{{# alt }}{{ alt }}{{/ alt }}{{^ alt }}XXXXX{{/ alt }}">',
-            'item' => '<li{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</li>
+            'item' => '<li{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</li>
             ',
             'list' => q:to/TEMPL/,
 
@@ -180,8 +179,8 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
                 TEMPL
             'notimplemented' => '<span class="pod-block-notimplemented">{{{ contents }}}</span>',
             'output' => '<pre class="pod-output">{{{ contents }}}</pre>',
-            'para' => '<p{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</p>',
-            'pod' => '<section name="{{ name }}"{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}{{{ tail }}}
+            'para' => '<p{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</p>',
+            'pod' => '<section name="{{ name }}"{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}{{{ tail }}}
                 </section>',
             'section' => q:to/TEMPL/,
                 <section name="{{ name }}">{{{ contents }}}{{{ tail }}}
@@ -189,7 +188,7 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
                 TEMPL
             'subtitle' => '<div class="subtitle">{{{ subtitle }}}</div>',
             'table' => q:to/TEMPL/,
-                <table class="pod-table{{# addClass }} {{ addClass }}{{/ addClass }}">
+                <table class="pod-table{{# class }} {{ class }}{{/ class }}">
                     {{# caption }}<caption>{{{ caption }}}</caption>{{/ caption }}
                     {{# headers }}<thead>
                         <tr>{{# cells }}<th>{{{ . }}}</th>{{/ cells }}</tr>

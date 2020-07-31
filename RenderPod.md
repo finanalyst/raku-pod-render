@@ -12,6 +12,7 @@
 [Partials and New Templates](#partials-and-new-templates)
 [Change the Templating Engine](#change-the-templating-engine)
 [Custom Pod and Template](#custom-pod-and-template)
+[Para](#para)
 [Rendering Strategy](#rendering-strategy)
 [Rendering many Pod Sources](#rendering-many-pod-sources)
 [Methods Provided by ProcessedPod](#methods-provided-by-processedpod)
@@ -139,7 +140,17 @@ Assuming that the templating engine is NewTemplateEngine, and that - like Templa
 # Custom Pod and Template
 Standard Pod allows for Pod::Blocks to be named and configuration data provided. This allows us to leverage the standard syntax to allow for non-standard blocks and templates.
 
-For example, the HTML module adds the `Image` custom block and provides the `image` template. (In keeping with other named blocks, _Title_ case may be conventionally used for the block name and _Lower_ case is required for the template.
+If a class needs to be added to Pod Block, say a specific paragraph, then the following can be put in a pod file
+
+# para
+
+Paragraph texts
+
+The 'para' template needs to be changed (either on the fly or at instantiation)
+
+para => '<p{{# class }} class="{{ class }}">{{{ contents }}</p>'
+
+A completely new block can be created. For example, the HTML module adds the `Image` custom block by default, and provides the `image` template. (In keeping with other named blocks, _Title_ case may be conventionally used for the block name but _Lower_ case is required for the template. Note the _Upper_ case (all letters) is reserved for descriptors that are added (in HTML) as meta data.
 
 Suppose we wish to have a diagram block with a source and to assign classes to it. We want the HTML container to be `figure`.
 
@@ -516,4 +527,4 @@ method html-templates( :$css-text = $default-css-text ) {
 
 
 ----
-Rendered from RenderPod.pod6 at 2020-07-21T19:15:05Z
+Rendered from RenderPod.pod6 at 2020-07-31T22:16:11Z

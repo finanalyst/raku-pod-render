@@ -329,4 +329,4 @@ This module deal with these problems as follows:
 
 
 ----
-Rendered from Pod2HTML.pod6 at 2020-07-17T22:47:35Z
+Rendered from Pod2HTML.pod6 at 2020-07-31T22:15:51Z

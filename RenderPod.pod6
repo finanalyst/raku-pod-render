@@ -150,9 +150,21 @@ which returns a String, viz C< .render( Str $string, Hash %params, :from( %hash-
 Standard Pod allows for Pod::Blocks to be named and configuration data provided. This allows us to leverage the standard
 syntax to allow for non-standard blocks and templates.
 
-For example, the HTML module adds the C<Image> custom block and provides the C<image> template. (In keeping
+If a class needs to be added to Pod Block, say a specific paragraph, then the following can be put in a pod file
+
+    =begin para :class<float right>
+        Paragraph texts
+    =end para
+
+The 'para' template needs to be changed (either on the fly or at instantiation)
+
+    para => '<p{{# class }} class="{{ class }}">{{{ contents }}</p>'
+
+A completely new block can be created. For example, the HTML module adds the C<Image> custom block by
+default, and provides the C<image> template. (In keeping
 with other named blocks, I<Title> case may be conventionally used for the block name
-and I<Lower> case is required for the template.
+but I<Lower> case is required for the template. Note the I<Upper> case (all letters) is reserved for
+descriptors that are added (in HTML) as meta data.
 
 Suppose we wish to have a diagram block with a source and to assign classes to it.
 We want the HTML container to be C<figure>.

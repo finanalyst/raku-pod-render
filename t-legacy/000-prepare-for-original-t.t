@@ -20,7 +20,7 @@ ok 1, 'creating html templates to match original hard coded html of original P2H
         :raw('{{{ contents }}}'),
 
         'block-code' => q:to/TEMPL/,
-            <pre class="pod-block-code{{# addClass }} {{ addClass }}{{/ addClass}}">{{# contents }}{{{ contents }}}{{/ contents }}</pre>
+            <pre class="pod-block-code{{# class }} {{ class }}{{/ class}}">{{# contents }}{{{ contents }}}{{/ contents }}</pre>
             TEMPL
 
         'comment' => '<!-- {{{ contents }}} -->',
@@ -29,35 +29,35 @@ ok 1, 'creating html templates to match original hard coded html of original P2H
         'defn' => '<dt>{{ term }}</dt><dd><p>{{{ contents }}}</p></dd>',
         'dlist-end' => '</dl>
         ',
-        'format-b' => '<strong{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</strong>',
+        'format-b' => '<strong{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</strong>',
 
-        'format-c' => '<code{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</code>
+        'format-c' => '<code{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</code>
         ',
 
-        'format-i' => '<em{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</em>',
+        'format-i' => '<em{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</em>',
 
-        'format-k' => '<kbd{{# addClass }}class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</kbd>
+        'format-k' => '<kbd{{# class }}class="{{ class }}"{{/ class }}>{{{ contents }}}</kbd>
         ',
 
-        'format-l' => '<a href="{{ target }}"{{# addClass }} class="{{ addClass }}"{{/ addClass}}>{{{ contents }}}</a>',
+        'format-l' => '<a href="{{ target }}"{{# class }} class="{{ class }}"{{/ class}}>{{{ contents }}}</a>',
 
         'format-n' => '<sup><a name="{{ retTarget }}" href="#{{ fnTarget }}">[{{ fnNumber }}]</a></sup>
         ',
 
-        'format-p' => '<div{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{^ html }}<pre>{{/ html }}{{{ contents }}}{{^ html }}</pre>{{/ html }}</div>',
+        'format-p' => '<div{{# class }} class="{{ class }}"{{/ class }}>{{^ html }}<pre>{{/ html }}{{{ contents }}}{{^ html }}</pre>{{/ html }}</div>',
 
-        'format-r' => '<var{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</var>',
+        'format-r' => '<var{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</var>',
 
-        'format-t' => '<samp{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</samp>',
+        'format-t' => '<samp{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</samp>',
 
-        'format-u' => '<u{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</u>',
+        'format-u' => '<u{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</u>',
 
-        'format-x' => '<a name="{{ target }}">{{# text }}<span class="glossary-entry{{# addClass }} {{ addClass }}{{/ addClass }}">{{{ text }}}</span></a>{{/ text }} ',
+        'format-x' => '<a name="{{ target }}">{{# text }}<span class="glossary-entry{{# class }} {{ class }}{{/ class }}">{{{ text }}}</span></a>{{/ text }} ',
 
         'heading' => '<h{{# level }}{{ level }}{{/ level }} id="{{ target }}"><a class="u" href="#{{ top }}" title="go to top of document">{{{ text }}}</a></h{{# level }}{{ level }}{{/ level }}>
         ',
 
-            'item' => '<li{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</li>
+            'item' => '<li{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</li>
             ',
 
             'list' => q:to/TEMPL/,
@@ -77,9 +77,9 @@ ok 1, 'creating html templates to match original hard coded html of original P2H
 
         'output' => '<pre class="pod-output">{{{ contents }}}</pre>',
 
-        'para' => '<p{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</p>',
+        'para' => '<p{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</p>',
 
-        'pod' => '{{# addClass }}<span class="{{ addClass }}">{{/ addClass }}{{{ contents }}}{{{ tail }}}{{# addClass }}</span>{{/ addClass }}',
+        'pod' => '{{# class }}<span class="{{ class }}">{{/ class }}{{{ contents }}}{{{ tail }}}{{# class }}</span>{{/ class }}',
 
         'section' => q:to/TEMPL/,
             <section>
@@ -89,7 +89,7 @@ ok 1, 'creating html templates to match original hard coded html of original P2H
         'subtitle' => '<div class="subtitle">{{{ subtitle }}}</div>',
 
         'table' => q:to/TEMPL/,
-                <table class="pod-table{{# addClass }}{{ addClass }}{{/ addClass }}">
+                <table class="pod-table{{# class }} {{ class }}{{/ class }}">
                     {{# caption }}<caption>{{{ caption }}}</caption>{{/ caption }}
                     {{# headers }}<thead>
                         <tr>{{# cells }}<th>{{{ . }}}</th>{{/ cells }}</tr>
