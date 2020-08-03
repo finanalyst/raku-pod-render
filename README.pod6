@@ -10,6 +10,20 @@ Intended
 =item use the same API for outputting MarkDown and other output formats. Hence simply changing templates will generate new output
 =item generate Glossary, TOC and Footnote structures for each set of Pod trees.
 =item can be used to generate HTML and Markdown with raku's --doc flag.
+=item has a GUI for converting one or more Pod6-containing files into MarkDown or HTML.
+
+=head1 Extractor GUI
+
+Run C<Extractor.raku> in the directory where the transformed files are needed. Select POD6 files by
+clicking on the FileChooser button at the top of the panel. The Output file name by default is the same
+as the basename of the input file, but can be changed. Select the output formats.
+
+If a file was selected by mistake, uncheck the 'convert' box on the far left and it will not be processed.
+
+When the list is complete, click on B<Convert>. The converted files will be shown, or the failure message.
+
+This tool is fairly primitive and it may not handle all error conditions. The tool is intended for generating
+md and html files in an adhoc manner.
 
 =head1 Page Components
 

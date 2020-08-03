@@ -35,11 +35,12 @@ Default is to include each section.
 
 =head1 Extract Pod in a Module to README.md
 
-The utility function C<read-y-me.raku> is provided to take and Pod in the input source and
-turn it into a README.md file (for github etc).
+The utility function C<Extractor.raku> is provided to take POD6 in input sources and
+turn it into a .md file (eg., for a github C<README.md>). So now, a Module can be written
+using in-code POD6 and this can be extracted into a C<README.md> file with C<Extractor.raku>.
 
-A GUI version works but only if Informative is installed, which is known not to install on Windows.
-So, only the command line version is available. This will be corrected in the future.
+C<Extractor.raku> depends on C<GTK::Simple>, which in turns requires the C<GTK-3.0) library to
+be installed (see installation documentation of C<GTK::Simple>.
 
 =head1 More detail and differences from Pod::To::HTML
 

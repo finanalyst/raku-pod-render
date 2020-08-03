@@ -4,6 +4,7 @@
 
 ----
 ## Table of Contents
+[Extractor GUI](#extractor-gui)
 [Page Components](#page-components)
 [TOC](#toc)
 [Glossary](#glossary)
@@ -25,6 +26,17 @@ Intended
 *  generate Glossary, TOC and Footnote structures for each set of Pod trees.
 
 *  can be used to generate HTML and Markdown with raku's --doc flag.
+
+*  has a GUI for converting one or more Pod6-containing files into MarkDown or HTML.
+
+# Extractor GUI
+Run `Extractor.raku` in the directory where the transformed files are needed. Select POD6 files by clicking on the FileChooser button at the top of the panel. The Output file name by default is the same as the basename of the input file, but can be changed. Select the output formats.
+
+If a file was selected by mistake, uncheck the 'convert' box on the far left and it will not be processed.
+
+When the list is complete, click on **Convert**. The converted files will be shown, or the failure message.
+
+This tool is fairly primitive and it may not handle all error conditions. The tool is intended for generating md and html files in an adhoc manner.
 
 # Page Components
 A Pod6 source will generate body text and generate information for TOC, Footnotes, Glossaries, Links and Metadata
@@ -82,4 +94,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README.pod6 at 2020-07-17T21:38:49Z
+Rendered from UNNAMED at 2020-08-03T08:53:26Z

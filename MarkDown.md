@@ -1,4 +1,4 @@
-# MarkDown.pod6
+# UNNAMED
 >
 ----
 ## Table of Contents
@@ -43,9 +43,7 @@ The following regexen are applied to PODRENDER and switch off the default render
 Any or all of 'NoTOC', 'NoMeta', or 'NoFoot' may be included in any order. Default is to include each section.
 
 # Extract Pod in a Module to README.md
-The utility function `read-y-me.raku` is provided to take and Pod in the input source and turn it into a README.md file (for github etc).
-
-A GUI version works but only if Informative is installed, which is known not to install on Windows. So, only the command line version is available. This will be corrected in the future.
+The utility function `Extractor.raku` is provided to take POD6 in the input sources and turn it into either .md or .html files (eg. for github README.md files)
 
 # More detail and differences from Pod::To::HTML
 See [RenderPod](RenderPod.md) [PodToHTML](PodToHTML.md) for more detail. `Pod::To::MarkDown` has templates to produce MarkDown and not HTML. In addition:
@@ -64,4 +62,4 @@ See [RenderPod](RenderPod.md) [PodToHTML](PodToHTML.md) for more detail. `Pod::T
 
 
 ----
-Rendered from MarkDown.pod6 at 2020-07-23T11:46:55Z
+Rendered from UNNAMED at 2020-08-02T21:24:46Z
