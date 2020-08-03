@@ -24,7 +24,6 @@
     "Pod::To::HTML2": "lib/Pod/To/HTML2.pm6",
     "Pod::To::MarkDown2": "lib/Pod/To/MarkDown2.pm6",
     "ProcessedPod": "lib/ProcessedPod.pm6",
-    "read-y-me.raku": "bin/read-y-me.raku",
     "Extractor.raku": "bin/Extractor.raku"
   },
   "resources": [
