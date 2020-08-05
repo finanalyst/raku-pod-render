@@ -193,6 +193,7 @@ Note that the `for` takes configuration parameters to be fed to the template, an
 Then in the rendering program we need to provide to ProcessedPod the new object name, and the corresponding template. These must be the same name. Thus we would have:
 
 ```
+    use v6;
     use Pod::To::HTML;
     my Pod::To::HTML $r .= new;
     $r.custom = <diagram>;
@@ -270,7 +271,9 @@ This allows a developer to use the compiler option `--doc=HTML` together with he
 # Extract Pod in a Module to README.md
 The utility function `Extractor.raku` is provided to take POD6 in input sources and turn it into a .md file (eg., for a github `README.md`). So now, a Module can be written using in-code POD6 and this can be extracted into a `README.md` file with `Extractor.raku`.
 
-`Extractor.raku` depends on `GTK::Simple`, which in turns requires the `GTK-3.0) library to be installed (see installation documentation of C<GTK::Simple>. The C<html> files use the default templates, or templates in a C<html-templates.raku> file in the current working directory. `
+`Extractor.raku` depends on `GTK::Simple`, which in turns requires the `GTK-3.0` library to be installed (see installation documentation of `GTK::Simple`.
+
+The `html` files use the default templates, or templates in a `html-templates.raku` file in the current working directory.
 
 # Exported Subroutines
 Two functions are exported to provide backwards compatibility with legacy Pod::To::HTML module. They map onto the methods described above.
@@ -335,4 +338,4 @@ This module deal with these problems as follows:
 
 
 ----
- at 2020-08-03T09:12:10Z
+Rendered from Pod2HTML at 2020-08-05T16:50:54Z

@@ -24,6 +24,7 @@ ok 1, 'creating html templates to match original hard coded html of original P2H
             TEMPL
 
         'comment' => '<!-- {{{ contents }}} -->',
+        'declarator' => '<a name="{{ target }}"></a><article><code class="pod-code-inline">{{{ code }}}</code>{{{ contents }}}</article>',
         'dlist-start' => '<dl>
         ',
         'defn' => '<dt>{{ term }}</dt><dd><p>{{{ contents }}}</p></dd>',

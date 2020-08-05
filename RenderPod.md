@@ -10,6 +10,7 @@
 [String Template](#string-template)
 [Block Templates](#block-templates)
 [Partials and New Templates](#partials-and-new-templates)
+[Handling Declarator blocks](#handling-declarator-blocks)
 [Change the Templating Engine](#change-the-templating-engine)
 [Custom Pod and Template](#custom-pod-and-template)
 [Para](#para)
@@ -26,6 +27,7 @@
 [source-wrap](#source-wrap)
 [Individual component renderers](#individual-component-renderers)
 [Public Class Attributes](#public-class-attributes)
+[ExtractPod](#extractpod)
 [Minimum Template Set](#minimum-template-set)
 
 ----
@@ -127,6 +129,11 @@ Now the pod line `This is some B<boldish text> in a line` will result in
 ```
 <p>This is some <container>boldish text</container> in a line</p>
 ```
+# Handling Declarator blocks
+Currently POD6 that starts with `|#` or `#=` next to a declaration are not handled consistently or correctly. Declarator comments only work when associated with `Routine` declarations, such as `sub` or `method`. Declarator comments associated with variables are concatenated by the compiler with the next `Routine` declaration.
+
+`GenericPod` passes out the declaration code as `:code` and the associated content as <:contents>. It also **adds** the code to the `Glossary` page component, generating a `:target` for the link back.
+
 # Change the Templating Engine
 In order to change the Templating Engine, a Templater Role needs to be created using the MustacheTemplater role in this distribution as a model. Then a new class similar to ProcessedPod can be created as
 
@@ -166,6 +173,7 @@ Note that the `for` takes configuration parameters to be fed to the template, an
 Then in the rendering program we need to provide to ProcessedPod the new object name, and the corresponding template. These must be the same name. Thus we would have:
 
 ```
+    use v6;
     use Pod::To::HTML;
     my Pod::To::HTML $r .= new;
     $r.custom = <diagram>;
@@ -358,6 +366,9 @@ has Bool $.verbose is rw; # outputs to STDERR more detail about errors.
 
 # Structure to collect links, eg. to test whether they all work
 ```
+# ExtractPod
+This is a helper module that provides a version of `load` instead of the file load version of Pod::Load.
+
 # Minimum Template Set
 There is a minimum set of templates that must be provided for a Pod file to be rendered. These are:
 
@@ -389,6 +400,7 @@ method html-templates( :$css-text = $default-css-text ) {
                 {{# contents }}{{{ contents }}}{{/ contents }}</pre>
                 TEMPL
             'comment' => '<!-- {{{ contents }}} -->',
+            'declarator' => '<a name="{{ target }}"></a><article><code class="pod-code-inline">{{{ code }}}</code>{{{ contents }}}</article>',
             'dlist-start' => "<dl>\n",
             'defn' => '<dt>{{ term }}</dt><dd>{{{ contents }}}</dd>',
             'dlist-end' => "\n</dl>",
@@ -527,4 +539,4 @@ method html-templates( :$css-text = $default-css-text ) {
 
 
 ----
- at 2020-08-03T09:12:11Z
+Rendered from RenderPod at 2020-08-05T17:03:50Z

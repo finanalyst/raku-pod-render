@@ -63,6 +63,7 @@ method md-templates {
             TEMPL
         # eliminate POD comments
         'comment' => '',
+        'declarator' => '## {{{ code }}}{{> nl2 }}{{{ contents }}}{{> nl2 }} ',
         # Markup doesn't have Definition lists. This seems a nice way to mimic them
         'dlist-start' => '',
         'defn' => '> **{{ term }}**  {{> nl }}{{{ contents }}}{{> nl }}',

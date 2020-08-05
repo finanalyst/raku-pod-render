@@ -1,16 +1,13 @@
-# UNNAMED
+# MarkDown
 >
 ----
 ## Table of Contents
-[Head](#head)
+[Usage with compiler](#usage-with-compiler)
 [Extract Pod in a Module to README.md](#extract-pod-in-a-module-to-readmemd)
 [More detail and differences from Pod::To::HTML](#more-detail-and-differences-from-podtohtml)
 
 ----
-# head
-
-Usage with compiler
-
+# Usage with compiler
 From the terminal:
 
 ```
@@ -43,7 +40,9 @@ The following regexen are applied to PODRENDER and switch off the default render
 Any or all of 'NoTOC', 'NoMeta', or 'NoFoot' may be included in any order. Default is to include each section.
 
 # Extract Pod in a Module to README.md
-The utility function `Extractor.raku` is provided to take POD6 in the input sources and turn it into either .md or .html files (eg. for github README.md files)
+The utility function `Extractor.raku` is provided to take POD6 in input sources and turn it into a .md file (eg., for a github `README.md`). So now, a Module can be written using in-code POD6 and this can be extracted into a `README.md` file with `Extractor.raku`.
+
+`Extractor.raku` depends on `GTK::Simple`, which in turns requires the `GTK-3.0` library to be installed (see installation documentation of `GTK::Simple`.
 
 # More detail and differences from Pod::To::HTML
 See [RenderPod](RenderPod.md) [PodToHTML](PodToHTML.md) for more detail. `Pod::To::MarkDown` has templates to produce MarkDown and not HTML. In addition:
@@ -62,4 +61,4 @@ See [RenderPod](RenderPod.md) [PodToHTML](PodToHTML.md) for more detail. `Pod::T
 
 
 ----
-Rendered from UNNAMED at 2020-08-02T21:24:46Z
+Rendered from MarkDown at 2020-08-05T16:50:52Z

@@ -6,7 +6,7 @@ plan 5;
 my ProcessedPod $pro .= new;
 my $pv = 0;
 
-my @templates = <raw comment escaped glossary footnotes head header footer dlist-start dlist-end
+my @templates = <raw comment escaped glossary footnotes head header footer declarator dlist-start dlist-end
             format-c block-code format-u para format-b named source-wrap defn output format-l
             format-x heading title format-n format-i format-k format-p meta list subtitle format-r
             format-t table item notimplemented section toc pod>;
@@ -17,7 +17,7 @@ $pro.templates(%templates);
 =begin pod
 
     =DISCLAIMER
-    P<file:t/disclaimer.txt>
+    P<file:xt/disclaimer.txt>
 
 =end pod
 

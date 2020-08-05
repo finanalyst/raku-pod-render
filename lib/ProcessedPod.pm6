@@ -107,7 +107,7 @@ role MustacheTemplater {
 class GenericPod {
     #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
     has @.required = < raw comment escaped glossary footnotes footer
-                format-c block-code format-u para format-b named source-wrap defn dlist-start dlist-end
+                format-c block-code format-u para format-b named source-wrap declarator defn dlist-start dlist-end
                 output format-l format-x heading title format-n format-i format-k format-p meta
                 list subtitle format-r format-t table item notimplemented section toc pod >;
     #| must have templates. Generically, no templates loaded.
@@ -552,7 +552,7 @@ class GenericPod {
         my $retained-list = $.completion($in-level, 'zero', %(), :defn($context == Definition));
         my $contents = [~] gather for $node.contents { take self.handle($_, $in-level) };
         with $.highlighter {
-            # if hightlighter returns an empty string or is undefined, restore original version
+            # if highlighter returns an empty string or is undefined, restore original version
             my $t = $contents;
             $contents = $_($contents);
             $contents = $t unless $contents
@@ -571,9 +571,19 @@ class GenericPod {
 
     multi method handle(Pod::Block::Declarator $node, Int $in-level, Context $context? = None  --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
+        my $code;
+        given $node.WHEREFORE {
+            when Routine {
+                $code = ~ $node.WHEREFORE.raku.comb(/ ^ .+? <before \{> /);
+            }
+            default {
+                $code = $node.WHEREFORE.raku;
+            }
+        }
+        my $target = $.register-glossary($code, [], False);
         $.completion($in-level, 'zero', %(), :defn($context == Definition))
-                ~ $.completion($in-level, 'notimplemented',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level) })),
+                ~ $.completion($in-level, 'declarator',
+                %( :$code, :target, :contents(~ $node.contents )),
                 :defn($context == Definition))
     }
 

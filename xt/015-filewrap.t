@@ -8,7 +8,7 @@ my $pc = 0;
 
 plan 2;
 
-my @templates = <raw comment escaped glossary footnotes head header footer dlist-start dlist-end
+my @templates = <raw comment escaped glossary footnotes head header footer declarator dlist-start dlist-end
             format-c block-code format-u para format-b named source-wrap defn output format-l
             format-x heading title format-n format-i format-k format-p meta list subtitle format-r
             format-t table item notimplemented section toc pod >;

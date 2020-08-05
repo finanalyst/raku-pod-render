@@ -11,7 +11,7 @@ plan 2;
 =begin pod
 
     =DISCLAIMER
-    P<file:t/disclaimer.txt>
+    P<file:xt/disclaimer.txt>
 
 =end pod
 
@@ -25,7 +25,7 @@ like $rv,
 =begin pod
 
     =EVIL
-    P<file:t/badfile.txt>
+    P<file:xt/badfile.txt>
 
 =end pod
 

@@ -132,6 +132,15 @@ Now the pod line C< This is some B<boldish text> in a line> will result in
 
     <p>This is some <container>boldish text</container> in a line</p>
 
+=head1 Handling Declarator blocks
+
+Currently POD6 that starts with C<|#> or C<#=> next to a declaration are not handled consistently or correctly.
+Declarator comments only work when associated with C<Routine> declarations, such as C<sub> or C<method>.
+Declarator comments associated with variables are concatenated by the compiler with the next C<Routine> declaration.
+
+C<GenericPod> passes out the declaration code as C<:code> and the associated content as <:contents>. It also B<adds>
+the code to the C<Glossary> page component, generating a C<:target> for the link back.
+
 =head1 Change the Templating Engine
 
 In order to change the Templating Engine, a Templater Role needs to be created using the MustacheTemplater role in
@@ -400,6 +409,10 @@ as C<format-b> should be used inside the component.
 
     # Structure to collect links, eg. to test whether they all work
 
+=head1 ExtractPod
+
+This is a helper module that provides a version of C<load> instead of the file load version of Pod::Load.
+
 =head1 Minimum Template Set
 
 There is a minimum set of templates that must be provided for a Pod file to be rendered. These are:
@@ -434,6 +447,7 @@ method html-templates( :$css-text = $default-css-text ) {
                 {{# contents }}{{{ contents }}}{{/ contents }}</pre>
                 TEMPL
             'comment' => '<!-- {{{ contents }}} -->',
+            'declarator' => '<a name="{{ target }}"></a><article><code class="pod-code-inline">{{{ code }}}</code>{{{ contents }}}</article>',
             'dlist-start' => "<dl>\n",
             'defn' => '<dt>{{ term }}</dt><dd>{{{ contents }}}</dd>',
             'dlist-end' => "\n</dl>",

@@ -1,6 +1,6 @@
 #!/usr/bin/env perl6
 use v6.*;
-use Pod::Load;
+use ExtractPod;
 
 multi sub MAIN() {
     use GTK::Simple::App;
@@ -80,10 +80,11 @@ multi sub MAIN() {
     }
 
     $file-chooser-button.file-set.tap: {
+        $action.sensitive = True;
         add-to-files($file-chooser-button.file-name);
-        $file-chooser-button.title = "Select a file with POD6";
     }
     $cancel.clicked.tap: -> $b { $app.exit };
+    $action.sensitive = False;
     $action.clicked.tap: -> $b {
         $cancel.label = 'Finish';
         $action.sensitive = False;
@@ -113,7 +114,7 @@ sub MarkDown(@fn, $report) {
 
 sub process(@fn, $report, $pr, $ext) {
     for @fn -> $fn {
-        $pr.name = $fn<oname>;
+        $pr.path = $pr.name = $pr.title = $fn<oname>;
         my $pod = load($fn<path> ~ '/' ~ $fn<name>);
         $pr.render-tree($pod);
         $pr.file-wrap;
@@ -122,6 +123,8 @@ sub process(@fn, $report, $pr, $ext) {
                 ~ " converted and written to ｢{ $fn<oname> }.$ext｣\n";
         CATCH {
             default {
+                my $msg = .message;
+                $msg = $msg.substr(0, 150) ~ "\n{ '... (' ~ $msg.chars - 150 ~ ' more chars)' if $msg.chars > 150 }";
                 $report.text ~= "｢{ $fn<path> }/{ $fn<name> }｣"
                         ~ " to .$ext "
                         ~ ' encountered error: '

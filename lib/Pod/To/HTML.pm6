@@ -137,6 +137,7 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
                 {{# contents }}{{{ contents }}}{{/ contents }}</pre>
                 TEMPL
             'comment' => '<!-- {{{ contents }}} -->',
+            'declarator' => '<a name="{{ target }}"></a><article><code class="pod-code-inline">{{{ code }}}</code>{{{ contents }}}</article>',
             'dlist-start' => "<dl>\n",
             'defn' => '<dt>{{ term }}</dt><dd>{{{ contents }}}</dd>',
             'dlist-end' => "\n</dl>",
