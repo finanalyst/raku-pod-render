@@ -133,55 +133,54 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
             :escaped('{{ contents }}'),
             :raw('{{{ contents }}}'),
             'block-code' => q:to/TEMPL/,
-                <pre class="pod-block-code{{# class }} {{ class }}{{/ class}}">
-                {{# contents }}{{{ contents }}}{{/ contents }}</pre>
+                <pre class="pod-block-code">
+                {{{ contents }}}</pre>
                 TEMPL
             'comment' => '<!-- {{{ contents }}} -->',
             'declarator' => '<a name="{{ target }}"></a><article><code class="pod-code-inline">{{{ code }}}</code>{{{ contents }}}</article>',
             'dlist-start' => "<dl>\n",
             'defn' => '<dt>{{ term }}</dt><dd>{{{ contents }}}</dd>',
             'dlist-end' => "\n</dl>",
-            'format-b' => '<strong{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</strong>',
-            'format-c' => '<code{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</code>
+            'format-b' => '<strong>{{{ contents }}}</strong>',
+            'format-c' => '<code>{{{ contents }}}</code>
             ',
-            'format-i' => '<em{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</em>',
-            'format-k' => '<kbd{{# class }}class="{{ class }}"{{/ class }}>{{{ contents }}}</kbd>
+            'format-i' => '<em>{{{ contents }}}</em>',
+            'format-k' => '<kbd>{{{ contents }}}</kbd>
             ',
             'format-l' => '<a href="{{# internal }}#{{/ internal }}{{ target }}{{# local }}.html{{/ local }}">{{{ contents }}}</a>',
             'format-n' => '<sup><a name="{{ retTarget }}" href="#{{ fnTarget }}">[{{ fnNumber }}]</a></sup>
             ',
             'format-p' => -> %params {
                 %params<contents> = %params<contents>.=trans(['<pre>', '</pre>'] => ['&lt;pre&gt;', '&lt;/pre&gt;']);
-                '<div{{# class }} class="{{ class }}"{{/ class }}><pre>{{{ contents }}}</pre></div>'
+                '<div><pre>{{{ contents }}}</pre></div>'
             },
-            'format-r' => '<var{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</var>',
-            'format-t' => '<samp{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</samp>',
-            'format-u' => '<u{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</u>',
-            'format-x' => '<a name="{{ target }}"></a>{{# text }}<span class="glossary-entry{{# class }} {{ class }}{{/ class }}">{{{ text }}}</span>{{/ text }} ',
+            'format-r' => '<var>{{{ contents }}}</var>',
+            'format-t' => '<samp>{{{ contents }}}</samp>',
+            'format-u' => '<u>{{{ contents }}}</u>',
+            'format-x' => '<a name="{{ target }}"></a>{{# text }}<span class="glossary-entry">{{{ text }}}</span>{{/ text }} ',
             'heading' => '<h{{# level }}{{ level }}{{/ level }} id="{{ target }}"><a href="#{{ top }}" class="u" title="go to top of document">{{{ text }}}</a></h{{# level }}{{ level }}{{/ level }}>
             ',
             'image' => '<img src="{{# src }}{{ src }}{{/ src }}{{^ src }}path/to/image{{/ src }}"'
                     ~ ' width="{{# width }}{{ width }}{{/ width }}{{^ width }}100px{{/ width }}"'
                     ~ ' height="{{# height }}{{ height }}{{/ height }}{{^ height }}auto{{/ height }}"'
                     ~ ' alt="{{# alt }}{{ alt }}{{/ alt }}{{^ alt }}XXXXX{{/ alt }}">',
-            'item' => '<li{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</li>
+            'item' => '<li>{{{ contents }}}</li>
             ',
             'list' => q:to/TEMPL/,
-
                 <ul>
                     {{# items }}{{{ . }}}{{/ items}}
                 </ul>
                 TEMPL
             'named' => q:to/TEMPL/,
                 <section>
-                    <h{{# level }}{{ level }}{{/ level }} id="{{ target }}"><a href="#{{ top }}" class="u" title="go to top of document">{{{ name }}}</a></h{{# level }}{{ level }}{{/ level }}>
+                    <h{{ level }} id="{{ target }}"><a href="#{{ top }}" class="u" title="go to top of document">{{{ name }}}</a></h{{ level }}>
                     {{{ contents }}}
                 </section>
                 TEMPL
             'notimplemented' => '<span class="pod-block-notimplemented">{{{ contents }}}</span>',
             'output' => '<pre class="pod-output">{{{ contents }}}</pre>',
-            'para' => '<p{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</p>',
-            'pod' => '<section name="{{ name }}"{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}{{{ tail }}}
+            'para' => '<p>{{{ contents }}}</p>',
+            'pod' => '<section name="{{ name }}">{{{ contents }}}{{{ tail }}}
                 </section>',
             'section' => q:to/TEMPL/,
                 <section name="{{ name }}">{{{ contents }}}{{{ tail }}}
@@ -208,14 +207,14 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
                     <body class="pod">
                         {{> header }}
                         <div class="toc-glossary">
-                        {{# toc }}{{{ toc }}}{{/ toc }}
-                        {{# glossary }}{{{ glossary }}}{{/ glossary }}
+                        {{{ toc }}}
+                        {{{ glossary }}}
                         </div>
                         {{> subtitle }}
                         <div class="pod-body{{^ toc }} no-toc{{/ toc }}">
                             {{{ body }}}
                         </div>
-                        {{# footnotes }}{{{ footnotes }}}{{/ footnotes }}
+                        {{{ footnotes }}}
                         {{> footer }}
                     </body>
                 </html>
@@ -259,10 +258,10 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
                     <title>{{ title }}</title>
                     <meta charset="UTF-8" />
                     {{> favicon }}
-                    {{# metadata }}{{{ metadata }}}{{/ metadata }}
+                    {{{ metadata }}}
                     {{# css }}<link rel="stylesheet" href="{{ css }}">{{/ css }}
                     {{^ css }}{{> css-text }}{{/ css }}
-                    {{# head }}{{{ head }}}{{/ head }}
+                    {{{ head }}}
                 </head>
                 TEMPL
             'head' => '',

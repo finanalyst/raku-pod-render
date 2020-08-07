@@ -41,7 +41,7 @@ role MustacheTemplater { ... }
 
 role MustacheTemplater {
     use Template::Mustache;
-    # templating parameters. Should be abstracted to a role
+    # templating parameters.
     has %.tmpl;
     has $!engine;
     #| maps the key to template and renders the block
