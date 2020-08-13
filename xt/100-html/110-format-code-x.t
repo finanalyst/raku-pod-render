@@ -82,7 +82,7 @@ An empty X<> is ignored.
 
 # Need to eliminate all previous glossary entries. Easiest by just making new instance.
 
-$processor.delete-pod-structure;
+$processor.emit-and-renew-processed-state;
 $processor.no-glossary = False;
 $rv = $processor.render-block( $=pod[$pn++] );
 

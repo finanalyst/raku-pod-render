@@ -62,7 +62,7 @@ Most Pod source files will begin with C<=begin pod>. Any line with C<=begin xxx>
     ...
 =end code
 
-The first C<=begin pod> to be rendered after initiation, or after the C<.delete-pod-structure> method, will have its
+The first C<=begin pod> to be rendered after initiation, or after the C<.emit-and-renew-processed-state> method, will have its
 configuration data transferred to the C<ProcessedPod> object's C<%.pod-config-data> attribute.
 
 When multiple files are rendered, any meta data associated with the pod can be accessed during the Rendering Iteration.
@@ -260,7 +260,7 @@ The the C<ProcessedPob> object expects a compiled Pod object. One way to do this
             # change output name from $nm if necessary
             .file-wrap( "{ $counter++ }_$nm" );
             # get the pod structure, delete the information to continue with a new pod tree, retain the cached templates
-            @processed.append: $p.delete-pod-structure; # beware, pod-structure also deletes body, toc, glossary, etc contents
+            @processed.append: $p.emit-and-renew-processed-state; # beware, pod-structure also deletes body, toc, glossary, etc contents
         }
     }
     # each instance of @processed will have TOC, Glossary and Footnote arrays that can be combined in some way
@@ -351,9 +351,9 @@ Returns only the pod that was passed
 Tenders the whole pod tree
 Is actually an alias to process-pod
 
-=head2 delete-pod-structure
+=head2 emit-and-renew-processed-state
 
-    method delete-pod-structure
+    method emit-and-renew-processed-state
 
 Deletes any previously processed pod, keeping the template engine cache
 Returns the pod-structure deleted as a Hash, for storage in an array when multiple files

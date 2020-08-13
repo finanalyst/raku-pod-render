@@ -41,7 +41,7 @@ Stuff and Nonsense
 $pro.render-block( $=pod[$pv]) ;
 isnt-deeply-relaxed $pro.pod-config-data, %( :different<This is different>, :difficult<shouldnt be> ), 'only first config data allowed';
 
-$pro.delete-pod-structure;
+$pro.emit-and-renew-processed-state;
 
 $pro.render-block( $=pod[$pv]) ;
 is-deeply-relaxed $pro.pod-config-data, %( :different("This is different"), :difficult("shouldnt be") ), 'second block config data accepted';

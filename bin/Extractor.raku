@@ -118,7 +118,7 @@ sub process(@fn, $report, $pr, $ext) {
         my $pod = load($fn<path> ~ '/' ~ $fn<name>);
         $pr.render-tree($pod);
         $pr.file-wrap;
-        $pr.delete-pod-structure;
+        $pr.emit-and-renew-processed-state;
         $report.text ~= "｢{ $fn<path> }/{ $fn<name> }｣"
                 ~ " converted and written to ｢{ $fn<oname> }.$ext｣\n";
         CATCH {

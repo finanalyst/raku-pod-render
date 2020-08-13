@@ -52,7 +52,7 @@ text
 
 =end pod
 
-$processor.delete-pod-structure;
+$processor.emit-and-renew-processed-state;
 $rv = $processor.render-block( $=pod[$pn++] );
 unlike $rv, /
 '<div class="subtitle">'
@@ -155,7 +155,7 @@ Note that only the word Heading is indexed
 
 =end pod
 
-$processor.delete-pod-structure;
+$processor.emit-and-renew-processed-state;
 $processor.process-pod( $=pod[$pn++] );
 $rv = $processor.source-wrap;
 

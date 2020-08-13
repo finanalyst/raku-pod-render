@@ -53,7 +53,7 @@ $pro.templates(%templates);
 lives-ok { $pro.render-block( $=pod[0] ) }, 'main processing methods work, not interested in return values yet';
 
 my %pod-structure;
-lives-ok { %pod-structure = $pro.delete-pod-structure}, 'deletion method lives';
+lives-ok { %pod-structure = $pro.emit-and-renew-processed-state}, 'renew method lives';
 
 for <name title subtitle metadata toc glossary footnotes body path renderedtime >
 {
@@ -65,7 +65,7 @@ for <metadata toc footnotes glossary>
     ok +%pod-structure{"raw-$_"}, "raw-$_ has content"
 }
 
-nok $pro.renderedtime.defined, 'time should be undefined after a delete-pod-structure';
+nok $pro.renderedtime.defined, 'time should be undefined after a emit-and-renew-processed-state';
 
 
 done-testing;

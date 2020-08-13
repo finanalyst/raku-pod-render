@@ -281,7 +281,7 @@ class GenericPod {
     }
 
     #| deletes any previously processed pod, keeping the template engine cache
-    method delete-pod-structure(--> Hash) {
+    method emit-and-renew-processed-state(--> Hash) {
         self.render-structures;
         my %h =
                 :$!name,
