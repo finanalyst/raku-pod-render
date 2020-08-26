@@ -225,7 +225,7 @@ $rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv,
     /
-    '<p>In Perl&nbsp;5, the ampersand sigil can additionally be used to call subroutines'
+    'the ampersand sigil can additionally be used to call subroutines'
     .+ '<ul>'
     \s* '<li>'
     .+ 'for circumventing'

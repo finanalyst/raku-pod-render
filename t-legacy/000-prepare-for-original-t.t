@@ -162,7 +162,6 @@ ok 1, 'creating html templates to match original hard coded html of original P2H
                     {{/ toc }}
                 </table>
             TEMPL
-            'head' => '',
             'header' => '<header>{{ title }}</header>',
             'footer' => '<footer><div>Rendered from <span class="path">{{ path }}{{^ path }}Unknown{{/ path}}</span></div>
                 <div>at <span class="time">{{ renderedtime }}{{^ renderedtime }}a moment before time began!?{{/ renderedtime }}</span></div>

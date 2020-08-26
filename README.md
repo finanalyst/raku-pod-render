@@ -11,6 +11,8 @@
 [Footnotes](#footnotes)
 [Links](#links)
 [Meta data](#meta-data)
+[RakuClosureTemplates](#rakuclosuretemplates)
+[Testing tool](#testing-tool)
 [More Information](#more-information)
 
 ----
@@ -75,6 +77,12 @@ Links should be tested. While the data is collected, verifying links is left to 
 ## Meta data
 Pod6 allows for metadata such as AUTHOR or VERSION to be set. These can be included in HTML or other formats.
 
+# RakuClosureTemplates
+A new templating system is introduced to speed up the rendering. The Pod::To::HTML renderer is now slightly faster than the legacy Pod::To::HTML renderer, whilst achieving considerably more.
+
+## Testing tool
+A testing tool is included that will test the array of RakuClosureTemplates, including the possibility of specifying the structure of a custom template and testing it against the template.
+
 # More Information
 See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md) for information about the HTML specific module ``Pod::To::HTML``. ``Pod::To::Markdown``, see [MarkDown](MarkDown.md), follows ``Pod::To::HTML`` mostly.
 
@@ -86,4 +94,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2020-08-05T16:50:54Z
+Rendered from README at 2020-08-26T09:57:17Z

@@ -14,16 +14,16 @@ The rationale for re-writing the whole Pod::To::HTML module is in the section L<
 
 For more information about methods not covered here see the L<PodProcess Class|RenderPod>. A sister class L<Markdown|MarkDown> is available.
 
+The default templating engine is C<RakuClosureTemplater>, but the C<Mustache> templating engine is retained. Some of the C<xt> tests use
+the C<Mustache> engine, and C<Pod::To::Markdown> uses Mustache.
+
+The class C<Pod::To::HTML::Mustache> is provided that uses the C<Mustache> engine.
+
 =head1 Usage with compiler
 
 From the terminal:
 =begin code :lang<shell>
 raku --doc=HTML input.raku > output.html
-=end code
-
-Possibly the compiler may run the legacy C<Pod::To::HTML> module. If so the following may work:
-=begin code :lang<shell>
-raku --doc=HTML2 input.raku > output.html
 =end code
 
 This takes the POD in the C<input.raku> file, transforms it into HTML, outputs a full HTML page including a Table of Contents, Glossary and Footnotes.
@@ -55,7 +55,7 @@ Default is to include each section.
 This functionality is mainly for tests, but can be adapted to render other pod sources.
 
 C<Pod::To::HTML> is a subclass of C<PodProcessed>, which contains the code for a generic Pod Render.
-C<Pod::To::HTML> provides a default set of templates and minimal css. It also
+C<Pod::To::HTML> provides a default set of templates and minimal css (see L<Templates|#Templates>). It also
 exports some routines (not documented here) to pass the tests of the legacy C<Pod::To::HTML> module (see below
 for the rationale for choosing a different API).
 
@@ -269,7 +269,9 @@ For example,
 
 =head1 Templates
 
-The default templating engine is Template::Mustache. A minimal default set of templates is provided with the Module.
+The default templating system is a hash of Raku closures. More about templates can be found in L<RenderPod>. Another template
+engine is Template::Mustache. This can be accessed as C<use Pod::To::HTML::Mustache>.
+A minimal default set of templates is provided with the Module.
 
 Each template can be changed using the C<modify-templates> method. Be careful when over-riding C<head-block> to ensure
 the css is properly referenced.

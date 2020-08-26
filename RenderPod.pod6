@@ -143,6 +143,7 @@ the code to the C<Glossary> page component, generating a C<:target> for the link
 
 =head1 Change the Templating Engine
 
+The default system now is RakuClosureTemplates. The Mustache templater is also used.
 In order to change the Templating Engine, a Templater Role needs to be created using the MustacheTemplater role in
 this distribution as a model. Then a new class similar to ProcessedPod can be created as
 
@@ -154,9 +155,27 @@ Assuming that the templating engine is NewTemplateEngine, and that - like Templa
 with C<.new>, and has a C<.render> method which takes a String template, and Hash of strings to interpolate, and
 which returns a String, viz C< .render( Str $string, Hash %params, :from( %hash-of-templates) --> Str )>.
 
-=head1 Custom Pod and Template
+=head2 Raku Closure Templates
 
-Standard Pod allows for Pod::Blocks to be named and configuration data provided. This allows us to leverage the standard
+This system was introduced to speed up processing. The Pod Rendering engine generates a set of keys and parameters. It
+calls the method C<rendition> with the key and the parameters, and expects a string back with the parameters
+interpolated into the output.
+
+In addition, templates may call templates. With the exception of the key 'escaped', which expects a string only, all
+the other templates expect the signature C<( %prm, %tml? )>. C<%prm> contains the parameters to be interpolated,
+C<%tml> is the array of templates.
+
+Each template MUST return string, which may be ''.
+
+=head1 Customised Pod and Templates
+
+The POD6 specification is sufficiently generic to allow for some easy customisations, and the C<Pod::To::HTML> renderer
+in this distribution passes the associated meta data on to the template. This allows for the customisation of Pod::Blocks
+and Format Codes.
+
+=head2 Custom Pod Block
+
+Standard Pod allows for Pod::Blocks to be B<named> and configuration data provided. This allows us to leverage the standard
 syntax to allow for non-standard blocks and templates.
 
 If a class needs to be added to Pod Block, say a specific paragraph, then the following can be put in a pod file
@@ -170,7 +189,9 @@ The 'para' template needs to be changed (either on the fly or at instantiation)
     para => '<p{{# class }} class="{{ class }}">{{{ contents }}</p>'
 
 A completely new block can be created. For example, the HTML module adds the C<Image> custom block by
-default, and provides the C<image> template. (In keeping
+default, and provides the C<image> template.
+
+In keeping
 with other named blocks, I<Title> case may be conventionally used for the block name
 but I<Lower> case is required for the template. Note the I<Upper> case (all letters) is reserved for
 descriptors that are added (in HTML) as meta data.
@@ -196,6 +217,24 @@ These must be the same name. Thus we would have:
     $r.custom = <diagram>;
     $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
 =end code
+
+=head2 Custom Format Code
+
+This is even easier to handle as all that is needed is to supply a template in the form C<format-ß> where B<ß> is a
+unicode character other than B<B C E I K L N P T U V X Z>, which are defined
+in the Pod6 specification.
+
+If the C<Pod::To::HTML> renderer in this distribution comes across a Format Code letter, it will check the templates
+it has, and if one of the form C<format-ß> exists, then it will call the template with the enclosed text as C<contents>.
+
+For example, lets assume that we want a Format Code to access the L<Font Awesome Icons|https://fontawesome.com/v4.7.0/icons>.
+The template will need to be defined as follows (assuming the Mustache templater):
+
+    $r.modify-templates( %( :format-f( '<i class="fa {{{ contents }}}"></i>' ) ));
+
+And the pod text would include something like "V<this text has a F<fa-snowflake-o> icon>" in it. Note that although the HTML
+will be rendered correctly, it will also be necessary to ensure that the C<head-block> template is altered so that the
+C<Font Awesome> Javascript library is included.
 
 =head1 Rendering Strategy
 
@@ -413,169 +452,19 @@ as C<format-b> should be used inside the component.
 
 This is a helper module that provides a version of C<load> instead of the file load version of Pod::Load.
 
-=head1 Minimum Template Set
+=head1 Templates
+
+More information can be found in L<PodTemplates|PodTemplates>
 
 There is a minimum set of templates that must be provided for a Pod file to be rendered. These are:
 =begin code
-    < raw comment escaped glossary footnotes footer
-                format-c block-code format-u para format-b named source-wrap defn dlist-start dlist-end
-                output format-l format-x heading title format-n format-i format-k format-p meta
-                list subtitle format-r format-t table item notimplemented section toc pod >
+    < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta named output para pod raw source-wrap table toc >
 =end code
 
 When the C<.templates> method is called, the templates will be checked against this list for completeness. An
 Exception will be thrown if all the templates are not provided. Extra templates can be included. C<Pod::To::HTML>
 uses this to have partial templates that use the required templates.
-
-The following is the method used to generate the files for Pod::To::HTML (at some point in the development cycle).
-
-The variables not explicitly declared in the subroutine are C<our> scoped to give the default texts.
-
-=begin code
-
-method html-templates( :$css-text = $default-css-text ) {
-        %(
-        # the following are extra for HTML files and are needed by the render (class) method
-        # in the source-wrap template.
-            'camelia-img' => $camelia-svg,
-            'css-text' => $css-text,
-            # note that verbatim V<> does not have its own format because it affects what is inside it (see POD documentation)
-            :escaped('{{ contents }}'),
-            :raw('{{{ contents }}}'),
-            'block-code' => q:to/TEMPL/,
-                <pre class="pod-block-code{{# addClass }} {{ addClass }}{{/ addClass}}">
-                {{# contents }}{{{ contents }}}{{/ contents }}</pre>
-                TEMPL
-            'comment' => '<!-- {{{ contents }}} -->',
-            'declarator' => '<a name="{{ target }}"></a><article><code class="pod-code-inline">{{{ code }}}</code>{{{ contents }}}</article>',
-            'dlist-start' => "<dl>\n",
-            'defn' => '<dt>{{ term }}</dt><dd>{{{ contents }}}</dd>',
-            'dlist-end' => "\n</dl>",
-            'format-b' => '<strong{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</strong>',
-            'format-c' => '<code{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</code>
-            ',
-            'format-i' => '<em{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</em>',
-            'format-k' => '<kbd{{# addClass }}class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</kbd>
-            ',
-            'format-l' => '<a href="{{ target }}"{{# addClass }} class="{{ addClass }}"{{/ addClass}}>{{{ contents }}}</a>
-            ',
-            'format-n' => '<sup><a name="{{ retTarget }}" href="#{{ fnTarget }}">[{{ fnNumber }}]</a></sup>
-            ',
-            'format-p' => -> %params {
-                %params<contents> = %params<contents>.=trans(['<pre>', '</pre>'] => ['&lt;pre&gt;', '&lt;/pre&gt;']);
-                '<div{{# addClass }} class="{{ addClass }}"{{/ addClass }}><pre>{{{ contents }}}</pre></div>'
-            },
-            'format-r' => '<var{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</var>',
-            'format-t' => '<samp{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</samp>',
-            'format-u' => '<u{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</u>',
-            'format-x' => '<a name="{{ target }}"></a>{{# text }}<span class="glossary-entry{{# addClass }} {{ addClass }}{{/ addClass }}">{{{ text }}}</span>{{/ text }} ',
-            'heading' => '<h{{# level }}{{ level }}{{/ level }} id="{{ target }}"><a href="#{{ top }}" class="u" title="go to top of document">{{{ text }}}</a></h{{# level }}{{ level }}{{/ level }}>
-            ',
-            'item' => '<li{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</li>
-            ',
-            'list' => q:to/TEMPL/,
-                <ul>
-                    {{# items }}{{{ . }}}{{/ items}}
-                </ul>
-                TEMPL
-            'named' => q:to/TEMPL/,
-                <section>
-                    <h{{# level }}{{ level }}{{/ level }} id="{{ target }}"><a href="#{{ top }}" class="u" title="go to top of document">{{{ name }}}</a></h{{# level }}{{ level }}{{/ level }}>
-                    {{{ contents }}}
-                </section>
-                TEMPL
-            'notimplemented' => '<span class="pod-block-notimplemented">{{{ contents }}}</span>',
-            'output' => '<pre class="pod-output">{{{ contents }}}</pre>',
-            'para' => '<p{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}</p>',
-            'pod' => '<section name="{{ name }}"{{# addClass }} class="{{ addClass }}"{{/ addClass }}>{{{ contents }}}{{{ tail }}}
-                </section>',
-            'section' => q:to/TEMPL/,
-                <section name="{{ name }}">{{{ contents }}}{{{ tail }}}
-                </section>
-                TEMPL
-            'subtitle' => '<div class="subtitle{{# addClass }} {{ addClass }}{{/ addClass }}">{{{ contents }}}</div>',
-            'table' => q:to/TEMPL/,
-                <table class="pod-table{{# addClass }} {{ addClass }}{{/ addClass }}">
-                    {{# caption }}<caption>{{{ caption }}}</caption>{{/ caption }}
-                    {{# headers }}<thead>
-                        <tr>{{# cells }}<th>{{{ . }}}</th>{{/ cells }}</tr>
-                    </thead>{{/ headers }}
-                    <tbody>
-                        {{# rows }}<tr>{{# cells }}<td>{{{ . }}}</td>{{/ cells }}</tr>{{/ rows }}
-                    </tbody>
-                </table>
-                TEMPL
-            'title' => '<h1 class="title{{# addClass }} {{ addClass }}{{/ addClass }}" id="{{ target }}">{{{ text }}}</h1>',
-            # templates used by output methods, eg., source-wrap, file-wrap, etc
-            'source-wrap' => q:to/TEMPL/,
-                <!doctype html>
-                <html lang="{{ lang }}">
-                    {{> head-block }}
-                    <body class="pod">
-                        {{> header }}
-                        <div class="toc-glossary">
-                        {{# toc }}{{{ toc }}}{{/ toc }}
-                        {{# glossary }}{{{ glossary }}}{{/ glossary }}
-                        </div>
-                        <div class="pod-body{{^ toc }} no-toc{{/ toc }}">
-                            {{{ body }}}
-                        </div>
-                        {{# footnotes }}{{{ footnotes }}}{{/ footnotes }}
-                        {{> footer }}
-                    </body>
-                </html>
-                TEMPL
-            'footnotes' => q:to/TEMPL/,
-                <div class="footnotes">
-                    <ol>{{# notes }}
-                        <li id="{{ fnTarget }}">{{{ text }}}<a class="footnote" href="#{{ retTarget }}"> « Back »</a></li>
-                        {{/ notes }}
-                    </ol>
-                </div>
-                TEMPL
-            'glossary' => q:to/TEMPL/,
-                 <table id="Glossary">
-                    <caption>Glossary</caption>
-                    <tr><th>Term</th><th>Section Location</th></tr>
-                    {{# glossary }}
-                    <tr class="glossary-defn-row">
-                        <td class="glossary-defn">{{{ text }}}</td><td></td></tr>
-                        {{# refs }}<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#{{ target }}">{{{ place }}}</a></td></tr>{{/ refs }}
-                    {{/ glossary }}
-                </table>
-                TEMPL
-            'meta' => q:to/TEMPL/,
-                {{# meta }}
-                    <meta name="{{ name }}" value="{{ value }}" />
-                {{/ meta }}
-                TEMPL
-            'toc' => q:to/TEMPL/,
-                <table id="TOC">
-                    <caption>Table of Contents</caption>
-                    {{# toc }}
-                    <tr class="toc-level-{{ level }}">
-                        <td class="toc-text"><a href="#{{ target }}">{{# counter }}<span class="toc-counter">{{ counter }}</span>{{/ counter }} {{ text }}</a></td>
-                    </tr>
-                    {{/ toc }}
-                </table>
-                TEMPL
-            'head-block' => q:to/TEMPL/,
-                <head>
-                    <title>{{ title }}</title>
-                    <meta charset="UTF-8" />
-                    {{# metadata }}{{{ metadata }}}{{/ metadata }}
-                    {{# css }}<link rel="stylesheet" href="{{ css }}">{{/ css }}
-                    {{^ css }}{{> css-text }}{{/ css }}
-                    {{# head }}{{{ head }}}{{/ head }}
-                </head>
-                TEMPL
-            'head' => '',
-            'header' => '<header>{{> camelia-img }}{{ title }}</header>',
-            'footer' => '<footer><div>Rendered from <span class="path">{{ path }}{{^ path }}Unknown{{/ path}}</span></div>
-                <div>at <span class="time">{{ renderedtime }}{{^ renderedtime }}a moment before time began!?{{/ renderedtime }}</span></div>
-                </footer>',
-        )
-}
-=end code
 
 =end pod

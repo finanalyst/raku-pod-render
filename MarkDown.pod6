@@ -7,12 +7,7 @@ From the terminal:
 raku --doc=MarkDown input.raku > README.md
 =end code
 
-Possibly the compiler may run the legacy C<Pod::To::HTML> module. If so the following may work:
-=begin code :lang<shell>
-raku --doc=MarkDown2 input.raku > README.md
-=end code
-
-This takes the POD in the C<input.raku> file, transforms it into MarkDown.
+This takes the POD in the C<input.raku> file, transforms it into MarkDown. This module uses the Mustache templating engine.
 
 Some rendering options can be passed via the PODRENDER Environment variable. The options can be used to turn off components of the page.
 
@@ -54,5 +49,7 @@ is treated as paragraphs.
 
 =item Footnotes have to be rendered at the end of the document, and there is
 no backward link from the footnote to the originating text.
+
+=item Pod::To::MarkDown used the Mustache template system, not the Raku Closure Templates.
 
 =end pod

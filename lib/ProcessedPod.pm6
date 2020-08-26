@@ -35,49 +35,29 @@ class X::ProcessedPod::TemplateFailure is Exception {
     }
 }
 
-class GenericPod { ... }
-role MustacheTemplater { ... }
-# class ProcessedPod is GenericPod does MustacheTemplater { ... };
+#class GenericPod { ... }
+# class ProcessedPod is GenericPod does RakuClosureTemplater { ... };
+# class ProcessedPod::Mustache is GenericPod does MustacheTemplater { ... };
 
-role MustacheTemplater {
-    use Template::Mustache;
-    # templating parameters.
+role SetupTemplates {
+    #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
+    has @.required = < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta named output para pod raw source-wrap table toc >;
+    #| must have templates. Generically, no templates loaded.
+    has Bool $.templates-loaded is rw = False;
+
     has %.tmpl;
-    has $!engine;
-    #| maps the key to template and renders the block
-    method rendition(Str $key, %params --> Str) {
-        $!engine = Template::Mustache.new without $!engine;
-        X::ProcessedPod::MissingTemplates.new.throw unless $.templates-loaded;
-        return '' if $key eq 'zero';
-        # special case this as there must be no EOL.
-        X::ProcessedPod::Non-Existent-Template.new(:$key, :%params).throw
-        unless %!tmpl{$key}:exists;
-        # templating engines like mustache do not handle logic or loops, which some Pod formats require.
-        # hence we pass a Subroutine instead of a string in the template
-        # the subroutine takes the same parameters as rendition and produces a mustache string
-        # eg P format template escapes containers
-
-        note "At $?LINE rendering with \<$key>" if $.debug;
-        my $interpolate = %!tmpl{$key} ~~ Block
-                ?? %!tmpl{$key}(%params)
-                # if the template is a block, then run as sub and pass in the params
-                !! %!tmpl{$key};
-        $!engine.render(
-                $interpolate,
-                %params, :from(%!tmpl)
-                )
-    }
-
+    #| force a re-instantiation of the template engine, if need be.
+    method re-inst-engine { ... }
     #| allows for templates to be replaced during pod processing
     #| repeatedly generating the template engine is expensive
     method modify-templates(%new-templates)
     {
         { %!tmpl{$^a} = $^b } for %new-templates.kv;
-        $!engine = Nil;
-        # This will force a re-instantiation of the template engine.
-        # a new instance is not made here because using a new template engine would require two functions to be over-ridden
+        self.re-inst-engine
     }
-    #| accepts a string filename that must evalutate to a hash
+    #| accepts a string filename that must evaluate to a hash
     #| or a hash of templates
     #| the keys must be a superset of the required templates
     method templates($templates) {
@@ -97,37 +77,97 @@ role MustacheTemplater {
         }
 
         X::ProcessedPod::MissingTemplates.new(:missing((@.required (-) %!tmpl.keys).keys.flat)).throw
-            unless %!tmpl.keys (>=) @.required;
+        unless %!tmpl.keys (>=) @.required;
         # the keys on the RHS above are required in %.tmpl. To throw here, the templates supplied are not
         # a superset of the required keys.
         $.templates-loaded = True;
     }
+
+}
+
+#| The templates are either closures that act on the parameters and return a Str, or are Str
+role RakuClosureTemplater does SetupTemplates is export {
+    method re-inst-engine { } # must implement this method, but here is not needed
+    #| maps the key to template and emits the result of the closure
+    method rendition(Str $key, %params --> Str) {
+        X::ProcessedPod::MissingTemplates.new.throw unless $.templates-loaded;
+        note "At $?LINE rendering with \<$key>" if $.debug;
+        # special case some keys.
+        # 'zero' is only used to trigger the completion method
+        return '' if $key eq 'zero';
+        # 'raw' typically does not need any extra processing. If it does, the following line can be commented out.
+        return %params<contents> if $key eq 'raw';
+        X::ProcessedPod::Non-Existent-Template.new(:$key, :%params).throw
+            unless %.tmpl{$key}:exists;
+        #special case escape key. The template only expects a String scalar.
+        #other templates expect two %
+        if $key eq 'escaped' {
+            %.tmpl<escaped>(%params<contents>)
+        }
+        else
+        {
+            %.tmpl{$key}(%params, %.tmpl)
+        }
+    }
+}
+
+sub gen-closure-template ( Str $tag ) is export {
+    my $start = '<' ~ $tag ~ '>';
+    my $end = '</' ~ $tag ~ '>';
+    return sub ( %prm, %tml? ) {
+        return $start ~ (%prm<contents> // '') ~ $end;
+    }
+}
+
+role MustacheTemplater does SetupTemplates {
+    use Template::Mustache;
+    # templating parameters.
+    has $!engine;
+    method re-inst-engine {
+        $!engine = Nil;
+    }
+    #| maps the key to template and renders the bloc
+    method rendition(Str $key, %params --> Str) {
+        $!engine = Template::Mustache.new without $!engine;
+        X::ProcessedPod::MissingTemplates.new.throw unless $.templates-loaded;
+        return '' if $key eq 'zero';
+        # special case this as there must be no EOL.
+        X::ProcessedPod::Non-Existent-Template.new(:$key, :%params).throw
+        unless %.tmpl{$key}:exists;
+        # templating engines like mustache do not handle logic or loops, which some Pod formats require.
+        # hence we pass a Subroutine instead of a string in the template
+        # the subroutine takes the same parameters as rendition and produces a mustache string
+        # eg P format template escapes containers
+
+        note "At $?LINE rendering with \<$key>" if $.debug;
+        my $interpolate = %.tmpl{$key} ~~ Block
+                ?? %.tmpl{$key}(%params)
+                # if the template is a block, then run as sub and pass in the params
+                !! %.tmpl{$key};
+        $!engine.render(
+                $interpolate,
+                %params, :from(%.tmpl)
+                )
+    }
 }
 
 class GenericPod {
-    #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
-    has @.required = < raw comment escaped glossary footnotes footer
-                format-c block-code format-u para format-b named source-wrap declarator defn dlist-start dlist-end
-                output format-l format-x heading title format-n format-i format-k format-p meta
-                list subtitle format-r format-t table item notimplemented section toc pod >;
-    #| must have templates. Generically, no templates loaded.
-    has Bool $.templates-loaded is rw = False;
 
     #| the name of the anchor at the top of a source file
-    has $.default-top = '___top';
+    constant DEFAULT_TOP = '___top';
     #| Text between =TITLE and first header, this is used to refer for textual placenames
     has $.front-matter is rw = 'preface';
     #| Name to be used in titles and files.
-    has Str $.name is rw = 'UNNAMED';
+    has Str $.name is rw is default('UNNAMED') = 'UNNAMED';
     #| The string part of a Title.
-    has Str $.title is rw = $!name;
+    has Str $.title is rw is default('UNNAMED') = 'UNNAMED';
     #| A target associated with the Title Line
-    has Str $.title-target is rw = $!default-top;
-    has Str $.subtitle is rw = '';
+    has Str $.title-target is rw is default(DEFAULT_TOP) = DEFAULT_TOP;
+    has Str $.subtitle is rw is default('') = '';
     #| should be path of original document, defaults to $.name
-    has Str $.path is rw = $!name;
+    has Str $.path is rw is default('UNNAMED') = 'UNNAMED';
     #| defaults to top, then becomes target for TITLE
-    has Str $.top is rw = $!default-top;
+    has Str $.top is rw is default(DEFAULT_TOP) = DEFAULT_TOP;
     #| a callable (eg. provided by external program) that converts the contents of a code block to hightlighted code.
     #| The callable expected by this module has a single Str Positional argument, and it returns a Str.
     #| This differs from the callable expected by the legacy Pod::To::HTML module. See Pod::To::HTML in this distribution for detail.
@@ -136,10 +176,10 @@ class GenericPod {
     # document level information
 
     #| language of pod file
-    has $.lang is rw = 'en';
+    has $.lang is rw is default('en') = 'en';
     #| default extension for saving to file
     #| should be set by subclasses
-    has $.def-ext is rw = '';
+    has $.def-ext is rw is default('') = '';
 
     # Output rendering information
     #| set to True eliminates meta data rendering
@@ -179,7 +219,7 @@ class GenericPod {
     #| rendered footnotes
     has Str $.footnotes;
     #| when source wrap is called
-    has Str $.renderedtime is rw = '';
+    has Str $.renderedtime is rw is default('') = '';
     #| the set of targets used in a rendering process
     has SetHash $.targets .= new;
     #| config data given to the first =begin pod line encountered
@@ -227,7 +267,7 @@ class GenericPod {
         # function is called to cannonise the target name and to ensure - if necessary - that
         # the target name used in the link is unique.
         # This method uses the default algorithm for HTML and POD
-        # It may need to be over-ridden, eg., for MarkDown which uses a different targetting function.
+        # It may need to be over-ridden, eg., for MarkDown which uses a different targeting function.
 
         # when indexing a unique target is needed even when same entry is repeated
         # when a Heading is a target, the reference must come from the name
@@ -241,7 +281,7 @@ class GenericPod {
         #		// CJK punctuations that are removed
         #		.replace(/[　。？！，、；：“”【】（）〔〕［］﹃﹄“”‘’﹁﹂—…－～《》〈〉「」]/g, '')
         #}
-        return $!default-top if $candidate-name eq $!default-top;
+        return DEFAULT_TOP if $candidate-name eq DEFAULT_TOP;
         # don't rewrite the top
 
         $candidate-name = $candidate-name.subst(/\s+/, '_', :g);
@@ -284,31 +324,40 @@ class GenericPod {
     method emit-and-renew-processed-state(--> Hash) {
         self.render-structures;
         my %h =
-                :$!name,
-                :$!title,
-                :$!title-target,
-                :$!subtitle,
-                :$!metadata,
-                :$!toc,
-                :$!glossary,
-                :$!footnotes,
-                :$!body,
-                :$!path,
-                :$!renderedtime,
-                :$!targets,
-                :%!links,
-                :%!pod-config-data,
-                :raw-metadata(@!raw-metadata.clone),
-                :raw-toc(@!raw-toc.clone),
-                :raw-glossary(%!raw-glossary.clone),
-                :raw-footnotes(@!raw-footnotes.clone);
+            :$!name,
+            :$!title,
+            :$!title-target,
+            :$!subtitle,
+            :$!metadata,
+            :$!toc,
+            :$!glossary,
+            :$!footnotes,
+            :$!body,
+            :$!path,
+            :$!renderedtime,
+            :$!targets,
+            :%!links,
+            :%!pod-config-data,
+            :raw-metadata(@!raw-metadata.clone),
+            :raw-toc(@!raw-toc.clone),
+            :raw-glossary(%!raw-glossary.clone),
+            :raw-footnotes(@!raw-footnotes.clone);
         #clean out the variables, whilst keeping the Templating engine cache.
-        $!name = $!title = $!title-target = $!subtitle = $!metadata = $!toc
-                = $!glossary = $!footnotes = $!body = $!path = $!renderedtime = Nil;
+        $!name = Nil;
+        $!title = Nil;
+        $!title-target = Nil;
+        $!subtitle = Nil;
+        $!metadata = Nil;
+        $!toc = Nil;
+        $!glossary = Nil;
+        $!footnotes = Nil;
+        $!body = Nil;
+        $!path = Nil;
+        $!renderedtime = Nil;
         @!raw-metadata = @!raw-toc = @!raw-footnotes = ();
         %!raw-glossary = Empty;
         %!pod-config-data = Empty;
-        $.pod-block-processed = False;
+        $!pod-block-processed = False;
         $!targets = Nil;
         %h
     }
@@ -495,7 +544,7 @@ class GenericPod {
     method completion(Int $in-level, Str $key, %params, Bool :$defn = False --> Str) {
         note "At $?LINE completing with template ｢$key｣ list level $in-level" if $!debug;
         my Str $rv = '';
-        # first handle defn list because it doesn't have multiple levels 
+        # first handle defn list because it doesn't have multiple levels
         # so do not need to consider recursive calls.
         # start and end of list handled by $!in-defn-list, inner Pod blocks handled by $defn
         if !$!in-defn-list and $key eq 'defn' {
@@ -557,7 +606,7 @@ class GenericPod {
             $contents = $_($contents);
             $contents = $t unless $contents
         };
-        $retained-list ~ $.completion($in-level, 'block-code', %( :$contents,$node.config),
+        $retained-list ~ $.completion($in-level, 'block-code', %( :$contents, $node.config),
                 :defn($context == Definition));
     }
 
@@ -605,8 +654,8 @@ class GenericPod {
     multi method handle(Pod::Block::Named $node where $node.name.lc eq 'pod', Int $in-level,
                         Context $context? = None  --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
-        my $name = $.top eq $.default-top ?? $.default-top !! 'pod';
-        # $.default-top, until TITLE changes it. Will fail if multiple pod without TITLE
+        my $name = $.top eq DEFAULT_TOP ?? DEFAULT_TOP !! 'pod';
+        # DEFAULT_TOP, until TITLE changes it. Will fail if multiple pod without TITLE
         unless $.pod-block-processed {
             %.pod-config-data = $node.config;
             $.pod-block-processed = True;
@@ -631,7 +680,7 @@ class GenericPod {
     multi method handle(Pod::Block::Named $node where $node.name eq 'SUBTITLE', Int $in-level,
                         Context $context? = None --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
-        my $contents = $.subtitle = [~] gather for $node.contents { take self.handle($_, 0, None) };
+        $.subtitle = [~] gather for $node.contents { take self.handle($_, 0, None) };
         $.completion(0, 'zero', %($node.config), :defn($context == Definition))
         # we can't guarantee SUBTITLE will be after TITLE
     }
@@ -790,20 +839,19 @@ class GenericPod {
         )
     }
 
-    multi method handle(Pod::FormattingCode $node where .type ~~ none(<B C E Z I X N L P R T K U V>), Int $in-level,
+    multi method handle(Pod::FormattingCode $node where .type ~~ none(<E Z X N L P V>), Int $in-level,
                         Context $context = None  --> Str) {
         note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
-        $.completion($in-level, 'escaped',
-                %( :contents($node.type ~ '<' ~ [~] gather for $node.contents { take $.handle($_, $in-level,
-                $context) } ~ '>')), :defn($context == Definition));
-    }
-
-    multi method handle(Pod::FormattingCode $node where .type ~~ any(<B C I R T K U>) , Int $in-level,
-                        Context $context = None  --> Str) {
-        note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
-        $.completion($in-level, 'format-' ~ $node.type.lc ,
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) })
-                ), :defn($context == Definition))
+        if %.tmpl{ 'format-' ~ $node.type.lc }:exists {
+            $.completion($in-level, 'format-' ~ $node.type.lc ,
+                    %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) })
+                    ), :defn($context == Definition))
+        }
+        else {
+            $.completion($in-level, 'escaped',
+                    %( :contents($node.type ~ '<' ~ [~] gather for $node.contents { take $.handle($_, $in-level,
+                    $context) } ~ '>')), :defn($context == Definition));
+        }
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'N', Int $in-level, Context $context = None --> Str) {
@@ -919,4 +967,6 @@ class GenericPod {
     }
 }
 
-class ProcessedPod is GenericPod does MustacheTemplater { }
+class ProcessedPod is GenericPod does RakuClosureTemplater { }
+
+class ProcessedPod::Mustache is GenericPod does MustacheTemplater { }

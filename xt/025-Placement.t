@@ -3,13 +3,12 @@ use ProcessedPod;
 
 plan 5;
 
-my ProcessedPod $pro .= new;
+my ProcessedPod::Mustache $pro .= new;
 my $pv = 0;
 
-my @templates = <raw comment escaped glossary footnotes head header footer declarator dlist-start dlist-end
-            format-c block-code format-u para format-b named source-wrap defn output format-l
-            format-x heading title format-n format-i format-k format-p meta list subtitle format-r
-            format-t table item notimplemented section toc pod>;
+my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta named output para pod raw source-wrap table toc>;
 
 my %templates  = @templates Z=> ( "<$_> \{\{\{ contents }}} </$_>" for @templates );
 $pro.templates(%templates);

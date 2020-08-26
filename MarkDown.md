@@ -14,13 +14,7 @@ From the terminal:
 raku --doc=MarkDown input.raku > README.md
 
 ```
-Possibly the compiler may run the legacy `Pod::To::HTML` module. If so the following may work:
-
-```
-raku --doc=MarkDown2 input.raku > README.md
-
-```
-This takes the POD in the `input.raku` file, transforms it into MarkDown.
+This takes the POD in the `input.raku` file, transforms it into MarkDown. This module uses the Mustache templating engine.
 
 Some rendering options can be passed via the PODRENDER Environment variable. The options can be used to turn off components of the page.
 
@@ -31,11 +25,11 @@ PODRENDER='NoTOC NoFoot' raku --doc=MarkDown input.raku > README.md
 The following regexen are applied to PODRENDER and switch off the default rendering of the respective section:
 
 
-|regex applied|if Match, then Turns off|
+ | regex applied | if Match, then Turns off |
 |:----:|:----:|
-|/:i 'no' '-'? 'toc' /|Table of Contents|
-|/:i 'no' '-'? 'meta' /|Meta information (eg AUTHOR)|
-|/:i 'no' '-'? 'footnotes' /|Footnotes.|
+ | /:i 'no' '-'? 'toc' / | Table of Contents |
+ | /:i 'no' '-'? 'meta' / | Meta information (eg AUTHOR) |
+ | /:i 'no' '-'? 'footnotes' / | Footnotes. |
 
 Any or all of 'NoTOC', 'NoMeta', or 'NoFoot' may be included in any order. Default is to include each section.
 
@@ -55,10 +49,12 @@ See [RenderPod](RenderPod.md) [PodToHTML](PodToHTML.md) for more detail. `Pod::T
 
 *  Footnotes have to be rendered at the end of the document, and there is no backward link from the footnote to the originating text.
 
+*  Pod::To::MarkDown used the Mustache template system, not the Raku Closure Templates.
+
 
 
 
 
 
 ----
-Rendered from MarkDown at 2020-08-05T16:50:52Z
+Rendered from MarkDown at 2020-08-26T09:57:16Z

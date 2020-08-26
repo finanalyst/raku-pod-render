@@ -1,7 +1,7 @@
 {
   "name": "Raku::Pod::Render",
   "description": "A generic Pod Renderer for single or multiple files using templates, provides HTML and MarkDown",
-  "version": "2.5.0",
+  "version": "3.1.0",
   "perl": "6.*",
   "auth": "github:finanalyst",
   "depends": [
@@ -21,18 +21,21 @@
   ],
   "provides": {
     "Pod::To::HTML": "lib/Pod/To/HTML.pm6",
+    "Pod::To::HTML::Mustache": "lib/Pod/To/HTML.pm6",
     "Pod::To::MarkDown": "lib/Pod/To/MarkDown.pm6",
-    "Pod::To::HTML2": "lib/Pod/To/HTML2.pm6",
-    "Pod::To::MarkDown2": "lib/Pod/To/MarkDown2.pm6",
     "ProcessedPod": "lib/ProcessedPod.pm6",
+    "ProcessedPod::Mustache": "lib/ProcessedPod.pm6",
     "Extractor.raku": "bin/Extractor.raku",
-    "ExtractPod": "lib/ExtractPod.pm6"
+    "ExtractPod": "lib/ExtractPod.pm6",
+    "test-templates": "bin/test-templates.raku"
   },
   "resources": [
     "pod.css",
     "Camelia.svg",
     "favicon.ico",
-    "camelia-ico.bin"
+    "camelia-ico.bin",
+    "closure-temp.raku",
+    "extra-test.raku"
   ],
   "support": {
     "source": "https://github.com/finanalyst/raku-pod-render.git",

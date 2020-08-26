@@ -3,14 +3,15 @@ use Test;
 
 use ProcessedPod;
 
-plan 3;
+plan 4;
 
-my ProcessedPod $pro;
+# use the Mustache variant
+my ProcessedPod::Mustache $pro;
+my $pn = 0;
 
-my @templates = <raw comment escaped glossary footnotes head header footer declarator dlist-start dlist-end
-            format-c block-code format-u para format-b named source-wrap defn output format-l
-            format-x heading title format-n format-i format-k format-p meta list subtitle format-r
-            format-t table item notimplemented section toc pod >;
+my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta named output para pod raw source-wrap table toc >;
 
 my %templates = @templates Z=> ("\<$_>\{\{\{ contents }}}\</$_>" for @templates);
 %templates<format-b> = '<new-form-b>{{ contents }}</new-form-b>';
@@ -29,7 +30,7 @@ Some stuff
 
 =end pod
 
-my $rv = $pro.render-block($=pod[0]);
+my $rv = $pro.render-block($=pod[$pn++]);
 like $rv, /
     'figure src="' \s* 'http://file.com/file.png'
     \s* '" class="' \s* ['one' \s* | 'two' \s* | 'three' \s*] ** 3  \s* '">'
@@ -46,12 +47,25 @@ Shouldn't be here
 
 =end pod
 
-lives-ok { $rv = $pro.render-block($=pod[1]) }, 'since not customised, just renders as a named block';
+lives-ok { $rv = $pro.render-block($=pod[$pn]) }, 'since not customised, just renders as a named block';
 
 $pro.custom.push: 'superdooper';
 
-throws-like { $pro.render-block($=pod[1]) }, X::ProcessedPod::Non-Existent-Template,
+throws-like { $pro.render-block($=pod[$pn++]) }, X::ProcessedPod::Non-Existent-Template,
         'traps custom object without template',
         message => / 'non-existent template ｢superdooper｣' .+ 'key' .+ 'pair' /;
+
+=begin pod
+
+This contains a customised F<fa-address-card> format code.
+
+=end pod
+
+$pro.modify-templates( %( :format-f('<i class="fa {{{ contents }}}"></i>')) );
+
+$rv = $pro.render-block($=pod[$pn++]);
+like $rv, /
+    'This contains a customised </escaped><i class="fa <escaped>fa-address-card</escaped>"></i><escaped> format code.'
+/, 'customised format code';
 
 done-testing;

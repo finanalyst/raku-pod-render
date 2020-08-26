@@ -8,12 +8,11 @@ my $pc = 0;
 
 plan 2;
 
-my @templates = <raw comment escaped glossary footnotes head header footer declarator dlist-start dlist-end
-            format-c block-code format-u para format-b named source-wrap defn output format-l
-            format-x heading title format-n format-i format-k format-p meta list subtitle format-r
-            format-t table item notimplemented section toc pod >;
+my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta named output para pod raw source-wrap table toc >;
 
-my %templates = @templates Z=> ( "[beg]$_\[end]" for @templates );
+my %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
 # this creates a set of pseudo templates
 $processor.templates( %templates );
 
@@ -21,7 +20,7 @@ $processor.templates( %templates );
     Some pod
 =end pod
 
-my $fn = 't/999-test-output';
+my $fn = 'xt/999-test-output';
 $fn.IO.unlink if $fn.IO ~~ :e;
 "$fn\.html".IO.unlink if "$fn\.html".IO ~~ :e;
 

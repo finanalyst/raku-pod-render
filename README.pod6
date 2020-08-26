@@ -77,6 +77,16 @@ Links should be tested. While the data is collected, verifying links is left to 
 
 Pod6 allows for metadata such as AUTHOR or VERSION to be set. These can be included in HTML or other formats.
 
+=head1 RakuClosureTemplates
+
+A new templating system is introduced to speed up the rendering. The Pod::To::HTML renderer is now slightly
+faster than the legacy Pod::To::HTML renderer, whilst achieving considerably more.
+
+=head2 Testing tool
+
+A testing tool is included that will test the array of RakuClosureTemplates, including the possibility of
+specifying the structure of a custom template and testing it against the template.
+
 =head1 More Information
 
 See L<RenderPod> for the generic module and L<Pod2HTML> for

@@ -29,17 +29,15 @@ The rationale for re-writing the whole Pod::To::HTML module is in the section [W
 
 For more information about methods not covered here see the [PodProcess Class](RenderPod.md). A sister class [Markdown](MarkDown.md) is available.
 
+The default templating engine is `RakuClosureTemplater`, but the `Mustache` templating engine is retained. Some of the `xt` tests use the `Mustache` engine, and `Pod::To::Markdown` uses Mustache.
+
+The class `Pod::To::HTML::Mustache` is provided that uses the `Mustache` engine.
+
 # Usage with compiler
 From the terminal:
 
 ```
 raku --doc=HTML input.raku > output.html
-
-```
-Possibly the compiler may run the legacy `Pod::To::HTML` module. If so the following may work:
-
-```
-raku --doc=HTML2 input.raku > output.html
 
 ```
 This takes the POD in the `input.raku` file, transforms it into HTML, outputs a full HTML page including a Table of Contents, Glossary and Footnotes.
@@ -54,19 +52,19 @@ The following regexen are applied to the contents of the PODRENDER environment v
 
 >Regexen and Page Component
 
-|regex applied|if Match, then Turns off|
+ | regex applied | if Match, then Turns off |
 |:----:|:----:|
-|/:i 'no' '-'? 'toc' /|Table of Contents|
-|/:i 'no' '-'? 'meta' /|Meta information (eg AUTHOR)|
-|/:i 'no' '-'? 'glossary' /|Glossary|
-|/:i 'no' '-'? 'footnotes' /|Footnotes.|
+ | /:i 'no' '-'? 'toc' / | Table of Contents |
+ | /:i 'no' '-'? 'meta' / | Meta information (eg AUTHOR) |
+ | /:i 'no' '-'? 'glossary' / | Glossary |
+ | /:i 'no' '-'? 'footnotes' / | Footnotes. |
 
 Any or all of 'NoTOC' 'NoMETA' 'NoGloss' 'NoFoot' may be included in any order. Default is to include each section.
 
 # Standalone usage mixing Pod and code
 'Standalone ... mixing' means that the program itself contains pod definitions (some examples are given below). This functionality is mainly for tests, but can be adapted to render other pod sources.
 
-`Pod::To::HTML` is a subclass of `PodProcessed`, which contains the code for a generic Pod Render. `Pod::To::HTML` provides a default set of templates and minimal css. It also exports some routines (not documented here) to pass the tests of the legacy `Pod::To::HTML` module (see below for the rationale for choosing a different API).
+`Pod::To::HTML` is a subclass of `PodProcessed`, which contains the code for a generic Pod Render. `Pod::To::HTML` provides a default set of templates and minimal css (see [Templates](#templates)). It also exports some routines (not documented here) to pass the tests of the legacy `Pod::To::HTML` module (see below for the rationale for choosing a different API).
 
 `Pod::To::HTML` also allows, as covered below, for a customised css file to be included, for individual template components to be changed on the fly, and also to provide a different set of templates.
 
@@ -244,7 +242,7 @@ For example,
 
 ```
 # Templates
-The default templating engine is Template::Mustache. A minimal default set of templates is provided with the Module.
+The default templating system is a hash of Raku closures. More about templates can be found in [RenderPod](RenderPod.md). Another template engine is Template::Mustache. This can be accessed as `use Pod::To::HTML::Mustache`. A minimal default set of templates is provided with the Module.
 
 Each template can be changed using the `modify-templates` method. Be careful when over-riding `head-block` to ensure the css is properly referenced.
 
@@ -338,4 +336,4 @@ This module deal with these problems as follows:
 
 
 ----
-Rendered from Pod2HTML at 2020-08-05T16:50:54Z
+Rendered from Pod2HTML at 2020-08-26T09:57:18Z

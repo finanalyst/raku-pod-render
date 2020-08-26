@@ -228,7 +228,8 @@ like $rv, /
 
 =begin pod
 
-Some thing F<a-filename.pod> between words.
+Some thing ß<a-filename.pod> between words.
+
 =end pod
 
 $rv = $processor.render-block( $=pod[$pn++] );
@@ -237,7 +238,7 @@ like $rv, /
     '<section'
     .+? '<p>'
     \s* 'Some thing'
-    \s+ 'F&lt;a-filename.pod&gt;'
+    \s+ 'ß&lt;a-filename.pod&gt;'
     \s+ 'between words.'
     /, 'Unknown format';
 
@@ -259,3 +260,5 @@ like $rv, /
     .+ 'Sequences of brackets'
     \s+ '<em>here I am</em> and <samp>here I am</samp> that parse.'
     /, 'multiple brackets';
+
+done-testing;

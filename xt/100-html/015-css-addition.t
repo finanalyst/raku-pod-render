@@ -53,6 +53,7 @@ like $rv, /
     'assets/css/pod.css'
     /, 'Alternative link via legacy css';
 
+'favicon-new'.IO.unlink; # clear up
 throws-like { $processor = Pod::To::HTML.new(:favicon-src('favicon-new')) }, X::ProcessedPod::HTML::BadFavicon,
         'Traps non-existent favicon file', message => / 'The favicon source is unavailable' /;
 

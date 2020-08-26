@@ -6,7 +6,7 @@ my $processor = Pod::To::MarkDown.new;
 my $rv;
 my $pn = 0;
 
-plan 3;
+plan 4;
 =table
   col1  col2
 
@@ -54,3 +54,23 @@ like $rv,
     \s* '|' \s* 'col1' \s* '|' \s* 'col2' \s* '|'
     \s* '|' \s* 'col1' \s* '|' \s* 'col2' \s* '|'
     /, 'table with caption rows';
+
+=begin table :caption('Test Caption')
+Key | Parameter | Sub-param | Type | Description
+====|===========|===========|======|=============
+escaped |            |            |          | Should be a special case
+           | contents |            | String | String
+raw |            |            |          | Should be a special case
+=end table
+
+$rv = $processor.render-block( $=pod[$pn++] );
+
+like $rv,
+        /
+        '>Test Caption'
+        \v \s* '|' \s+ \S+ \s+ '|' \s+ \S+ \s+ '|' \s+ \S+ \s+ '|' \s+ \S+ \s+ '|' \s+ \S+ \s+ '|'
+        \s+ '|:----:|:----:|:----:|:----:|:----:|'
+        \s+ '|' \s+ 'escaped' \s+ '|' \s+ '|' \s+ '|' \s+ '|' \s+ 'Should be a special case' \s+ '|'
+        \s+ '|' \s+ '|' \s+ 'contents' \s+ '|' \s+ '|' \s+ 'String' \s+ '|' \s+ 'String' \s+ '|'
+        \s+ '|' \s+ 'raw' \s+ '|' \s+ '|' \s+ '|' \s+ '|' \s+ 'Should be a special case' \s+ '|'
+        /, 'table with black cells';

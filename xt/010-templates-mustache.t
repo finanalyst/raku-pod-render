@@ -32,22 +32,23 @@ throws-like { $pro.templates(%templates) }, X::ProcessedPod::MissingTemplates,
         message=> / 'but are not:' \s* 'format-c' \s* /,
         "Catches the missing template";
 
-# testing with the default RakuClosureTemplates.
+# testing with the default Mustache::Template.
+$pro = ProcessedPod::Mustache.new;
 
-%templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
+%templates  = @templates Z=> ( "\<$_>\{\{\{ contents }}}\</$_>" for @templates );
 
 lives-ok { $pro.templates(%templates) }, 'full set of templates is ok';
 
 like $pro.rendition('format-b', %(:contents('Hello world'))),
         / '<format-b>' 'Hello world' '</format-b>' /, 'basic interpolation correct';
 
-$pro.modify-templates( %( format-b => -> %params, % { '#' x %params<level> ~ ' ' ~ %params<text> ~ "\n" }));
+$pro.modify-templates( %( format-b => -> %params { '#' x %params<level> ~ ' {{ text }}' ~ "\n" }));
 
 like $pro.rendition('format-b', %(:text('Hello World'), :level(5) )),
         / \# **5 \s* 'Hello World' /, 'template replaced, and pointy routine accepted as a template';
 
-$pro.modify-templates( %(:newone(-> %prm, %tml { '<container>' ~ %prm<contents> ~ '</container>'}),
-                       :format-b( -> %prm, %tml { %tml<newone>(%prm,%tml)  ~  ' is wrapped'} ) ) );
+$pro.modify-templates( %(:newone('<container>{{ contents }}</container>'),
+                       :format-b('{{> newone }} is wrapped')) );
 like $pro.rendition('format-b', %(:contents('Hello world'))),
         / '<container>' 'Hello world' '</container> is wrapped' /, 'interpolation with partials correct';
 

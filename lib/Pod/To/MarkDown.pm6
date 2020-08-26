@@ -1,5 +1,5 @@
 use ProcessedPod;
-unit class Pod::To::MarkDown:auth<github:finanalyst> is ProcessedPod;
+unit class Pod::To::MarkDown:auth<github:finanalyst> is ProcessedPod::Mustache;
 has $.def-ext is rw;
 
 submethod TWEAK {
@@ -93,10 +93,10 @@ method md-templates {
         'subtitle' => '>{{{ subtitle }}}{{> nl }}',
         'table' => q:to/TEMPL/,
             {{# caption }}>{{{ caption }}}{{> nl }}{{/ caption }}
-            {{# headers }}{{# cells }}|{{{ . }}}{{/ cells }}|
+            {{# headers }}{{# cells }} | {{{ . }}}{{/ cells }} |
             {{# cells }}|:----:{{/ cells}}|
             {{/ headers }}
-            {{# rows }}{{# cells }}|{{{ . }}}{{/ cells }}|{{> nl }}{{/ rows }}
+            {{# rows }}{{# cells }} | {{{ . }}}{{/ cells }} |{{> nl }}{{/ rows }}
             TEMPL
         'title' => '# {{{ title }}}{{> nl }}',
         # templates used by output methods, eg., source-wrap, file-wrap, etc

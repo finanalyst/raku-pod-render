@@ -3,12 +3,11 @@ use ProcessedPod;
 
 plan 17;
 
-my ProcessedPod $pro .= new;
+my ProcessedPod::Mustache $pro .= new;
 
-my @templates = <raw comment escaped glossary footnotes head header footer declarator dlist-start dlist-end
-            format-c block-code format-u para format-b named source-wrap defn output format-l
-            format-x heading title format-n format-i format-k format-p meta list subtitle format-r
-            format-t table item notimplemented section toc pod >;
+my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta named output para pod raw source-wrap table toc >;
 
 # the following pod creates Footnotes, Meta, TOC and Glossary structures, which will only render minimally as above,
 # Actual rendering will be tested in html tests.
@@ -65,7 +64,7 @@ for <metadata toc footnotes glossary>
     ok +%pod-structure{"raw-$_"}, "raw-$_ has content"
 }
 
-nok $pro.renderedtime.defined, 'time should be undefined after a emit-and-renew-processed-state';
+nok $pro.renderedtime, 'time should be blank after a emit-and-renew-processed-state';
 
 
 done-testing;
