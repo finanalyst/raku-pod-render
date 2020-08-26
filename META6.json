@@ -9,7 +9,6 @@
     "URI",
     "LibCurl",
     "Pod::Load",
-    "GTK::Simple",
     "File::Temp"
   ],
   "build-depends": [],
@@ -25,7 +24,6 @@
     "Pod::To::MarkDown": "lib/Pod/To/MarkDown.pm6",
     "ProcessedPod": "lib/ProcessedPod.pm6",
     "ProcessedPod::Mustache": "lib/ProcessedPod.pm6",
-    "Extractor.raku": "bin/Extractor.raku",
     "ExtractPod": "lib/ExtractPod.pm6",
     "test-templates": "bin/test-templates.raku"
   },
