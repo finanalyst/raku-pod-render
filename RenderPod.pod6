@@ -24,7 +24,9 @@ separate pages for each source, with a landing page and global TOC and glossary 
 The C<Pod::To::HTML> has a simple way of handling customised CSS, but no way to access embedded images other than svg files.
 Modifying the templates, when there is information about the serving environment, can change this.
 
-This module uses the Moustache templating system at C<Template::Mustache>. More later on how to change this.
+This module uses BOTH a new RakuCustomTemplater and the Moustache templating system at C<Template::Mustache>. The templating
+engine is chosen automatically depending on the templates provided.
+A custom template engine can also be added.
 
 =head1 Creating a Renderer
 
@@ -37,7 +39,7 @@ document elements, see TEMPLATES below.
 Essentially, a hash of element keys pointing to Mustache strings is provided to the renderer. The C<Pod::To::HTML> and C<Pod::To::MarkDown>
 modules in this distribution provide default templates to the C<ProcessedPod> class.
 
-The renderer can be customised on-the-fly by modifying the keys of the template hash. For example,
+The renderer can be customised on-the-fly by modifying the keys of the template hash. For example, (using a Mustache template)
 
 =begin code
     use RenderPod;
@@ -66,12 +68,15 @@ The first C<=begin pod> to be rendered after initiation, or after the C<.emit-an
 configuration data transferred to the C<ProcessedPod> object's C<%.pod-config-data> attribute.
 
 When multiple files are rendered, any meta data associated with the pod can be accessed during the Rendering Iteration.
+
 =head1 Templates
 
 The nature of the templates and their interpretation depends on the C<rendition> method, which must be over-ridden for a different
-templating engine.
+templating engine. See L<Change the Templating Engine|#Change the Templating Engine>.
 
-When a ProcessPod instance is instantiated, a templating object xxxx can be passed via the C<:template> parameter, eg.
+More about Templates can be found in L<RakuClosureTemplates>.
+
+When a ProcessPod instance is instantiated, a templating object xxxx can be passed via the C<:templates> parameter, eg.
 
 =begin code
 my $p = ProcessedPod.new;
@@ -80,10 +85,11 @@ $p.templates(:templates( xxxx ) );
 
 If the object is a Hash, then it is considered a Hash of the templates, and verified for completeness.
 
-If the object is a String, then it is considered a C<path/filename> to a file containing a raku program that
+If the object is a String, then it is considered a C<path/filename> to a file containing a Raku program that
 evaluates to a Hash, which is then verified as a Hash of templates.
 
-Each entry in the template Hash can be either (a) a String or (b) a block.
+Each entry in the template Hash depends on the Template Engine. The following notes are for the MustacheTemplater.
+The Hash structure for the default RakuClosureTemplater can be found in L<Raku Closure Templater|RakuClosureTemplates>.
 
 =head2 String Template
 
@@ -143,8 +149,12 @@ the code to the C<Glossary> page component, generating a C<:target> for the link
 
 =head1 Change the Templating Engine
 
-The default system now is RakuClosureTemplates. The Mustache templater is also used.
-In order to change the Templating Engine, a Templater Role needs to be created using the MustacheTemplater role in
+The default system now is RakuClosureTemplates. The Mustache templater is also used. The choice is done automaticallt:
+if the templates supplied to
+the ProcessedPod object is Mustache, then the Mustache templater is used, otherwise the RakuClosureTemplater is used.
+
+In order to change the Templating Engine, a Templater Role needs to be created using the C<SetupTemplates> and C<RakuClosureTemplates>
+or C<MustacheTemplater> roles in
 this distribution as a model. Then a new class similar to ProcessedPod can be created as
 
     class NewProcessedPod is GenericPod does myNewTemplater {}

@@ -32,8 +32,8 @@ throws-like { $pro.templates(%templates) }, X::ProcessedPod::MissingTemplates,
         message=> / 'but are not:' \s* 'format-c' \s* /,
         "Catches the missing template";
 
-# testing with the default Mustache::Template.
-$pro = ProcessedPod::Mustache.new;
+# testing with Mustache::Template.
+$pro = ProcessedPod.new;
 
 %templates  = @templates Z=> ( "\<$_>\{\{\{ contents }}}\</$_>" for @templates );
 

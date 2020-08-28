@@ -4,12 +4,12 @@
 
 ----
 ## Table of Contents
-[Template structure](#template-structure)
-[The %prm keys](#the-prm-keys)
-[The %tml Hash](#the-tml-hash)
-[Head](#head)
-[Structure syntax](#structure-syntax)
-[Examples](#examples)
+[Template structure](#template-structure)  
+[The %prm keys](#the-prm-keys)  
+[The %tml Hash](#the-tml-hash)  
+[Head](#head)  
+[Structure syntax](#structure-syntax)  
+[Examples](#examples)  
 
 ----
 In order to increase the speed of Pod6 Renderering, it was necessary for the templates to be compiled directly into subroutines. On one hand, this offers the opportunity for the templates to become much more flexible, as data can be manipulated, but on the other hand, the templates become more difficult to understand.
@@ -93,4 +93,4 @@ Examples of a set of RakuClosureTemplates can be found in the `resources` direct
 
 
 ----
-Rendered from RakuClosureTemplates at 2020-08-26T09:57:19Z
+Rendered from RakuClosureTemplates at 2020-08-28T23:43:27Z

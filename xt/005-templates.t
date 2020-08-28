@@ -26,7 +26,7 @@ my @templates = <block-code comment declarator defn dlist-end dlist-start escape
 my %templates = @templates Z=> ( "[beg]$_\[end]" for @templates );
         # this creates a set of pseudo templates
 
-%templates<format-c>:delete; # assumes toc is a required template
+%templates<format-c>:delete; # assumes format-c is a required template
 
 throws-like { $pro.templates(%templates) }, X::ProcessedPod::MissingTemplates,
         message=> / 'but are not:' \s* 'format-c' \s* /,

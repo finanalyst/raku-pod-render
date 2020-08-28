@@ -8,163 +8,240 @@ for <class test multi> { ( "$orig-dir/$_.pod6").IO.copy: "t/$_.pod6" }
 
 ok 1, 'creating html templates to match original hard coded html of original P2HTML';
 'html-templates.raku'.IO.spurt(q:to/CODE/);
+    use ProcessedPod;
     %(
-        # note that verbatim V<> does not have its own format because it affects what is inside it (see POD documentation)
-        'escaped' => -> %params {
-            if ( %params<contents> ~~ /<[ & < > " ' {   ]>/ ) or ( %params<contents> ~~ / ' ' / ) {
-                %params<contents> .= trans( [ q{&},     q{<},    q{>},    q{"},      q{'},      q{ }      ] =>
-                                            [ q{&amp;}, q{&lt;}, q{&gt;}, q{&quot;}, q{&#39;} , q{&nbsp;} ] )
-            }
-            '{{{ contents }}}'
+        'escaped' => sub ( $s ) {
+                if $s and $s ne ''
+                { $s.trans( [ q{&},     q{<},    q{>},    q{"},      q{'},      q{ }      ] =>
+                          [ q{&amp;}, q{&lt;}, q{&gt;}, q{&quot;}, q{&#39;} , q{&nbsp;} ] ) }
+                else { '' }
         },
-        :raw('{{{ contents }}}'),
-
-        'block-code' => q:to/TEMPL/,
-            <pre class="pod-block-code{{# class }} {{ class }}{{/ class}}">{{# contents }}{{{ contents }}}{{/ contents }}</pre>
-            TEMPL
-
-        'comment' => '<!-- {{{ contents }}} -->',
-        'declarator' => '<a name="{{ target }}"></a><article><code class="pod-code-inline">{{{ code }}}</code>{{{ contents }}}</article>',
-        'dlist-start' => '<dl>
-        ',
-        'defn' => '<dt>{{ term }}</dt><dd><p>{{{ contents }}}</p></dd>',
-        'dlist-end' => '</dl>
-        ',
-        'format-b' => '<strong{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</strong>',
-
-        'format-c' => '<code{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</code>
-        ',
-
-        'format-i' => '<em{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</em>',
-
-        'format-k' => '<kbd{{# class }}class="{{ class }}"{{/ class }}>{{{ contents }}}</kbd>
-        ',
-
-        'format-l' => '<a href="{{ target }}"{{# class }} class="{{ class }}"{{/ class}}>{{{ contents }}}</a>',
-
-        'format-n' => '<sup><a name="{{ retTarget }}" href="#{{ fnTarget }}">[{{ fnNumber }}]</a></sup>
-        ',
-
-        'format-p' => '<div{{# class }} class="{{ class }}"{{/ class }}>{{^ html }}<pre>{{/ html }}{{{ contents }}}{{^ html }}</pre>{{/ html }}</div>',
-
-        'format-r' => '<var{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</var>',
-
-        'format-t' => '<samp{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</samp>',
-
-        'format-u' => '<u{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</u>',
-
-        'format-x' => '<a name="{{ target }}">{{# text }}<span class="glossary-entry{{# class }} {{ class }}{{/ class }}">{{{ text }}}</span></a>{{/ text }} ',
-
-        'heading' => '<h{{# level }}{{ level }}{{/ level }} id="{{ target }}"><a class="u" href="#{{ top }}" title="go to top of document">{{{ text }}}</a></h{{# level }}{{ level }}{{/ level }}>
-        ',
-
-            'item' => '<li{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</li>
-            ',
-
-            'list' => q:to/TEMPL/,
-                    <ul>
-                        {{# items }}{{{ . }}}{{/ items}}
-                    </ul>
-                TEMPL
-
-        'named' => q:to/TEMPL/,
-                <section>
-                    <h1>{{{ name }}}</h1>
-                    {{{ contents }}}
-                </section>
-            TEMPL
-
-        'notimplemented' => '<span class="pod-block-notimplemented">{{{ contents }}}</span>',
-
-        'output' => '<pre class="pod-output">{{{ contents }}}</pre>',
-
-        'para' => '<p{{# class }} class="{{ class }}"{{/ class }}>{{{ contents }}}</p>',
-
-        'pod' => '{{# class }}<span class="{{ class }}">{{/ class }}{{{ contents }}}{{{ tail }}}{{# class }}</span>{{/ class }}',
-
-        'section' => q:to/TEMPL/,
-            <section>
-            {{{ contents }}}{{{ tail }}}
-            </section>
-            TEMPL
-        'subtitle' => '<div class="subtitle">{{{ subtitle }}}</div>',
-
-        'table' => q:to/TEMPL/,
-                <table class="pod-table{{# class }} {{ class }}{{/ class }}">
-                    {{# caption }}<caption>{{{ caption }}}</caption>{{/ caption }}
-                    {{# headers }}<thead>
-                        <tr>{{# cells }}<th>{{{ . }}}</th>{{/ cells }}</tr>
-                    </thead>{{/ headers }}
-                    <tbody>
-                        {{# rows }}<tr>{{# cells }}<td>{{{ . }}}</td>{{/ cells }}</tr>{{/ rows }}
-                    </tbody>
-                </table>
-            TEMPL
-
-        'title' => '<h1 class="title" id="{{ title-target }}">{{{ title }}}</h1>',
-
-        # templates used by output methods, eg., source-wrap, file-wrap, etc
-        'source-wrap' => q:to/TEMPL/,
-            <!doctype html>
-            <html lang="{{ lang }}">
-                <head>
-                    <title>{{ title }}</title>
-                    <meta charset="UTF-8" />
-                    {{# metadata }}{{{ metadata }}}{{/ metadata }}
-                    {{# css }}<link rel="stylesheet" href="{{ css }}">{{/ css }}
-                    {{ head }}
-                </head>
-                <body class="pod">
-                    {{# toc }}{{{ toc }}}{{/ toc }}
-                    {{# glossary }}{{{ glossary }}}{{/ glossary }}
-                    <div class="pod-body{{^ toc }} no-toc{{/ toc }}">
-                        {{{ body }}}
-                    </div>
-                    {{# footnotes }}{{{ footnotes }}}{{/ footnotes }}
-                    {{> footer }}
-                </body>
-            </html>
-            TEMPL
-
-        'footnotes' => q:to/TEMPL/,
-            <div class="footnotes">
-                <ol>{{# notes }}
-                    <li id="{{ fnTarget }}">{{{ text }}}<a class="footnote" href="#{{ retTarget }}"> « Back »</a></li>
-                    {{/ notes }}
-                </ol>
-            </div>
-            TEMPL
-
-        'glossary' => q:to/TEMPL/,
-                <table id="glossary">
-                    <caption><h2 id="source-glossary">Glossary</h2></caption>
-                    {{# glossary }}
-                    <tr class="glossary-defn-row">
-                        <td class="glossary-defn">{{{ text }}}</td><td></td></tr>
-                        {{# refs }}<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#{{ target }}">{{{ place }}}</a></td></tr>{{/ refs }}
-                    {{/ glossary }}
-                </table>
-            TEMPL
-
-        'meta' => q:to/TEMPL/,
-                {{# meta }}
-                    <meta name="{{ name }}" value="{{ value }}" />
-                {{/ meta }}
-            TEMPL
-
-        'toc' => q:to/TEMPL/,
-                <table id="TOC">
-                    <caption><h2 id="TOC_Title">Table of Contents</h2></caption>
-                    {{# toc }}
-                    <tr class="toc-level-{{ level }}">
-                        <td class="toc-text"><a href="#{{ target }}">{{ text }}</a></td>
-                    </tr>
-                    {{/ toc }}
-                </table>
-            TEMPL
-            'header' => '<header>{{ title }}</header>',
-            'footer' => '<footer><div>Rendered from <span class="path">{{ path }}{{^ path }}Unknown{{/ path}}</span></div>
-                <div>at <span class="time">{{ renderedtime }}{{^ renderedtime }}a moment before time began!?{{/ renderedtime }}</span></div>
-                </footer>',
+        'id-escaped' => sub ( $s ) {
+                if $s and $s ne ''
+                { $s.trans( [ q{&},     q{<},    q{>},    q{"},      q{ }      ] =>
+                          [ q{&amp;}, q{&lt;}, q{&gt;}, q{&quot;}, q{&nbsp;} ] ) }
+                else { '' }
+        },
+        'raw' => sub ( %prm, %tml ) { (%prm<contents> // '') },
+        'block-code' => sub ( %prm, %tml ) {
+            '<pre class="pod-block-code">'
+                    ~ (%prm<contents> // '')
+                    ~ '</pre>'
+        },
+        'comment' => sub ( %prm, %tml ) { '<!-- ' ~ (%prm<contents> // '') ~ ' -->' },
+        'declarator' => sub ( %prm, %tml ) {
+            '<a name="' ~ %tml<escaped>(%prm<target> // '')
+                    ~ '"></a><article><code class="pod-code-inline">'
+                    ~ ( %prm<code> // '') ~ '</code>' ~ (%prm<contents> // '') ~ '</article>'
+        },
+        'dlist-start' => sub ( %prm, %tml ) { "<dl>\n" },
+        'defn' => sub ( %prm, %tml ) {
+            '<dt>'
+                    ~ %tml<escaped>(%prm<term> // '')
+                    ~ '</dt><dd><p>'
+                    ~ (%prm<contents> // '')
+                    ~ '</p></dd>'
+        },
+        'dlist-end' => sub ( %prm, %tml ) { "\n</dl>\n" },
+        'format-b' => gen-closure-template('strong'),
+        'format-c' => gen-closure-template('code'),
+        'format-i' => gen-closure-template('em'),
+        'format-k' => gen-closure-template('kbd'),
+        'format-r' => gen-closure-template('var'),
+        'format-t' => gen-closure-template('samp'),
+        'format-u' => gen-closure-template('u'),
+        'para' => gen-closure-template('p'),
+        'format-l' => sub ( %prm, %tml ) {
+            '<a href="'
+                    ~ (%prm<internal> ?? '#' !! '')
+                    ~ %prm<target>
+                    ~ '">'
+                    ~ (%prm<contents> // '')
+                    ~ '</a>'
+        },
+        'format-n' => sub ( %prm, %tml ) {
+            '<sup><a name="'
+                    ~ %tml<escaped>(%prm<retTarget>)
+                    ~ '" href="#' ~ %tml<escaped>(%prm<fnTarget>)
+                    ~ '">[' ~ %tml<escaped>(%prm<fnNumber>)
+                    ~ "]</a></sup>\n"
+        },
+        'format-p' => sub ( %prm, %tml ) {
+            '<div><pre>'
+                    ~ (%prm<contents> // '').=trans(['<pre>', '</pre>'] => ['&lt;pre&gt;', '&lt;/pre&gt;'])
+                    ~ "</pre></div>\n"
+        },
+        'format-x' => sub ( %prm, %tml ) {
+            '<a name="' ~ (%prm<target> // '') ~ '">'
+            ~ ( ( %prm<text>.defined and %prm<text> ne '' ) ?? '<span class="glossary-entry">' ~ %prm<text> ~ '</span>' !! '')
+            ~ '</a>'
+        },
+        'heading' => sub ( %prm, %tml ) {
+            '<h' ~ (%prm<level> // '1')
+                    ~ ' id="'
+                    ~ %tml<id-escaped>(%prm<target>)
+                    ~ '"><a class="u" href="#'
+                    ~ %tml<escaped>(%prm<top>)
+                    ~ '" title="go to top of document">'
+                    ~ (( %prm<text>.defined && %prm<text> ne '') ?? %prm<text> !! '')
+                    ~ '</a></h'
+                    ~ (%prm<level> // '1')
+                    ~ ">\n"
+        },
+        'image' => sub ( %prm, %tml ) { '<img src="' ~ (%prm<src> // 'path/to/image') ~ '"'
+                ~ ' width="' ~ (%prm<width> // '100px') ~ '"'
+                ~ ' height="' ~ (%prm<height> // 'auto') ~ '"'
+                ~ ' alt="' ~ (%prm<alt> // 'XXXXX') ~ '">'
+        },
+        'item' => sub ( %prm, %tml ) { '<li>' ~ (%prm<contents> // '') ~ "</li>\n" },
+        'list' => sub ( %prm, %tml ) {
+            "<ul>\n"
+                    ~ %prm<items>.join
+                    ~ "</ul>\n"
+        },
+        'named' => sub ( %prm, %tml ) {
+            "<section>\n<h1>"
+                    ~ (( %prm<name>.defined && %prm<name> ne '' ) ?? %prm<name> !! '')
+                    ~ "</h1>\n"
+                    ~ (%prm<contents> // '')
+                    ~ "\n</section>\n"
+        },
+        'output' => sub ( %prm, %tml ) { '<pre class="pod-output">' ~ (%prm<contents> // '') ~ '</pre>' },
+        'pod' => sub ( %prm, %tml ) {
+            (%prm<class> ?? ('<span class="' ~ %prm<class> ~ '">') !! '' )
+            ~ (%prm<contents> // '')
+            ~ (%prm<tail> // '')
+            ~ (%prm<class> ?? '</span>' !! '' )
+        },
+        'table' => sub ( %prm, %tml ) {
+            '<table class="pod-table'
+                    ~ ( ( %prm<class>.defined and %prm<class> ne '' ) ?? (' ' ~ %tml<escaped>(%prm<class>)) !! '')
+                    ~ '">'
+                    ~ ( ( %prm<caption>.defined and %prm<caption> ne '' ) ?? ('<caption>' ~ %prm<caption> ~ '</caption>') !! '')
+                    ~ ( ( %prm<headers>.defined and %prm<headers> ne '' ) ??
+            ("\t<thead>\n"
+                    ~ [~] %prm<headers>.map({ "\t\t<tr><th>" ~ .<cells>.join('</th><th>') ~ "</th></tr>\n"})
+                            ~ "\t</thead>"
+            ) !! '')
+                    ~ "\t<tbody>\n"
+                    ~ ( ( %prm<rows>.defined and %prm<rows> ne '' ) ??
+            [~] %prm<rows>.map({ "\t\t<tr><td>" ~ .<cells>.join('</td><td>') ~ "</td></tr>\n" })
+            !! '')
+                    ~ "\t</tbody>\n"
+                    ~ "</table>\n"
+        },
+        'title' => sub ( %prm, %tml) {
+                if %prm<title>:exists and %prm<title> ne '' {
+                    '<h1 class="title"'
+                     ~ ((%prm<title-target>:exists and %prm<title-target> ne '')
+                            ?? ' id="' ~ %tml<escaped>(%prm<title-target>) !! '' ) ~ '">'
+                     ~ %prm<title> ~ '</h1>'
+                }
+                else { '' }
+        },
+        'subtitle' => sub ( %prm, %tml ) {
+            if %prm<subtitle>:exists and %prm<subtitle> ne '' {
+                '<div class="subtitle">' ~ %prm<subtitle> ~ '</div>' }
+            else { '' }
+        },
+        'source-wrap' => sub ( %prm, %tml ) {
+            "<!doctype html>\n"
+                    ~ '<html lang="' ~ ( ( %prm<lang>.defined and %prm<lang> ne '' ) ?? %tml<escaped>(%prm<lang>) !! 'en') ~ "\">\n"
+                    ~ %tml<head-block>(%prm, %tml)
+                    ~ "\t<body class=\"pod\">\n"
+                    ~ %tml<header>(%prm, %tml)
+                    ~ (( %prm<toc>.defined or %prm<glossary>.defined ) ?? '<div class="toc-glossary">' !! '')
+                    ~ (%prm<toc> // '')
+                    ~ (%prm<glossary> // '')
+                    ~ (( %prm<toc>.defined or %prm<glossary>.defined ) ?? '</div>' !! '')
+                    ~ %tml<subtitle>(%prm, %tml)
+                    ~ '<div class="pod-body' ~ (( %prm<toc>.defined and %prm<toc> ne '' ) ?? '' !! ' no-toc') ~ '">'
+                    ~ (%prm<body> // '')
+                    ~ "\t\t</div>\n"
+                    ~ (%prm<footnotes> // '')
+                    ~ %tml<footer>(%prm, %tml)
+                    ~ "\n\t</body>\n</html>\n"
+        },
+        'footnotes' => sub ( %prm, %tml ) {
+            with %prm<notes> {
+                "<div class=\"footnotes\">\n<ol>"
+                        ~ [~] .map({ '<li id="' ~ %tml<escaped>($_<fnTarget>) ~ '">'
+                        ~ ($_<text> // '')
+                        ~ '<a class="footnote" href="#'
+                        ~ %tml<escaped>($_<retTarget>)
+                        ~ "\"> « Back »</a></li>\n"
+                })
+                        ~ "\n</ol>\n</div>\n"
+            }
+            else { '' }
+        },
+        'glossary' => sub ( %prm, %tml ) {
+            if %prm<glossary>.defined {
+                "<table id=\"Glossary\">\n<caption>Glossary</caption>\n<tr><th>Term</th><th>Section Location</th></tr>\n"
+                        ~ [~] %prm<glossary>.map({ "<tr class=\"glossary-defn-row\">\n"
+                        ~ '<td class="glossary-defn">'
+                        ~ ($_<text> // '')
+                        ~ "</td><td></td></tr>\n"
+                        ~ [~] $_<refs>.map({
+                            '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#'
+                                    ~ %tml<escaped>($_<target>)
+                                    ~ '">'
+                                    ~ ($_<place>.defined ?? $_<place> !! '')
+                                    ~ "</a></td></tr>\n"
+                        })
+                })
+                        ~ "\n</table>\n"
+            }
+            else { '' }
+        },
+        'meta' => sub ( %prm, %tml ) {
+            if %prm<meta>.defined {
+                [~] %prm<meta>.map({
+                    '<meta name="' ~ %tml<escaped>( .<name> )
+                            ~ '" value="' ~ %tml<escaped>( .<value> )
+                            ~ "\" />\n"
+                })
+            }
+            else { '' }
+        },
+        'toc' => sub ( %prm, %tml ) {
+            if %prm<toc>.defined {
+                "<table id=\"TOC\">\n<caption>Table of Contents</caption>\n"
+                        ~ [~] %prm<toc>.map({
+                    '<tr class="toc-level-' ~ .<level> ~ '">'
+                            ~ '<td class="toc-text"><a href="#'
+                            ~ %tml<id-escaped>( .<target> )
+                            ~ '">'
+                            ~ ( $_<counter>.defined ?? ('<span class="toc-counter">' ~ %tml<escaped>( .<counter> ) ~ '</span>') !! '' )
+                            ~ ' ' ~ %tml<escaped>(  $_<text> // '' )
+                            ~ "</a></td></tr>\n"
+                })
+                        ~ "</table>\n"
+            }
+            else { '' }
+        },
+        'head-block' => sub ( %prm, %tml ) {
+            "\<head>\n"
+                    ~ '<title>' ~ %tml<escaped>(%prm<title>) ~ "\</title>\n"
+                    ~ '<meta charset="UTF-8" />' ~ "\n"
+                    ~ (%prm<metadata> // '')
+                    ~ (  ( %prm<css>.defined and %prm<css> ne '' )
+                    ?? ('<link rel="stylesheet" href="' ~ %prm<css> ~ '">')
+                    !! '' )
+                    ~ (%prm<head> // '')
+                    ~ "\</head>\n"
+        },
+        'header' => sub ( %prm,%tml) {
+            '<header>' ~ %tml<title>(%prm, %tml) ~ '</header>'
+        },
+        'footer' => sub ( %prm, %tml ) {
+            '<footer><div>Rendered from <span class="path">'
+                    ~ (( %prm<path>.defined && %prm<path> ne '') ?? %tml<escaped>(%prm<path>) !! 'Unknown')
+                    ~ '</span></div>'
+                    ~ '<div>at <span class="time">'
+                    ~ (( %prm<renderedtime>.defined && %prm<path> ne '') ?? %tml<escaped>(%prm<renderedtime>) !! 'a moment before time began!?')
+                    ~ '</span></div>'
+                    ~ '</footer>'
+        },
     );
     CODE

@@ -127,7 +127,11 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
         %(
         # the following are extra for HTML files and are needed by the render (class) method
         # in the source-wrap template.
-            'escaped' => sub ( $s ) { $s.trans: qw｢ <    >    &     " ｣ => qw｢ &lt; &gt; &amp; &quot; ｣ },
+            'escaped' => sub ( $s ) {
+                if $s and $s ne ''
+                { $s.trans(qw｢ <    >    &     " ｣ => qw｢ &lt; &gt; &amp; &quot; ｣) }
+                else { '' }
+            },
             'raw' => sub ( %prm, %tml ) { (%prm<contents> // '') },
             'camelia-img' => sub ( %prm, %tml ) { $camelia-svg },
             'css-text' => sub ( %prm, %tml ) { $css-text },
@@ -183,7 +187,7 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
             },
             'format-x' => sub ( %prm, %tml ) {
                 '<a name="' ~ (%prm<target> // '') ~ '"></a>'
-                        ~ ( ( %prm<text>.defined and %prm<text> ne '' ) ?? '<span class="glossary-entry">' ~ %prm<text> ~ '</span>' !! '')
+                ~ ( ( %prm<text>.defined and %prm<text> ne '' ) ?? '<span class="glossary-entry">' ~ %prm<text> ~ '</span>' !! '')
             },
             'heading' => sub ( %prm, %tml ) {
                 '<h' ~ (%prm<level> // '1')
@@ -210,7 +214,7 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
             },
             'named' => sub ( %prm, %tml ) {
                 "<section>\n<h"
-                        ~ (%prm<level> // '1') ~ 'id="'
+                        ~ (%prm<level> // '1') ~ ' id="'
                         ~ %tml<escaped>(%prm<target>) ~ '"><a href="#'
                         ~ %tml<escaped>(%prm<top> // '')
                         ~ '" class="u" title="go to top of document">'
@@ -246,9 +250,19 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
                         ~ "</table>\n"
             },
             'title' => sub ( %prm, %tml) {
-                '<h1 class="title" id="' ~ %tml<escaped>(%prm<title-target>) ~ '">' ~ %prm<title> ~ '</h1>'
+                if %prm<title>:exists and %prm<title> ne '' {
+                    '<h1 class="title"'
+                     ~ ((%prm<title-target>:exists and %prm<title-target> ne '')
+                            ?? ' id="' ~ %tml<escaped>(%prm<title-target>) !! '' ) ~ '">'
+                     ~ %prm<title> ~ '</h1>'
+                }
+                else { '' }
             },
-            'subtitle' => sub ( %prm, %tml ) { '<div class="subtitle">' ~ %prm<subtitle> ~ '</div>' },
+            'subtitle' => sub ( %prm, %tml ) {
+                if %prm<subtitle>:exists and %prm<subtitle> ne '' {
+                    '<div class="subtitle">' ~ %prm<subtitle> ~ '</div>' }
+                else { '' }
+            },
             'source-wrap' => sub ( %prm, %tml ) {
                 "<!doctype html>\n"
                         ~ '<html lang="' ~ ( ( %prm<lang>.defined and %prm<lang> ne '' ) ?? %tml<escaped>(%prm<lang>) !! 'en') ~ "\">\n"
@@ -354,98 +368,7 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
     }
 }
 
-class Pod::To::HTML::Mustache:auth<github:finanalyst> is ProcessedPod::Mustache {
-    has $.css is rw;
-    has $.head is rw;
-    # Only needed for legacy P2HTML
-    has $.def-ext is rw;
-    has Bool $.debug is rw = False;
-    # needed for HTML rendering
-
-    #| render is a class method that is called by the raku compiler
-    method render($pod-tree) {
-        state $rv;
-        return $rv with $rv;
-        # Some implementations of raku/perl6 called the classes render method twice,
-        # so it's necessary to prevent the same work being done repeatedly
-        my $pp = self.new(:name($*PROGRAM-NAME));
-        # takes the pod tree and wraps it in HTML.
-        $pp.process-pod($pod-tree);
-        # Outputs a string that describes a html page
-        $rv = $pp.source-wrap;
-        # and store response so its not re-calculated
-    }
-
-    #| the constructor for this object
-    submethod TWEAK(:$templates, :$css-type, :$css-src, :$css-url, :$favicon-src) {
-        $!def-ext = 'html';
-        $!css = $_ with $css-url;
-        my $css-text = $default-css-text;
-        my $favicon-bin = $camelia-ico;
-        self.custom = <Image>;
-        my Bool $templates-needed = True;
-        if $!debug {
-            $camelia-svg = '<camelia />';
-            # much less text for debugging
-            $css-text = '<style>debug</style>';
-            # much less text for debugging
-            $favicon-bin = '<meta>NoIcon</meta>';
-        }
-        with $templates {
-            self.templates($templates);
-            $templates-needed = False
-        }
-        if $templates-needed and 'html-templates.raku'.IO.f {
-            self.templates('html-templates.raku');
-            $templates-needed = False
-        }
-        with $css-type {
-            X::ProcessedPod::HTML::InvalidCSS::NoSpec.new.throw and return Nil without $css-src;
-            given $css-type {
-                when 'load' {
-                    X::ProcessedPod::HTML::InvalidCSS::BadSource.new(:fn($css-src)).throw and return Nil
-                    unless $css-src.IO.f;
-                    $css-text = '<style>' ~ $css-src.IO.slurp ~ '</style>';
-                }
-                when 'link' {
-                    $css-text = '<link rel="stylesheet"  type="text/css" href="' ~ $css-src ~ '" media="screen" title="default" />'
-                }
-                default {
-                    X::ProcessedPod::HTML::InvalidCSS::BadType.new(:$css-type).throw;
-                    return Nil
-                }
-            }
-        }
-        with $favicon-src {
-            X::ProcessedPod::HTML::BadFavicon.new(:$favicon-src).throw
-            unless $favicon-src.IO.f;
-            $favicon-bin = $favicon-src.IO.slurp
-        }
-        self.templates(self.html-templates(:$css-text, :$favicon-bin)) if $templates-needed;
-    }
-
-    #| The Pod::To::HTML version, which uses css
-    #| renders all of the document structures, and wraps them and the body
-    #| uses the source-wrap template
-    method source-wrap(--> Str) {
-        self.render-structures;
-        self.rendition('source-wrap', {
-            :$.css,
-            :$.head,
-            :$.name,
-            :$.title,
-            :$.title-target,
-            :$.subtitle,
-            :$.metadata,
-            :$.lang,
-            :$.toc,
-            :$.glossary,
-            :$.footnotes,
-            :$.body,
-            :$.path,
-            :$.renderedtime
-        })
-    }
+class Pod::To::HTML::Mustache:auth<github:finanalyst> is Pod::To::HTML:auth<github:finanalyst> {
 
     #| returns a hash of keys and Mustache templates
     method html-templates(:$css-text = $default-css-text, :$favicon-bin = $camelia-ico) {
@@ -626,7 +549,7 @@ sub get-processor {
 #| function renders a pod fragment
 sub node2html($pod) is export {
     my $proc = get-processor;
-    #$proc.debug = True;
+    # $proc.debug = $proc.verbose = True;
     $proc.render-block($pod)
 }
 
@@ -635,6 +558,7 @@ sub pod2html($pod, *%options) is export {
     my $proc = get-processor;
     with %options<templates> {
         if  "$_/main.mustache".IO ~~ :f {
+            $proc.templates(Pod::To::HTML::Mustache.html-templates);
             $proc.modify-templates(%( source-wrap => "$_/main.mustache".IO.slurp))
         }
         else {

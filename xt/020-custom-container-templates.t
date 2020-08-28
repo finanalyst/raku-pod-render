@@ -6,7 +6,7 @@ use ProcessedPod;
 plan 4;
 
 # use the Mustache variant
-my ProcessedPod::Mustache $pro;
+my ProcessedPod $pro;
 my $pn = 0;
 
 my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c

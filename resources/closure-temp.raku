@@ -88,7 +88,7 @@ my $favicon-bin = 'favicon-bin';
     },
     'named' => sub ( %prm, %tml ) {
         "<section>\n<h"
-                ~ (%prm<level> // '1') ~ 'id="'
+                ~ (%prm<level> // '1') ~ ' id="'
                 ~ %tml<escaped>(%prm<target>) ~ '"><a href="#'
                 ~ %tml<escaped>(%prm<top> // '')
                 ~ '" class="u" title="go to top of document">'

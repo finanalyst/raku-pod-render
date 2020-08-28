@@ -1,5 +1,5 @@
 use ProcessedPod;
-unit class Pod::To::MarkDown:auth<github:finanalyst> is ProcessedPod::Mustache;
+unit class Pod::To::MarkDown:auth<github:finanalyst> is ProcessedPod;
 has $.def-ext is rw;
 
 submethod TWEAK {
@@ -48,6 +48,7 @@ method md-templates {
     %(
         'nl' => ~$?NL, # OS dependent new line
         'nl2' => ~ ($?NL x 2),
+        'sp2' => "  ",
         'escaped' => -> %params {
             if ( %params<contents> ~~ / \`/ ) {
                 %params<contents> .= trans( [ q{`}  ] =>
@@ -129,7 +130,7 @@ method md-templates {
         'toc' => q:to/TEMPL/,
             ## Table of Contents
             {{# toc }}
-            [{{ text }}](#{{ target }})
+            [{{ text }}](#{{ target }}){{> sp2 }}
             {{/ toc }}
             TEMPL
         'header' => '',

@@ -17,7 +17,8 @@ For more information about methods not covered here see the L<PodProcess Class|R
 The default templating engine is C<RakuClosureTemplater>, but the C<Mustache> templating engine is retained. Some of the C<xt> tests use
 the C<Mustache> engine, and C<Pod::To::Markdown> uses Mustache.
 
-The class C<Pod::To::HTML::Mustache> is provided that uses the C<Mustache> engine.
+The templating system is chosen automatically ddepending on the templates that are provided. The default templates are C<Raku Closure Templates>,
+but the class C<Pod::To::HTML::Mustache> is provided which supplies C<Mustache> templates by default.
 
 =head1 Usage with compiler
 

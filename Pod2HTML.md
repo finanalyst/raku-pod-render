@@ -4,21 +4,21 @@
 
 ----
 ## Table of Contents
-[Usage with compiler](#usage-with-compiler)
-[Standalone usage mixing Pod and code](#standalone-usage-mixing-pod-and-code)
-[HTML Components: CSS, Classes &amp; Favicon](#html-components-css-classes--favicon)
-[Customisable CSS](#customisable-css)
-[CSS Load](#css-load)
-[CSS Link](#css-link)
-[Camelia Image](#camelia-image)
-[Favicon](#favicon)
-[Custom Pod and Template](#custom-pod-and-template)
-[Highlighting](#highlighting)
-[Templates](#templates)
-[Extract Pod in a Module to README.md](#extract-pod-in-a-module-to-readmemd)
-[Exported Subroutines](#exported-subroutines)
-[Miscellaneous](#miscellaneous)
-[Why Reinvent the Wheel?](#why-reinvent-the-wheel?)
+[Usage with compiler](#usage-with-compiler)  
+[Standalone usage mixing Pod and code](#standalone-usage-mixing-pod-and-code)  
+[HTML Components: CSS, Classes &amp; Favicon](#html-components-css-classes--favicon)  
+[Customisable CSS](#customisable-css)  
+[CSS Load](#css-load)  
+[CSS Link](#css-link)  
+[Camelia Image](#camelia-image)  
+[Favicon](#favicon)  
+[Custom Pod and Template](#custom-pod-and-template)  
+[Highlighting](#highlighting)  
+[Templates](#templates)  
+[Extract Pod in a Module to README.md](#extract-pod-in-a-module-to-readmemd)  
+[Exported Subroutines](#exported-subroutines)  
+[Miscellaneous](#miscellaneous)  
+[Why Reinvent the Wheel?](#why-reinvent-the-wheel?)  
 
 ----
 A simple default set of templates is provided with a default set of css and a header with the Camelia-bug image.
@@ -31,7 +31,7 @@ For more information about methods not covered here see the [PodProcess Class](R
 
 The default templating engine is `RakuClosureTemplater`, but the `Mustache` templating engine is retained. Some of the `xt` tests use the `Mustache` engine, and `Pod::To::Markdown` uses Mustache.
 
-The class `Pod::To::HTML::Mustache` is provided that uses the `Mustache` engine.
+The templating system is chosen automatically ddepending on the templates that are provided. The default templates are `Raku Closure Templates`, but the class `Pod::To::HTML::Mustache` is provided which supplies `Mustache` templates by default.
 
 # Usage with compiler
 From the terminal:
@@ -336,4 +336,4 @@ This module deal with these problems as follows:
 
 
 ----
-Rendered from Pod2HTML at 2020-08-26T09:57:18Z
+Rendered from Pod2HTML at 2020-08-28T23:43:26Z

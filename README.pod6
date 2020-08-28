@@ -12,6 +12,9 @@ Intended
 =item can be used to generate HTML and Markdown with raku's --doc flag.
 =item has a GUI for converting one or more Pod6-containing files into MarkDown or HTML.
 
+The Renderers, eg., Pod::To::HTML, will chose the templating engine depending on the templates provided. So far only
+Template::Mustache and the new RakuClosureTemplates are handled.
+
 =head1 Extractor GUI
 
 Run C<Extractor.raku> in the directory where the transformed files are needed. Select POD6 files by

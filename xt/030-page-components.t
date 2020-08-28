@@ -3,7 +3,7 @@ use ProcessedPod;
 
 plan 17;
 
-my ProcessedPod::Mustache $pro .= new;
+my ProcessedPod $pro .= new;
 
 my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading

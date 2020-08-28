@@ -2,9 +2,9 @@
 >
 ----
 ## Table of Contents
-[Usage with compiler](#usage-with-compiler)
-[Extract Pod in a Module to README.md](#extract-pod-in-a-module-to-readmemd)
-[More detail and differences from Pod::To::HTML](#more-detail-and-differences-from-podtohtml)
+[Usage with compiler](#usage-with-compiler)  
+[Extract Pod in a Module to README.md](#extract-pod-in-a-module-to-readmemd)  
+[More detail and differences from Pod::To::HTML](#more-detail-and-differences-from-podtohtml)  
 
 ----
 # Usage with compiler
@@ -57,4 +57,4 @@ See [RenderPod](RenderPod.md) [PodToHTML](PodToHTML.md) for more detail. `Pod::T
 
 
 ----
-Rendered from MarkDown at 2020-08-26T09:57:16Z
+Rendered from MarkDown at 2020-08-28T23:43:27Z

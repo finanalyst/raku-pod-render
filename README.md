@@ -4,16 +4,16 @@
 
 ----
 ## Table of Contents
-[Extractor GUI](#extractor-gui)
-[Page Components](#page-components)
-[TOC](#toc)
-[Glossary](#glossary)
-[Footnotes](#footnotes)
-[Links](#links)
-[Meta data](#meta-data)
-[RakuClosureTemplates](#rakuclosuretemplates)
-[Testing tool](#testing-tool)
-[More Information](#more-information)
+[Extractor GUI](#extractor-gui)  
+[Page Components](#page-components)  
+[TOC](#toc)  
+[Glossary](#glossary)  
+[Footnotes](#footnotes)  
+[Links](#links)  
+[Meta data](#meta-data)  
+[RakuClosureTemplates](#rakuclosuretemplates)  
+[Testing tool](#testing-tool)  
+[More Information](#more-information)  
 
 ----
 Intended
@@ -29,6 +29,8 @@ Intended
 *  can be used to generate HTML and Markdown with raku's --doc flag.
 
 *  has a GUI for converting one or more Pod6-containing files into MarkDown or HTML.
+
+The Renderers, eg., Pod::To::HTML, will chose the templating engine depending on the templates provided. So far only Template::Mustache and the new RakuClosureTemplates are handled.
 
 # Extractor GUI
 Run `Extractor.raku` in the directory where the transformed files are needed. Select POD6 files by clicking on the FileChooser button at the top of the panel. The Output file name by default is the same as the basename of the input file, but can be changed. Select the output formats.
@@ -94,4 +96,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2020-08-26T09:57:17Z
+Rendered from README at 2020-08-28T23:46:53Z

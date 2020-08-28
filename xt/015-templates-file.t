@@ -5,7 +5,7 @@ use ProcessedPod;
 
 plan 3;
 
-my ProcessedPod::Mustache $pro;
+my ProcessedPod $pro;
 
 my $tmpl-fn = 't/newtemplates.raku';
 $tmpl-fn.IO.unlink if $tmpl-fn.IO.f;
