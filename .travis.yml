@@ -4,7 +4,7 @@ services:
   - docker
 
 before_install:
-  - sudo apt-get -y install gcc-defaults
+  - sudo apt-get -y install gcc
 
 install:
   - docker pull jjmerelo/test-perl6
