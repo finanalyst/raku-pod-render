@@ -3,6 +3,9 @@ language: minimal
 services:
   - docker
 
+before_install:
+  - sudo apt-get -y install gcc-defaults
+
 install:
   - docker pull jjmerelo/test-perl6
 
