@@ -30,12 +30,16 @@ our $default-css-text = '<style>' ~ %?RESOURCES<pod.css>.slurp ~ '</style>';
 our $camelia-ico = %?RESOURCES<camelia-ico.bin>.slurp;
 
 class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
-    has $.css is rw;
-    has $.head is rw;
-    # Only needed for legacy P2HTML
+    # needed for HTML rendering
     has $.def-ext is rw;
     has Bool $.debug is rw = False;
-    # needed for HTML rendering
+
+    # Only needed for legacy P2HTML
+    has $.head is rw;
+    has $.css is rw;
+    #| a callable (eg. provided by external program) that converts the contents of a code block to highlighted code.
+    #| The callable expected by this module has a single Str Positional argument, and it returns a Str.
+    has &.highlighter is rw;
 
     #| render is a class method that is called by the raku compiler
     method render($pod-tree) {
@@ -137,8 +141,15 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
             'css-text' => sub ( %prm, %tml ) { $css-text },
             'favicon' => sub ( %prm, %tml ) { '<link href="data:image/x-icon;base64,' ~ $favicon-bin ~ '" rel="icon" type="image/x-icon" />' },
             'block-code' => sub ( %prm, %tml ) {
+                my $contents = %prm<contents>;
+                with $.highlighter {
+                    # if highlighter returns an empty string or is undefined, restore original version
+                    my $t = $contents;
+                    $contents = $_($contents);
+                    $contents = $t unless $contents
+                };
                 '<pre class="pod-block-code">'
-                        ~ (%prm<contents> // '')
+                        ~ ($contents // '')
                         ~ '</pre>'
             },
             'comment' => sub ( %prm, %tml ) { '<!-- ' ~ (%prm<contents> // '') ~ ' -->' },
@@ -516,7 +527,7 @@ class Pod::To::HTML::Mustache:auth<github:finanalyst> is Pod::To::HTML:auth<gith
     }
 }
 
-# The legacy Pod::To::HTML module assumes a different hightlighting callback to this module
+# The legacy Pod::To::HTML module assumes a different highlighting callback to this module
 # which makes fewer demands on the callback, therefore making it more generic.
 # So the process of getting a rendering processor needs to be different from the
 # one in the methods above.

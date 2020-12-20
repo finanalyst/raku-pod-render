@@ -4,6 +4,7 @@ constant No_SHELL_TEST = ?%*ENV<NO_SHELL_TEST>;
 
 if ! No_SHELL_TEST {
     plan 15;
+    diag 'PODRENDER unset';
     my $p = run 'raku', '-Ilib', '--doc=HTML', 'xt/rend-test-file.raku', :out;
     my $rv = $p.out.slurp.subst(/\s+/,' ',:g).trim;;
     $p.out.close;
@@ -44,7 +45,8 @@ if ! No_SHELL_TEST {
         \s* '</div>'
         /, 'footnotes rendered';
 
-    $p = shell 'PODRENDER="no-toc" raku -Ilib --doc=HTML t/rend-test-file.raku', :out;
+    diag 'PODRENDER="no-toc"';
+    $p = shell 'PODRENDER="no-toc" raku -Ilib --doc=HTML xt/rend-test-file.raku', :out;
     $rv = $p.out.slurp.subst(/\s+/,' ',:g).trim;;
     $p.out.close;
 
@@ -66,7 +68,7 @@ if ! No_SHELL_TEST {
                 \s* '<caption>'
                 \s* '<h2 id="TOC_Title">Table of Contents</h2></caption>'
         /
-        , 'rendered TOC';
+        , 'not rendered TOC';
 
     like $rv, /
         '<div class="footnotes">'
@@ -78,7 +80,8 @@ if ! No_SHELL_TEST {
         \s* '</div>'
         /, 'footnotes rendered';
 
-    $p = shell 'PODRENDER="no-toc no-glos" raku -Ilib --doc=HTML t/rend-test-file.raku', :out;
+    diag 'PODRENDER="no-toc no-glos"';
+    $p = shell 'PODRENDER="no-toc no-glos" raku -Ilib --doc=HTML xt/rend-test-file.raku', :out;
     $rv = $p.out.slurp.subst(/\s+/,' ',:g).trim;;
     $p.out.close;
 
@@ -87,7 +90,7 @@ if ! No_SHELL_TEST {
     unlike $rv, /
         '<table id="Glossary">'
             \s* '<caption>Glossary</caption>'
-            /, 'glossary is rendered';
+            /, 'glossary not rendered';
 
     like $rv, /
         '<meta name="author" value="An author' .+ '"' .+ '/>'
@@ -100,7 +103,7 @@ if ! No_SHELL_TEST {
                     \s* '<caption>'
                     \s* 'Table of Contents/caption>'
             /
-            , 'rendered TOC';
+            , 'not rendered TOC';
 
     like $rv, /
         '<div class="footnotes">'
@@ -115,7 +118,7 @@ if ! No_SHELL_TEST {
 else
 {
     plan 1;
-    skip-rest "Repeat these tests with prove, eg.  PROVE_TEST=1 prove -ve 'raku -Ilib' t/html/150*";
+    skip-rest "Repeat these tests with prove, eg.  PROVE_TEST=1 prove -ve 'raku -Ilib' xt/100-html/150*";
 }
 
 done-testing;

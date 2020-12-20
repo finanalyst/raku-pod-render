@@ -1,7 +1,6 @@
 use v6.d;
 use URI;
 use LibCurl::Easy;
-use soft;
 
 class X::ProcessedPod::MissingTemplates is Exception {
     has @.missing;
@@ -181,10 +180,6 @@ class GenericPod {
     has Str $.path is rw is default('UNNAMED') = 'UNNAMED';
     #| defaults to top, then becomes target for TITLE
     has Str $.top is rw is default(DEFAULT_TOP) = DEFAULT_TOP;
-    #| a callable (eg. provided by external program) that converts the contents of a code block to hightlighted code.
-    #| The callable expected by this module has a single Str Positional argument, and it returns a Str.
-    #| This differs from the callable expected by the legacy Pod::To::HTML module. See Pod::To::HTML in this distribution for detail.
-    has &.highlighter is rw;
 
     # document level information
 
@@ -455,7 +450,8 @@ class GenericPod {
             @!counters.splice($level);
             $counter = @!counters>>.Str.join: $.counter-separator;
         }
-        my $target = self.rewrite-target($text, :unique($is-title)); # if a title (TITLE) then it must be unique
+        my $target = self.rewrite-target($text, :unique($is-title));
+        # if a title (TITLE) then it must be unique
         @!raw-toc.push: %( :$level, :$text, :$target, :$is-title, :$counter);
         $target
     }
@@ -610,15 +606,12 @@ class GenericPod {
 
     multi method handle(Pod::Block::Code $node, Int $in-level, Context $context? = None  --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
+        =comment Legacy Pod::To::HTML put code for highlighting here in the main code. The design of this
+        module moves highlighting to the templating section.
+
         # first completion is to flush a retained list before the contents of the block are processed
         my $retained-list = $.completion($in-level, 'zero', %(), :defn($context == Definition));
         my $contents = [~] gather for $node.contents { take self.handle($_, $in-level) };
-        with $.highlighter {
-            # if highlighter returns an empty string or is undefined, restore original version
-            my $t = $contents;
-            $contents = $_($contents);
-            $contents = $t unless $contents
-        };
         $retained-list ~ $.completion($in-level, 'block-code', %( :$contents, $node.config),
                 :defn($context == Definition));
     }
@@ -677,7 +670,7 @@ class GenericPod {
                 $.completion($in-level, 'pod', %(
                     :$name,
                     :contents([~] gather for $node.contents { take self.handle($_, $in-level) }),
-                    :tail($.completion(0, 'zero', %()))
+                    :tail($.completion( 0, 'zero', %() ))
                 ), :defn($context == Definition))
     }
     # TITLE, SUBTITLE, META blocks are not included in Body
@@ -711,7 +704,7 @@ class GenericPod {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         $.completion($in-level, 'zero', %(), :defn($context == Definition))
                 ~ $.completion($in-level, 'raw', %( :contents([~] gather for $node.contents { take self.handle($_,
-        $in-level, HTML) }) ,$node.config
+        $in-level, HTML) }), $node.config
         ), :defn($context == Definition))
     }
 
