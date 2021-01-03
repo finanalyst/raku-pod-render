@@ -105,6 +105,7 @@ role MustacheTemplater {
     }
 }
 
+#| SetupTemplates detects which Templater to use depending on the template for format-b
 role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
     #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
     has @.required = < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
@@ -180,6 +181,8 @@ class GenericPod {
     has Str $.path is rw is default('UNNAMED') = 'UNNAMED';
     #| defaults to top, then becomes target for TITLE
     has Str $.top is rw is default(DEFAULT_TOP) = DEFAULT_TOP;
+    #| defaults to not escaping characters when in a code block
+    has Bool $.no-code-escape is rw is default(False) = False;
 
     # document level information
 
@@ -254,6 +257,8 @@ class GenericPod {
     #| used to register state when processing a definition list
     has Bool $!in-defn-list = False;
 
+    my enum Context <None Heading HTML Raw Output InPodCode>;
+
     submethod TWEAK {
         with %*ENV<PODRENDER> {
             $!no-toc = ?m/:i 'No' \-? 'TOC'/;
@@ -306,10 +311,9 @@ class GenericPod {
     #| process the pod block or tree passed to it, and concatenates it to previous pod tree
     #| returns a string representation of the tree in the required format
     method process-pod($pod --> Str) {
-        $!pod-body = [~] gather for $pod.list { take self.handle($_, 0) };
+        $!pod-body = [~] gather for $pod.list { take self.handle($_, 0 , Context::None ) };
         $!body ~= $!pod-body
         # returns accumulated pod-bodies
-
     }
 
     #| renders a pod tree, but probably a block
@@ -318,7 +322,6 @@ class GenericPod {
         self.process-pod($pod);
         $!pod-body
         # returns only most recent pod-body
-
     }
 
     #| renders the whole pod tree
@@ -336,6 +339,7 @@ class GenericPod {
             :$!title,
             :$!title-target,
             :$!subtitle,
+            :$!no-code-escape,
             :$!metadata,
             :$!toc,
             :$!glossary,
@@ -355,6 +359,7 @@ class GenericPod {
         $!title = Nil;
         $!title-target = Nil;
         $!subtitle = Nil;
+        $!no-code-escape = Nil;
         $!metadata = Nil;
         $!toc = Nil;
         $!glossary = Nil;
@@ -550,42 +555,48 @@ class GenericPod {
     #| verifies whether a list has completed, otherwise adding items or definitions to the list
     #| completes list if the context indicates the end of a list
     #| returns the string representation of the block / list
-    method completion(Int $in-level, Str $key, %params, Bool :$defn = False --> Str) {
-        note "At $?LINE completing with template ｢$key｣ list level $in-level" if $!debug;
+    method completion(Int $in-level, Str $key, %params, Bool :$defn --> Str) {
+        note "At $?LINE completing with template ｢$key｣ list level $in-level definition list ｢$defn｣" if $!debug;
+        # most blocks would end a list if it exists, so call with zero
+        # but if no list, viz $in-level=0, or a defn list then just return.
+        # this is an optimisation
+        #return '' if $key eq 'zero' and (! +$in-level or ! $defn);
         my Str $rv = '';
         # first handle defn list because it doesn't have multiple levels
         # so do not need to consider recursive calls.
         # start and end of list handled by $!in-defn-list, inner Pod blocks handled by $defn
         if !$!in-defn-list and $key eq 'defn' {
-            # start of defn list
+            # start of defn list when no previous defn
             $!in-defn-list = True;
             $rv ~= $.rendition('dlist-start', %());
         }
-        if $!in-defn-list and !$defn and $key ne 'defn' {
-            # end of defn list
+        if $!in-defn-list and ! $defn and $key ne 'defn' {
+            # end of defn list, when previous defn, not a block inside a defn, block after a defn
             $!in-defn-list = False;
             $rv ~= $.rendition('dlist-end', %());
         }
         my $top-level = @.itemlist.elems;
+        =comment some renderers, eg. MarkDown, need to have an explicit nesting hint
+        for the depth of the list to render list of lists correctly
+
         while $top-level > $in-level {
             if $top-level > 1 {
                 @.itemlist[$top-level - 2][0] = '' unless @.itemlist[$top-level - 2][0]:exists;
-                @.itemlist[$top-level - 2][*- 1] ~= self.rendition('list', %( :items(@.itemlist.pop)));
+                @.itemlist[$top-level - 2][*- 1] ~= self.rendition('list', %( :nesting($top-level - 1), :items(@.itemlist.pop)));
                 note "At $?LINE rendering with template ｢list｣ list level $in-level" if $!debug;
             }
             else {
-                $rv ~= self.rendition('list', %( :items(@.itemlist.pop)));
+                $rv ~= self.rendition('list', %( :0nesting, :items(@.itemlist.pop)));
                 note "At $?LINE rendering with template ｢list｣ list level $in-level" if $!debug;
             }
             $top-level = @.itemlist.elems
         }
         $rv ~= self.rendition($key, %params);
-        note "At $?LINE rv is { $rv.substr(0, 150) }\n{ '... (' ~ $rv.chars - 150 ~ ' more chars)' if $rv.chars > 150 }"
+        note "At $?LINE rv is ", $rv.substr(0, 150), ("\n... (" ~ $rv.chars - 150 ~ ' more chars)' if $rv.chars > 150 )
             if $.debug and $.verbose;
         $rv
     }
 
-    my enum Context <None Heading HTML Raw Output Definition>;
     #| Strip out formatting code and links from a Title or Link
     multi sub recurse-until-str(Str:D $s) {
         $s
@@ -599,32 +610,31 @@ class GenericPod {
         X::ProcessedPod::Unexpected-Nil.new.throw
     }
     #| handle strings within a Block, don't need to be escaped if HTML
-    multi method handle(Str $node, Int $in-level, Context $context? --> Str) {
+    multi method handle(Str $node, Int $in-level, Context $context --> Str) {
         note "At $?LINE node is Str" if $.debug;
-        $.rendition($context ~~ HTML ?? 'raw' !! 'escaped', %( :contents(~$node)))
+        $.rendition(($context ~~ HTML or ( $context ~~ InPodCode and $.no-code-escape)) ?? 'raw' !! 'escaped', %( :contents(~$node)))
     }
 
-    multi method handle(Pod::Block::Code $node, Int $in-level, Context $context? = None  --> Str) {
+    multi method handle(Pod::Block::Code $node, Int $in-level, Context $context = InPodCode, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
         =comment Legacy Pod::To::HTML put code for highlighting here in the main code. The design of this
         module moves highlighting to the templating section.
 
         # first completion is to flush a retained list before the contents of the block are processed
-        my $retained-list = $.completion($in-level, 'zero', %(), :defn($context == Definition));
-        my $contents = [~] gather for $node.contents { take self.handle($_, $in-level) };
-        $retained-list ~ $.completion($in-level, 'block-code', %( :$contents, $node.config),
-                :defn($context == Definition));
+        my $retained-list = $.completion($in-level, 'zero', %(), :$defn );
+        my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, InPodCode, :$defn ) };
+        $retained-list ~ $.completion($in-level, 'block-code', %( :$contents ), :$defn );
     }
 
-    multi method handle(Pod::Block::Comment $node, Int $in-level, Context $context? = None  --> Str) {
+    multi method handle(Pod::Block::Comment $node, Int $in-level, Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
+        $.completion($in-level, 'zero', %(), :$defn )
                 ~ $.completion($in-level, 'zero', %( :contents([~] gather for $node.contents {
-            take self.handle($_, $in-level)
-        })), :defn($context == Definition))
+            take self.handle($_, $in-level, $context, :$defn)
+        })), :$defn)
     }
 
-    multi method handle(Pod::Block::Declarator $node, Int $in-level, Context $context? = None  --> Str) {
+    multi method handle(Pod::Block::Declarator $node, Int $in-level, Context $context, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
         my $code;
         given $node.WHEREFORE {
@@ -636,29 +646,29 @@ class GenericPod {
             }
         }
         my $target = $.register-glossary($code, [], False);
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
-                ~ $.completion($in-level, 'declarator',
-                %( :$code, :target, :contents(~ $node.contents )),
-                :defn($context == Definition))
+        $.completion($in-level, 'zero', %(), :$defn )
+            ~ $.completion($in-level, 'declarator',
+            %( :$code, :$target, :contents(~ $node.contents )), :$defn
+            )
     }
 
-    multi method handle(Pod::Block::Named $node, Int $in-level, Context $context? = None  --> Str) {
+    multi method handle(Pod::Block::Named $node, Int $in-level, Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         my $target = $.register-toc(:1level, :text($node.name.tclc));
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
+        $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, 'named', %(
                 :name($node.name),
                 :$target,
                 :1level,
-                :contents([~] gather for $node.contents { take self.handle($_, $in-level) }),
+                :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn ) }),
                 :top($.top),
                 $node.config
-            ), :defn($context == Definition)
+            ), :$defn
         )
     }
 
     multi method handle(Pod::Block::Named $node where $node.name.lc eq 'pod', Int $in-level,
-                        Context $context? = None  --> Str) {
+                        Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         my $name = $.top eq DEFAULT_TOP ?? DEFAULT_TOP !! 'pod';
         # DEFAULT_TOP, until TITLE changes it. Will fail if multiple pod without TITLE
@@ -666,145 +676,142 @@ class GenericPod {
             %.pod-config-data = $node.config;
             $.pod-block-processed = True;
         }
-        my $contents =
-                $.completion($in-level, 'pod', %(
-                    :$name,
-                    :contents([~] gather for $node.contents { take self.handle($_, $in-level) }),
-                    :tail($.completion( 0, 'zero', %() ))
-                ), :defn($context == Definition))
+        $.completion($in-level, 'pod', %(
+            :$name,
+            :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
+            :tail($.completion( 0, 'zero', %(), :$defn ))
+            ), :$defn
+        )
     }
     # TITLE, SUBTITLE, META blocks are not included in Body
     multi method handle(Pod::Block::Named $node where $node.name eq 'TITLE', Int $in-level,
-                        Context $context? = None --> Str) {
+                        Context $context, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         $.title = recurse-until-str($node);
         $.title-target = $.top = $.register-toc(:1level, :text($.title), :is-title);
-        $.completion($in-level, 'zero', %($node.config), :defn($context == Definition))
+        $.completion($in-level, 'zero', %($node.config), :$defn )
         # if a list before TITLE this will be needed
     }
 
     multi method handle(Pod::Block::Named $node where $node.name eq 'SUBTITLE', Int $in-level,
-                        Context $context? = None --> Str) {
+                        Context $context, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
-        $.subtitle = [~] gather for $node.contents { take self.handle($_, 0, None) };
-        $.completion(0, 'zero', %($node.config), :defn($context == Definition))
+        $.subtitle = [~] gather for $node.contents { take self.handle($_, 0, None, :$defn) };
+        $.completion(0, 'zero', %($node.config), :$defn )
         # we can't guarantee SUBTITLE will be after TITLE
     }
 
     multi method handle(Pod::Block::Named $node where $node.name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>),
-                        Int $in-level, Context $context? = None --> Str) {
+                        Int $in-level, Context $context, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         $.register-meta(:name($node.name.lc), :value(recurse-until-str($node)));
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
+        $.completion($in-level, 'zero', %(), :$defn )
         # make sure any list is correctly ended.
     }
 
     multi method handle(Pod::Block::Named $node where $node.name eq 'Html' , Int $in-level,
-                        Context $context? = None --> Str) {
+                        Context $context = None, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
-                ~ $.completion($in-level, 'raw', %( :contents([~] gather for $node.contents { take self.handle($_,
-        $in-level, HTML) }), $node.config
-        ), :defn($context == Definition))
+        $.completion($in-level, 'zero', %(), :$defn )
+            ~ $.completion($in-level, 'raw', %( :contents([~] gather for $node.contents { take self.handle($_,
+                $in-level, HTML, :$defn) }), $node.config
+            ), :$defn
+        )
     }
 
     multi method handle(Pod::Block::Named $node where .name eq 'output', Int $in-level,
-                        Context $context? = None  --> Str) {
+                        Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
-                ~ $.completion($in-level, 'output',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Output) }),$node.config
-                ), :defn($context == Definition)
+        $.completion($in-level, 'zero', %(), :$defn )
+            ~ $.completion($in-level, 'output',
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Output, :$defn) }),$node.config
+            ), :$defn
         )
     }
 
     multi method handle(Pod::Block::Named $node where .name eq 'Raw', Int $in-level,
-                        Context $context? = None  --> Str) {
+                        Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
-                ~ $.completion($in-level, 'raw',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level) }),$node.config),
-                :defn($context == Definition))
+        $.completion($in-level, 'zero', %(), :$defn )
+            ~ $.completion($in-level, 'raw',
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),$node.config)
+            , :$defn
+        )
     }
 
     multi method handle(Pod::Block::Named $node where .name ~~ any(@.custom), Int $in-level,
-                        Context $context? = None  --> Str) {
+                        Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
-                ~ $.completion($in-level, $node.name.lc,
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level) }),
-                $node.config ),
-                :defn($context == Definition))
+        $.completion($in-level, 'zero', %(), :$defn )
+            ~ $.completion($in-level, $node.name.lc,
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
+            $node.config ), :$defn
+            )
     }
 
-    multi method handle(Pod::Block::Para $node, Int $in-level, Context $context where *== Output --> Str) {
+    multi method handle(Pod::Block::Para $node, Int $in-level, Context $context where *== Output, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
+        $.completion($in-level, 'zero', %(), :$defn )
                 ~ $.completion($in-level, 'raw',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level) }),$node.config),
-                   :defn($context == Definition)
-        )
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),$node.config)
+                , :$defn)
 
     }
 
-    multi method handle(Pod::Block::Para $node, Int $in-level , Context $context? = None --> Str) {
+    multi method handle(Pod::Block::Para $node, Int $in-level, Context $context, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
-                ~ $.completion($in-level, 'para',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) }),$node.config),
-                :defn($context == Definition)
-        )
+        note "Defn flag is $defn and context is $context" if $.verbose;
+        $.completion($in-level, 'zero', %(), :$defn )
+            ~ $.completion($in-level, ($defn || $context !~~ None ) ?? 'raw' !! 'para' ,
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) }),$node.config)
+            , :$defn)
     }
 
-    multi method handle(Pod::Block::Para $node, Int $in-level, Context $context where *!= None --> Str) {
+    multi method handle(Pod::Block::Table $node, Int $in-level, Context $context, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
-                ~ $.completion($in-level, 'raw',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) }),$node.config),
-                :defn($context == Definition)
-        )
+        my @headers = gather for $node.headers { take self.handle($_, $in-level, $context) };
+        $.completion($in-level, 'zero', %(), :$defn)
+            ~ $.completion($in-level, 'table', %(
+                :caption($node.caption ?? $.handle($node.caption, $in-level, $context) !! ''),
+                :headers(+@headers ?? %( :cells(@headers)) !! Nil),
+                :rows([gather for $node.contents -> @r {
+                    take %( :cells([gather for @r { take $.handle($_, $in-level, $context, :$defn) }]))
+                }])
+                ,$node.config
+                ), :$defn
+            )
     }
 
-    multi method handle(Pod::Block::Table $node, Int $in-level --> Str) {
+    multi method handle(Pod::Defn $node, Int $in-level, Context $context --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
-        my @headers = gather for $node.headers { take self.handle($_, $in-level) };
-        $.completion($in-level, 'zero', %(), :!defn) ~ $.completion($in-level, 'table', %(
-            :caption($node.caption ?? $.handle($node.caption, $in-level) !! ''),
-            :headers(+@headers ?? %( :cells(@headers)) !! Nil),
-            :rows([gather for $node.contents -> @r {
-                take %( :cells([gather for @r { take $.handle($_, $in-level) }]))
-            }])
-            ,$node.config
-        ), :!defn)
-    }
-
-    multi method handle(Pod::Defn $node, Int $in-level, Context $context = Definition --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
-        $.completion($in-level, 'zero', %(), :defn)
-                ~ $.completion($in-level, 'defn',
+        $.completion($in-level, 'zero', %(), :defn($!in-defn-list) )
+            ~ $.completion($in-level, 'defn',
                 %( :term($node.term), %( :contents([~] gather for $node.contents { take self.handle($_,
-                $in-level, $context) })),$node.config
-                ), :defn)
+                $in-level, :defn, $context) })),$node.config
+                ),
+                :defn
+            )
     }
 
-    multi method handle(Pod::Heading $node, Int $in-level --> Str) {
+    multi method handle(Pod::Heading $node, Int $in-level, Context $context, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
-        my $retained-list = $.completion($in-level, 'zero', %(), :!defn);
+        my $retained-list = $.completion($in-level, 'zero', %(), :$defn);
         # process before contents
         my $level = $node.level;
         my $target = $.register-toc(:$level, :text(recurse-until-str($node).join));
         # must register toc before processing content!!
-        my $text = [~] gather for $node.contents { take $.handle($_, $in-level, Heading) };
+        my $text = [~] gather for $node.contents { take $.handle($_, $in-level, Heading, :$defn) };
         $retained-list ~ $.completion($in-level, 'heading', {
             :$level,
             :$text,
             :$target,
             :top($.top),
             $node.config
-        }, :!defn)
+            }, :$defn
+        )
     }
 
-    multi method handle(Pod::Item $node, Int $in-level is copy --> Str) {
+    multi method handle(Pod::Item $node, Int $in-level is copy, Context $context, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
         my $level = $node.level - 1;
         while $level < $in-level {
@@ -816,87 +823,95 @@ class GenericPod {
             ++$in-level
         }
         $.itemlist[$in-level - 1].push: $.rendition('item',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level) }),$node.config)
+                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) }),$node.config)
                 );
         return ''
         # explicitly return an empty string because callers expecting a Str
+
     }
 
-    multi method handle(Pod::Raw $node, Int $in-level, Context $context = None --> Str) {
+    multi method handle(Pod::Raw $node, Int $in-level, Context $context = None, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
+        $.completion($in-level, 'zero', %(), :$defn )
                 ~ $.rendition('raw',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level) }),$node.config)
+                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Context::Raw, :$defn) }),
+                   $node.config
+                ), :$defn
         )
     }
 
-    multi method handle(Pod::Config $node, Int $in-level, Context $context = None --> Str) {
+    multi method handle(Pod::Config $node, Int $in-level, Context $context = None, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
-        $.completion($in-level, 'zero', %(), :defn($context == Definition))
-                ~ $.completion($in-level, 'comment',
-                %( :contents($node.type ~ '=' ~ $node.config.raku)), :defn($context == Definition))
+        $.completion($in-level, 'zero', %(), :$defn )
+            ~ $.completion($in-level, 'comment',
+            %( :contents($node.type ~ '=' ~ $node.config.raku)))
     }
 
-    multi method handle(Pod::FormattingCode $node, Int $in-level, Context $context where *== Raw  --> Str) {
+    multi method handle(Pod::FormattingCode $node, Int $in-level, Context $context where *== Raw, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
         $.completion($in-level, 'raw',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) })),
-                :defn($context == Definition)
-        )
+                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }))
+                , :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type ~~ none(<E Z X N L P V>), Int $in-level,
-                        Context $context = None  --> Str) {
+                        Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         if %.tmpl{ 'format-' ~ $node.type.lc }:exists {
             $.completion($in-level, 'format-' ~ $node.type.lc ,
-                    %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) })
-                    ), :defn($context == Definition))
+                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) })
+                )
+                , :$defn
+            )
+
         }
         else {
             $.completion($in-level, 'escaped',
-                    %( :contents($node.type ~ '<' ~ [~] gather for $node.contents { take $.handle($_, $in-level,
-                    $context) } ~ '>')), :defn($context == Definition));
+                %( :contents($node.type ~ '<'
+                    ~ [~] gather for $node.contents { take $.handle($_, $in-level,$context, :$defn) }
+                    ~ '>')
+                )
+            ), :$defn
         }
     }
 
-    multi method handle(Pod::FormattingCode $node where .type eq 'N', Int $in-level, Context $context = None --> Str) {
+    multi method handle(Pod::FormattingCode $node where .type eq 'N', Int $in-level, Context $context = None, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
-        my $text = [~] gather for $node.contents { take $.handle($_, $in-level, $context) };
-        $.completion($in-level, 'format-n', $.register-footnote(:$text), :defn($context == Definition))
+        my $text = [~] gather for $node.contents { take $.handle($_, $in-level, $context, :$defn) };
+        $.completion($in-level, 'format-n', $.register-footnote(:$text), :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'E', Int $in-level,
-                        Context $context? = None  --> Str) {
+                        Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         $.completion($in-level, 'raw', %( :contents([~] $node.meta.map({
             when Int { "&#$_;" };
             when Str { "&$_;" };
             $_
-        }))), :defn($context == Definition))
+        }))), :$defn)
     }
 
-    multi method handle(Pod::FormattingCode $node where .type eq 'Z', Int $in-level, $context = None  --> Str) {
+    multi method handle(Pod::FormattingCode $node where .type eq 'Z', Int $in-level, $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         $.completion($in-level, 'zero',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) })
-                ), :defn($context == Definition))
+                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) })
+                ), :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'X', Int $in-level,
-                        Context $context = None  --> Str) {
+                        Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         my Bool $header = $context ~~ Heading;
-        my $text = [~] gather for $node.contents { take $.handle($_, $in-level, $context) };
+        my $text = [~] gather for $node.contents { take $.handle($_, $in-level, $context, :$defn) };
         return ' ' unless $text or +$node.meta;
         # ignore if there is nothing that can be an entry
         my $target = $.register-glossary($text, $node.meta, $header);
         #s/recurse-until-str($node).join /$text/
-        $.completion($in-level, 'format-x', %( :$text, :$target, :$header), :defn($context == Definition))
+        $.completion($in-level, 'format-x', %( :$text, :$target, :$header), :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'L', Int $in-level,
-                        Context $context = None  --> Str) {
+                        Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         my $contents = [~] gather for $node.contents { take $.handle($_, $in-level, $context) };
         my ($target, $location) = $.register-link($node.meta eqv [] | [""] ?? $contents !! $node.meta[0]);
@@ -906,22 +921,22 @@ class GenericPod {
                :local( $location eq 'local' ),
                :internal( $location eq 'internal' ),
                :external( $location eq 'external' ),
-               :contents([~] gather for $node.contents { take $.handle($_, $in-level, $context) })
-            ),
-            :defn($context == Definition)
+               :contents([~] gather for $node.contents { take $.handle($_, $in-level, $context, :$defn) })
+            ), :$defn
         )
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'V', Int $in-level,
-                        Context $context = None --> Str) {
+                        Context $context = None, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         $.completion($in-level, 'escaped',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) })
-                ), :defn($context == Definition))
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) })
+            ), :$defn
+        )
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'P', Int $in-level,
-                        Context $context = None --> Str) {
+                        Context $context = None, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         my Str $link-contents = recurse-until-str($node);
         my $link = ($node.meta eqv [] | [""] ?? $link-contents !! $node.meta).Str;
@@ -969,7 +984,7 @@ class GenericPod {
         $html = so $contents ~~ / '<html' .+ '</html>'/;
         $contents = ~$/ if $html;
         # eliminate any chars outside the <html> container if there is one
-        $.completion($in-level, 'format-p', %( :$contents, :$html), :defn($context == Definition))
+        $.completion($in-level, 'format-p', %( :$contents, :$html), :$defn)
     }
 }
 

@@ -9,6 +9,9 @@ for <class test multi> { ( "$orig-dir/$_.pod6").IO.copy: "t/$_.pod6" }
 ok 1, 'creating html templates to match original hard coded html of original P2HTML';
 'html-templates.raku'.IO.spurt(q:to/CODE/);
     use ProcessedPod;
+    my class Pseudo {
+        has $.contents
+    };
     %(
         'escaped' => sub ( $s ) {
                 if $s and $s ne ''
@@ -24,6 +27,14 @@ ok 1, 'creating html templates to match original hard coded html of original P2H
         },
         'raw' => sub ( %prm, %tml ) { (%prm<contents> // '') },
         'block-code' => sub ( %prm, %tml ) {
+            if %*POD2HTML-CALLBACKS and %*POD2HTML-CALLBACKS<code>.defined {
+                my $node = Pseudo.new( :contents(%prm<contents>) );
+                if %*POD2HTML-CALLBACKS<code> -> &cb {
+                    cb :$node, default => sub ($node) {
+                        $node.contents
+                    }
+                }
+            }
             '<pre class="pod-block-code">'
                     ~ (%prm<contents> // '')
                     ~ '</pre>'

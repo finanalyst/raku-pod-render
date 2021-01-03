@@ -12,6 +12,7 @@ multi sub MAIN() {
     use GTK::Simple::Entry;
     use GTK::Simple::Button;
     use GTK::Simple::TextView;
+    use GTK::Simple::Grid;
 
     my @files;
     my $cancel;
@@ -19,63 +20,85 @@ multi sub MAIN() {
     my $more;
 
     my $app = GTK::Simple::App.new(:title("Pod Extractor Utility"));
+    $app.border-width = 5;
     my $file-chooser-button = GTK::Simple::FileChooserButton.new;
-    my $files-box = GTK::Simple::VBox.new;
+    # =HTML Processing ==================================================
+    my $html-options = GTK::Simple::Grid.new(
+        [0, 0, 1, 1] => GTK::Simple::MarkUpLabel.new(text => 'html-highlight'),
+        [1, 0, 1, 1] => GTK::Simple::MarkUpLabel.new(:text('no css, no camelia image, no favicon')),
+        [0, 1 , 1, 1] => my $hilite = GTK::Simple::CheckButton.new(:label('')),
+        [1, 1, 1, 1] => my $no-css = GTK::Simple::CheckButton.new(:label(''))
+    );
+    my Bool $highlight-code = $hilite.status = False;
+    my Bool $min-top = $no-css.status = False;
+    $hilite.toggled.tap: -> $b { $highlight-code = !$highlight-code }
+    $no-css.toggled.tap: -> $b { $min-top = !$min-top }
+    $html-options.column-spacing = 10;
+    # ====================================================================
+    # =FILE BOX ==========================================================
+    my $files-box = GTK::Simple::Grid.new(
+        [0, 0, 1, 1] => GTK::Simple::MarkUpLabel.new(text => 'convert'),
+        [1, 0, 1, 1] => GTK::Simple::MarkUpLabel.new(text => '<span foreground="blue">path</span>/<span foreground="green" >input filename</span>'),
+        [2, 0, 1, 1] => GTK::Simple::MarkUpLabel.new(text => 'output filename'),
+        [3, 0, 1, 1] => GTK::Simple::MarkUpLabel.new(text => '.md'),
+        [4, 0, 1, 1] => GTK::Simple::MarkUpLabel.new(text => '.html'),
+    );
+    $files-box.column-spacing = 10;
+    # ===========================================================
+    # =Bottom buttons ============================================
     my $buttons = GTK::Simple::HBox.new([
         $cancel = GTK::Simple::Button.new(:label<Cancel>),
         $action = GTK::Simple::Button.new(:label<Convert>)
     ]);
+    # ===============================================================
     my $report = GTK::Simple::MarkUpLabel.new;
+    # == Main Contain ===============================================
     my $convert = GTK::Simple::VBox.new([
         { :widget(GTK::Simple::HBox.new([
             { :widget(GTK::Simple::MarkUpLabel.new(text => "Select files with POD6 by clicking on the button"))
                 , :padding(15)},
             $file-chooser-button])), :!expand },
+        $html-options,
         $files-box,
         { :widget($report), :!expand },
         { :widget($buttons), :!expand }
     ]);
+    # ===============================================================
 
+    # ==Action when a file is added =================================
+    # defined here so its in lexical scope and no need to pass lots of params.
     sub add-to-files($fn) {
-        state $header = False;
-        unless $header {
-            my $headline = GTK::Simple::HBox.new([
-                GTK::Simple::MarkUpLabel.new(text => 'convert'),
-                GTK::Simple::MarkUpLabel.new(text => '<span foreground="blue">path</span>/'),
-                GTK::Simple::MarkUpLabel.new(text => '<span foreground="green" >input filename</span>'),
-                GTK::Simple::MarkUpLabel.new(text => 'output filename'),
-                GTK::Simple::MarkUpLabel.new(text => '.md'),
-                GTK::Simple::MarkUpLabel.new(text => '.html'),
-            ]);
-            $files-box.pack-start($headline, False, False, 0);
-            $header = True
-        }
-        my $oname = ~$fn.IO.basename.comb(/ ^ <ident>+ /);
+        state $grid-line = 0;
+        my $io = $fn.IO;
+        my $oname = $io.basename.substr(0,*-(+$io.extension.chars+1));
         my %record = convert => True,
-                     path => $fn.IO.dirname,
-                     name => $fn.IO.basename,
+                     path => $io.dirname,
+                     name => $io.basename,
                      md => True,
                      html => False,
+                     hilite => False,
+                     nocss => True,
                      :$oname;
-        my $txt = GTK::Simple::Entry.new(text => %record<oname>);
-        my $fileln = GTK::Simple::HBox.new([
-            my $cnv = GTK::Simple::CheckButton.new(:label('')),
-            GTK::Simple::MarkUpLabel.new(
+        $files-box.attach(
+            [0, ++ $grid-line , 1, 1] => my $cnv = GTK::Simple::CheckButton.new(:label('')),
+            [1, $grid-line , 1, 1] => GTK::Simple::MarkUpLabel.new(
                     text => '<span foreground="blue" >' ~ %record<path> ~ '</span>/'
                             ~ '<span foreground="green">' ~ %record<name> ~ '</span>'
                     ),
-            $txt,
-            my $md = GTK::Simple::CheckButton.new(:label('')),
-            my $html = GTK::Simple::CheckButton.new(:label('')),
-        ]);
-        $files-box.pack-start($fileln, False, False, 0);
-        # defaults on
+            [2, $grid-line , 1, 1] => my $txt = GTK::Simple::Entry.new(text => %record<oname>),
+            [3, $grid-line , 1, 1] => my $md = GTK::Simple::CheckButton.new(:label('')),
+            [4, $grid-line , 1, 1] => my $html = GTK::Simple::CheckButton.new(:label('')),
+        );
+        # ======= defaults that are on, undefined is off ===========================
         $md.status = 1;
         $cnv.status = 1;
+        # ==========================================================================
+        # == Defined click actions for each file ===================================
         $md.toggled.tap: -> $b { %record<md> = !%record<md> }
         $html.toggled.tap: -> $b { %record<html> = !%record<html> }
         $cnv.toggled.tap: -> $b { %record<convert> = !%record<convert> }
         $txt.changed.tap: -> $b { %record<oname> = $txt.text }
+        # ==========================================================================
         @files.push: %record;
     }
 
@@ -87,10 +110,9 @@ multi sub MAIN() {
     $action.sensitive = False;
     $action.clicked.tap: -> $b {
         $cancel.label = 'Finish';
-        $action.sensitive = False;
         my @md = @files.grep({ .<md> and .<convert> });
         my @html = @files.grep({ .<html> and .<convert> });
-        HTML(@html, $report);
+        HTML(@html, $report, $highlight-code, $min-top);
         MarkDown(@md, $report);
     };
 
@@ -100,9 +122,10 @@ multi sub MAIN() {
     $app.run;
 }
 
-sub HTML(@fn, $report) {
+sub HTML(@fn, $report, $highlight-code, $min-top) {
     use Pod::To::HTML:auth<github:finanalyst>;
-    my Pod::To::HTML $pr .= new;
+    # when there is no highlighting, the code needs escaping
+    my Pod::To::HTML $pr .= new(:$min-top,:$highlight-code);
     process(@fn, $report, $pr, 'html')
 }
 

@@ -10,7 +10,9 @@ my $pc = 0;
 plan 10;
 
 =begin pod
-    Some pod
+
+Some pod
+
 =end pod
 
 lives-ok { $rv = Pod::To::HTML.render($=pod[$pc]) }, 'captures Pod into HTML';
@@ -40,7 +42,7 @@ ok "$fn\.html".IO ~~ :f, 'file is created with html as default extension';
 "$fn\.html".IO.unlink if "$fn\.html".IO ~~ :e;
 
 =begin pod
-    Another fascinating mess
+Another fascinating mess
 =end pod
 
 $rv = $processor.render-block($=pod[$pc]);

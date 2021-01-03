@@ -6,7 +6,7 @@ my $processor = Pod::To::HTML.new;
 my $rv;
 my $pn = 0;
 
-plan 3;
+plan 5;
 
 =begin pod
 This ordinary paragraph introduces a code block:
@@ -56,18 +56,47 @@ like $rv,
     \s* '<p>' \s* 'But this is just a text. Again' \s* '</p>'
     /, 'mixed paragraphs and code';
 
-$processor.highlighter = sub ( $content --> Str ) {
-    "<highlighter>$content\</highlighter>"
-}
 
-$rv = $processor.render-block( $=pod[0] ); # call initial code and highlight it
+=begin pod
+=begin code
+my $m = function( able => 'Cain' );
+=end code
+=end pod
+
+$processor.highlight-code(True);
+$rv = $processor.render-block( $=pod[$pn] ); # call initial code and highlight it
 
 like $rv,
         /
-        \s* '<pre class="pod-block-code">'
-        \s* '<highlighter>'
-        \s* '$this = 1 * code(\'block\');'
-        \s* '$which.is_specified(:by&lt;indenting&gt;);'
-        \s* '</highlighter>'
-        \s* '</pre>'
-        /, 'highighter callback worked';
+        \s* '<pre class="editor editor-colors">'
+        /, 'code is highlighted';
+
+$processor.highlight-code(False);
+$rv = $processor.render-block( $=pod[$pn] ); # call initial code and highlight it
+like $rv,
+    /
+    '<pre class="pod-block-code">'
+    'my $m = function( able =&gt; \'Cain\' );'
+    \s* '</pre>'
+    /, 'highlighter turned off again';
+
+$processor = Pod::To::HTML.new(:highlight-code);
+$rv = $processor.render-block( $=pod[$pn] ); # call initial code and highlight it
+like $rv,
+        /
+        '<pre class="editor editor-colors">'
+        '<div class="line">'
+        '<span class="source raku">'
+        .+  'function'
+        .+ '(&nbsp;'
+        .+ '<span class="string pair key raku"><span>able&nbsp;'
+        .+ '<span class="keyword operator multi-symbol raku">'
+        .+ '=&gt;'
+        .+ '&nbsp;'
+        .+ '&#39;'
+        .+ 'Cain'
+        .+ '&#39;'
+        .+ '&nbsp;);'
+        .+  '</div></pre>'
+        /, 'ab initio with highlight on, code is highlighted';
+

@@ -1,7 +1,7 @@
 {
   "name": "Raku::Pod::Render",
   "description": "A generic Pod Renderer for single or multiple files using templates, provides HTML and MarkDown",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "perl": "6.*",
   "auth": "github:finanalyst",
   "depends": [
@@ -34,7 +34,9 @@
     "favicon.ico",
     "camelia-ico.bin",
     "closure-temp.raku",
-    "extra-test.raku"
+    "extra-test.raku",
+    "highlights/highlight-filename-from-stdin.coffee",
+    "highlights/package.json"
   ],
   "support": {
     "source": "https://github.com/finanalyst/raku-pod-render.git",

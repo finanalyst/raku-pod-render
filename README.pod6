@@ -11,6 +11,7 @@ Intended
 =item generate Glossary, TOC and Footnote structures for each set of Pod trees.
 =item can be used to generate HTML and Markdown with raku's --doc flag.
 =item has a GUI for converting one or more Pod6-containing files into MarkDown or HTML.
+=item allows for Raku code to be highlighted at HTML generation time.
 
 The Renderers, eg., Pod::To::HTML, will chose the templating engine depending on the templates provided. So far only
 Template::Mustache and the new RakuClosureTemplates are handled.
@@ -27,6 +28,25 @@ When the list is complete, click on B<Convert>. The converted files will be show
 
 This tool is fairly primitive and it may not handle all error conditions. The tool is intended for generating
 md and html files in an adhoc manner.
+
+=head1 Installation
+
+The best way is to use (unless highlighting is not wanted)
+
+    zef install Raku::Pod::Render
+
+In order to prevent the highlighter (see L<Highlighting> below) use
+
+    RAKU_NO_HIGHLIGHTER=1 zef install Raku::Pod::Render
+
+=head2 Dependencies
+
+The Extractor.raku programme requires GTK::Simple. It is known that this is difficult to install on Windows. However, if
+the GTK library has already been installed on Windows, then GTK::Simple will load with no problem. Look at the GTK website
+for information about Windows installations of GTK.
+
+The highlighter is a Node based toolstack. It requires an uptodate version of npm. The Raku-Pod-Render Build command
+is known not to work with node.js v13.0 while it is known to work with v14.15.
 
 =head1 Page Components
 
@@ -89,6 +109,23 @@ faster than the legacy Pod::To::HTML renderer, whilst achieving considerably mor
 
 A testing tool is included that will test the array of RakuClosureTemplates, including the possibility of
 specifying the structure of a custom template and testing it against the template.
+
+=head1 HTML highlighting
+
+Raku code in HTML can be highlighted when HTML is generated. This requires the atom-perl6-highlighter developed by
+Samantha McVie. In the legacy Pod::To::HTML this is installed separately. This module will automatically install the
+highlighter unless specifically rejected by setting the POD_RENDER_NO_HIGHLIGHTER=1 environment variable.
+
+The Build Module places the highlighter in the users directory at either (in order of preference)
+=item .local/lib/raku-pod-render/highlights
+=item .raku-pod-render/highlights
+
+If the highlighter already exists at one of these locations, further installations of Raku-Pod-Render will not
+rebuild the stack.
+
+This behaviour can be over-riden by
+
+    RAKU_POD_RENDER_FORCE_HIGHLIGHTER_REFRESH zef install Raku::Pod::Render
 
 =head1 More Information
 

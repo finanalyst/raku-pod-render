@@ -109,7 +109,11 @@ $renderer.file-wrap(:output-file<some-useful-name>, :ext<html>);
 
 ```
 # HTML Components: CSS, Classes &amp; Favicon
-A minimal CSS is provided for the default templates and is placed in a <style>...</style> container. This default behaviour can be changed, see below.
+A minimal CSS is provided for the default templates and is placed in a <style>...</style> container. This default behaviour can be changed by
+
+*  Providing custom CSS, Dom classes and Favicon (see below for more detail)
+
+*  Turning on a 'debugging' supershort form by setting `min-top` to `True`, eg. `$render.min-top=True` after the instantiation of a `Pod::Too::HTML` object as given above. Note that this is implemented in the Templates, so if new Templates are provided, imitate the default Templates to get the same behaviour.
 
 In addition to the rendering of containers, extra styling can be achieved by adding classes via configuration parameters. For example `myclass` can be added to a table as follows `=begin table :classes<myclass> `. The CSS to affect the styling needs to be added to a customisable CSS.
 
@@ -199,48 +203,26 @@ Then in the rendering program we need to provide to ProcessedPod the new object 
 
 ```
 # Highlighting
-Generally it is desirable to highlight code contained in `=code ` blocks. Since this is not easily accomplished for the generic situation when there is no information about the environment, eg., using the `--doc=HTML ` compiler option, highlighting is added after the instantiation of the `ProcessedPod` ( `Pod::To::HTML.processor` call).
+Generally it is desirable to highlight code contained in `=code ` blocks. While perhaps this may be done in-Browser, it can be done at HTML generation, via the Templates and a highlighter function.
 
-For example,
+Raku::Ppd::Render by default sets up the atom-highlighter stack (installation dependencies can be found in [README](README.md)).
 
-```
-    use File::Temp;
-    use Pod::To::HTML;
-    my $processor = Pod::To::HTML; #default templates/css
-    my $proc;
-    my $proc-supply;
-    my &highlighter;
+Since highlighting generates considerably more HTML, it is turned off by default, which will affect the `--doc=HTML ` compiler option.
 
-    # set up a highlighter closure
-    # the following uses the coffee set up for the raku.org/docs set up.
-    # the coffee assets are not included in the distribution
-    # the following is for illustration only!!
+Highlighting is handled in the Templates. The default Templates use the atom-highlighter, which is installed with `Raku::Pod::Render` by default.
 
-    $proc = Proc::Async.new('coffee', './highlighting/highlight-filename-from-stdin.coffee', :r, :w);
-    $proc-supply = $proc.stdout.lines;
-    $proc.start unless $proc.started;
-    &highlighter = -> $raku-string {
-        my ($tmp_fname, $tmp_io) = tempfile;
-        $tmp_io.spurt: $raku-string, :close;
-        my $promise = Promise.new;
-        my $tap = $proc-supply.tap( -> $json {
-            my $parsed-json = from-json($json);
-            if $parsed-json<file> eq $tmp_fname {
-                $promise.keep($parsed-json<html>);
-                $tap.close();
-            }
-        } );
-        $proc.say($tmp_fname);
-        await $promise;
-        $promise.result;
-    }
+Highlighting is enabled at the time of HTML generation by setting `$render.highlight-code=True` after `Pod::To::HTML` object instantiation.
 
-    # once the highlighter has been created, attach it to the processor
-    # the closure is called with a string of raku code, which it returns as html code.
-    $processor.highlighter = &highlighter;
+Another highlighter could be attached to a Pod::To::HTML object, in which case the following need to be done:
 
+*  the getter and setter functions of `.highlight-code` need to be over-ridden so as to set up the code, and turn it off
 
-```
+*  a closure needs to be assigned to `.highlight `. The closure should accept a Str and highlight it.
+
+*  the `Pod::To::HTML` object has an attribut `.atom-highlighter` of type `Proc` to hold an external function.
+
+The `atom-highlighter` automatically escapes HTML entities, but so does `GenericPod`. Consequently, if a different highlighter is used for highlighting when HTML is generated, escaping needs to be turned off within GenericPod for Pod::Code blocks. This is the default behaviour. If a different behaviour is required, then `no-code-escape` needs to be set to False.
+
 # Templates
 The default templating system is a hash of Raku closures. More about templates can be found in [RenderPod](RenderPod.md). Another template engine is Template::Mustache. This can be accessed as `use Pod::To::HTML::Mustache`. A minimal default set of templates is provided with the Module.
 
@@ -336,4 +318,4 @@ This module deal with these problems as follows:
 
 
 ----
-Rendered from Pod2HTML at 2020-08-28T23:43:26Z
+Rendered from Pod2HTML at 2021-01-03T23:21:13Z

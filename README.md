@@ -5,6 +5,8 @@
 ----
 ## Table of Contents
 [Extractor GUI](#extractor-gui)  
+[Installation](#installation)  
+[Dependencies](#dependencies)  
 [Page Components](#page-components)  
 [TOC](#toc)  
 [Glossary](#glossary)  
@@ -13,6 +15,7 @@
 [Meta data](#meta-data)  
 [RakuClosureTemplates](#rakuclosuretemplates)  
 [Testing tool](#testing-tool)  
+[HTML highlighting](#html-highlighting)  
 [More Information](#more-information)  
 
 ----
@@ -30,6 +33,8 @@ Intended
 
 *  has a GUI for converting one or more Pod6-containing files into MarkDown or HTML.
 
+*  allows for Raku code to be highlighted at HTML generation time.
+
 The Renderers, eg., Pod::To::HTML, will chose the templating engine depending on the templates provided. So far only Template::Mustache and the new RakuClosureTemplates are handled.
 
 # Extractor GUI
@@ -40,6 +45,22 @@ If a file was selected by mistake, uncheck the 'convert' box on the far left and
 When the list is complete, click on **Convert**. The converted files will be shown, or the failure message.
 
 This tool is fairly primitive and it may not handle all error conditions. The tool is intended for generating md and html files in an adhoc manner.
+
+# Installation
+The best way is to use (unless highlighting is not wanted)
+
+```
+zef install Raku::Pod::Render
+```
+In order to prevent the highlighter (see [Highlighting](Highlighting.md) below) use
+
+```
+RAKU_NO_HIGHLIGHTER=1 zef install Raku::Pod::Render
+```
+## Dependencies
+The Extractor.raku programme requires GTK::Simple. It is known that this is difficult to install on Windows. However, if the GTK library has already been installed on Windows, then GTK::Simple will load with no problem. Look at the GTK website for information about Windows installations of GTK.
+
+The highlighter is a Node based toolstack. It requires an uptodate version of npm. The Raku-Pod-Render Build command is known not to work with node.js v13.0 while it is known to work with v14.15.
 
 # Page Components
 A Pod6 source will generate body text and generate information for TOC, Footnotes, Glossaries, Links and Metadata
@@ -85,6 +106,22 @@ A new templating system is introduced to speed up the rendering. The Pod::To::HT
 ## Testing tool
 A testing tool is included that will test the array of RakuClosureTemplates, including the possibility of specifying the structure of a custom template and testing it against the template.
 
+# HTML highlighting
+Raku code in HTML can be highlighted when HTML is generated. This requires the atom-perl6-highlighter developed by Samantha McVie. In the legacy Pod::To::HTML this is installed separately. This module will automatically install the highlighter unless specifically rejected by setting the POD_RENDER_NO_HIGHLIGHTER=1 environment variable.
+
+The Build Module places the highlighter in the users directory at either (in order of preference)
+
+*  .local/lib/raku-pod-render/highlights
+
+*  .raku-pod-render/highlights
+
+If the highlighter already exists at one of these locations, further installations of Raku-Pod-Render will not rebuild the stack.
+
+This behaviour can be over-riden by
+
+```
+RAKU_POD_RENDER_FORCE_HIGHLIGHTER_REFRESH zef install Raku::Pod::Render
+```
 # More Information
 See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md) for information about the HTML specific module ``Pod::To::HTML``. ``Pod::To::Markdown``, see [MarkDown](MarkDown.md), follows ``Pod::To::HTML`` mostly.
 
@@ -96,4 +133,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2020-08-28T23:46:53Z
+Rendered from README at 2021-01-02T17:52:01Z

@@ -1,5 +1,7 @@
 use v6.d;
 use ProcessedPod;
+use JSON::Fast;
+use File::Temp;
 
 class X::ProcessedPod::HTML::InvalidCSS::NoSpec is Exception {
     method message() {
@@ -32,14 +34,20 @@ our $camelia-ico = %?RESOURCES<camelia-ico.bin>.slurp;
 class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
     # needed for HTML rendering
     has $.def-ext is rw;
-    has Bool $.debug is rw = False;
+    #| When true reduces css, camelia image, favicon to minimum
+    has Bool $.min-top is rw = False;
+    #| A boolean to indicate whether Raku is highlighted when HTML is generated
+    has Bool $!highlight-code = False; # setup custom getter/setter
+    has Proc::Async $!atom-highlighter;
+    has $!highlighter-supply;
+    has Str $!atom-highlights-path;
+    #| A function that takes a Str and applies a highlight to it
+    #| If not Str, then no highlight is applied
+    has &.highlight is rw = -> $frag { $frag }; # default is to return $frag unchanged
 
     # Only needed for legacy P2HTML
     has $.head is rw;
     has $.css is rw;
-    #| a callable (eg. provided by external program) that converts the contents of a code block to highlighted code.
-    #| The callable expected by this module has a single Str Positional argument, and it returns a Str.
-    has &.highlighter is rw;
 
     #| render is a class method that is called by the raku compiler
     method render($pod-tree) {
@@ -56,20 +64,14 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
     }
 
     #| the constructor for this object
-    submethod TWEAK(:$templates, :$css-type, :$css-src, :$css-url, :$favicon-src) {
+    submethod TWEAK(:$templates, :$css-type, :$css-src, :$css-url, :$favicon-src, :$min-top, :$highlight-code ) {
         $!def-ext = 'html';
         $!css = $_ with $css-url;
         my $css-text = $default-css-text;
         my $favicon-bin = $camelia-ico;
         self.custom = <Image>;
         my Bool $templates-needed = True;
-        if $!debug {
-            $camelia-svg = '<camelia />';
-            # much less text for debugging
-            $css-text = '<style>debug</style>';
-            # much less text for debugging
-            $favicon-bin = '<meta>NoIcon</meta>';
-        }
+        self.highlight-code($highlight-code) with $highlight-code;
         with $templates {
             self.templates($templates);
             $templates-needed = False
@@ -101,6 +103,65 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
             $favicon-bin = $favicon-src.IO.slurp
         }
         self.templates(self.html-templates(:$css-text, :$favicon-bin)) if $templates-needed;
+    }
+
+    #| custom getter for atom-highlight
+    multi method highlight-code( --> Bool ) {
+        $!highlight-code
+    }
+
+    #| custom setter/getter for highlight-code to use default highlighter
+    #| highlight sub will return a Str highlighted as if Str contains Raku code
+    #| Uses Samantha McVie's atom-highlighter
+    #| Raku-Pod-Render places this at <user-home>.local/share/raku-pod-render/highlights
+    #| or <user-home>.raku-pod-render/highlights
+    multi method highlight-code( Bool $new-state --> Bool ) {
+        return $new-state if $new-state == $!highlight-code;
+        if $new-state {
+            # Toggle from off to on
+            $!atom-highlights-path = set-highlight-basedir without $!atom-highlights-path;
+            if test-highlighter( $!atom-highlights-path ) {
+                $!highlight-code = True;
+                $!atom-highlighter = Proc::Async.new(
+                        "{ $!atom-highlights-path }/node_modules/coffeescript/bin/coffee",
+                        "{ $!atom-highlights-path }/highlight-filename-from-stdin.coffee", :r, :w)
+                    without $!atom-highlighter;
+                $!highlighter-supply = $!atom-highlighter.stdout.lines
+                    without $!highlighter-supply;
+                # set up the highlighter closure
+                $.no-code-escape = True;
+                &.highlight = -> $frag {
+                    return $frag unless $frag ~~ Str:D;
+                    $!atom-highlighter.start unless $!atom-highlighter.started;
+
+                    my ($tmp_fname, $tmp_io) = tempfile;
+                    # the =comment is needed to trigger the atom highlighter when the code isn't unambiguously Raku
+                    $tmp_io.spurt: "=comment\n\n" ~ $frag, :close;
+                    my $promise = Promise.new;
+                    my $tap = $!highlighter-supply.tap( -> $json {
+                        my $parsed-json = from-json($json);
+                        if $parsed-json<file> eq $tmp_fname {
+                            $promise.keep($parsed-json<html>);
+                            $tap.close();
+                        }
+                    } );
+                    $!atom-highlighter.say($tmp_fname);
+                    await $promise;
+                    # get highlighted text remove raku trigger =comment
+                    $promise.result.subst(/ '<div' ~ '</div>' .+? /,'',:x(2) )
+                }
+            }
+            else { $!highlight-code = False }
+        }
+        else {
+            #toggle from on to off
+            # restore default code
+            &.highlight = -> $frag { $frag };
+            $!highlight-code = False;
+            $.no-code-escape = False;
+        }
+        # return state
+        $!highlight-code
     }
 
     #| The Pod::To::HTML version, which uses css
@@ -137,20 +198,29 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
                 else { '' }
             },
             'raw' => sub ( %prm, %tml ) { (%prm<contents> // '') },
-            'camelia-img' => sub ( %prm, %tml ) { $camelia-svg },
-            'css-text' => sub ( %prm, %tml ) { $css-text },
-            'favicon' => sub ( %prm, %tml ) { '<link href="data:image/x-icon;base64,' ~ $favicon-bin ~ '" rel="icon" type="image/x-icon" />' },
+            'camelia-img' => sub ( %prm, %tml ) {
+                if $.min-top { '<camelia />' }
+                else { $camelia-svg }
+            },
+            'css-text' => sub ( %prm, %tml ) {
+                if $.min-top { '<style>debug</style>' }
+                else { $css-text }
+            },
+            'favicon' => sub ( %prm, %tml ) {
+                if $.min-top { '<meta>NoIcon</meta>' }
+                else { '<link href="data:image/x-icon;base64,' ~ $favicon-bin ~ '" rel="icon" type="image/x-icon" />' }
+            },
             'block-code' => sub ( %prm, %tml ) {
                 my $contents = %prm<contents>;
-                with $.highlighter {
-                    # if highlighter returns an empty string or is undefined, restore original version
-                    my $t = $contents;
-                    $contents = $_($contents);
-                    $contents = $t unless $contents
-                };
-                '<pre class="pod-block-code">'
-                        ~ ($contents // '')
-                        ~ '</pre>'
+                if $.highlight-code {
+                    # a highlighter will add its own classes to the <pre> container
+                    $.highlight.( $contents )
+                }
+                else {
+                    '<pre class="pod-block-code">'
+                            ~ ($contents // '')
+                            ~ '</pre>'
+                }
             },
             'comment' => sub ( %prm, %tml ) { '<!-- ' ~ (%prm<contents> // '') ~ ' -->' },
             'declarator' => sub ( %prm, %tml ) {
@@ -377,6 +447,17 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
             },
         )
     }
+    sub set-highlight-basedir( --> Str ) {
+        my $basedir = $*HOME;
+        my $hilite-path = "$basedir/.local/lib".IO.d
+                ?? "$basedir/.local/lib/raku-pod-render/highlights".IO.mkdir
+                !! "$basedir/.raku-pod-render/highlights".IO.mkdir;
+        exit 1 unless ~$hilite-path;
+        ~$hilite-path
+    }
+    sub test-highlighter( Str $hilite-path --> Bool ) {
+        ?("$hilite-path/package-lock.json".IO.f and "$hilite-path/atom-language-perl6".IO.d)
+    }
 }
 
 class Pod::To::HTML::Mustache:auth<github:finanalyst> is Pod::To::HTML:auth<github:finanalyst> {
@@ -392,15 +473,23 @@ class Pod::To::HTML::Mustache:auth<github:finanalyst> is Pod::To::HTML:auth<gith
             # note that verbatim V<> does not have its own format because it affects what is inside it (see POD documentation)
             :escaped('{{ contents }}'),
             :raw('{{{ contents }}}'),
-            'block-code' => q:to/TEMPL/,
-                <pre class="pod-block-code">
-                {{{ contents }}}</pre>
-                TEMPL
+            'block-code' => -> %params {
+                my $contents = %params<contents>;
+                if $.highlight-code {
+                    # a highlighter will add its own classes to the <pre> container
+                    $.highlight.( $contents )
+                }
+                else {
+                    '<pre class="pod-block-code">'
+                            ~ ($contents // '')
+                            ~ '</pre>'
+                }
+            },
             'comment' => '<!-- {{{ contents }}} -->',
             'declarator' => '<a name="{{ target }}"></a><article><code class="pod-code-inline">{{{ code }}}</code>{{{ contents }}}</article>',
             'dlist-start' => "<dl>\n",
             'defn' => '<dt>{{ term }}</dt><dd>{{{ contents }}}</dd>',
-            'dlist-end' => "\n</dl>",
+            'dlist-end' => "\n</dl>\n",
             'format-b' => '<strong>{{{ contents }}}</strong>',
             'format-c' => '<code>{{{ contents }}}</code>
             ',
@@ -527,31 +616,10 @@ class Pod::To::HTML::Mustache:auth<github:finanalyst> is Pod::To::HTML:auth<gith
     }
 }
 
-# The legacy Pod::To::HTML module assumes a different highlighting callback to this module
-# which makes fewer demands on the callback, therefore making it more generic.
-# So the process of getting a rendering processor needs to be different from the
-# one in the methods above.
-
-# Legacy P2H highlighter is expected to be a callback, which is
-# a sub expecting :node, which should have a method .contents, and :default
-# which uses the value of node.contents to generate a string.
-
-class Pseudo {
-    has $.contents
-};
+# All of the code below is solely to pass the legacy tests.
 
 sub get-processor {
     my $proc = Pod::To::HTML.new;
-    if %*POD2HTML-CALLBACKS and %*POD2HTML-CALLBACKS<code>.defined {
-        $proc.highlighter = sub ($contents) {
-            my $node = Pseudo.new(:$contents);
-            if %*POD2HTML-CALLBACKS<code> -> &cb {
-                cb :$node, default => sub ($node) {
-                    $node.contents
-                }
-            }
-        }
-    }
     $proc.css = 'assets/pod.css';
     $proc
 }

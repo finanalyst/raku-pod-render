@@ -84,7 +84,7 @@ method md-templates {
         'format-x' => '{{{ text }}} ',
         'heading' => -> %params { '#' x %params<level> ~ ' {{ text }}{{> nl}}' } ,
         'item' => ' {{{ contents }}}',
-        'list' => '{{# items }}* {{{ . }}}{{/ items}}',
+        'list' => -> %params {'{{# items }}' ~ "\t" x %params<nesting> ~ '* {{{ . }}}{{/ items}}'},
         'named' =>  -> %params { '#' x %params<level> ~ ' {{ name }}{{> nl2 }}{{{ contents }}}' } ,
         'pod' => '{{> section }}',
         'notimplemented' => '*{{{ contents }}}*',

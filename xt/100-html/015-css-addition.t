@@ -6,7 +6,7 @@ my $processor;
 plan 12;
 
 =begin pod
-    Some pod
+Some pod
 =end pod
 
 throws-like { $processor = Pod::To::HTML.new(:css-type<link>) },
