@@ -10,7 +10,7 @@ sub set-highlight-basedir( --> Str ) {
     ~$hilite-path
 }
 sub test-highlighter( Str $hilite-path --> Bool ) {
-    "$hilite-path/package-lock.json".IO.f and "$hilite-path/atom-language-perl6/package-lock.json"
+    ?( "$hilite-path/package-lock.json".IO.f and "$hilite-path/atom-language-perl6".IO.d )
 }
 
 method build($dist-path) {
@@ -22,7 +22,9 @@ method build($dist-path) {
     my $npm-run = run 'npm', '-v', :out;
     my $npm-return = $npm-run.out.get;
     if $npm-return {
-        note "using npm version $npm-return  Problems may occur for npm < 14";
+        my $node-run = run 'node', '-v', :out;
+        my $node-v = ~$node-run.out.slurp(:close).comb(/ \d+ /)[0];
+        note "Using npm version $npm-return and node $node-v." ~ ( $node-v <  14 ?? "Problems may occur for node < 14" !! '');
     }
     else {
         note "'npm' was not detected using 'npm -v'. 'npm' is needed to set up the highlighting stack.";
@@ -32,7 +34,7 @@ method build($dist-path) {
     if test-highlighter( $hilite-path ) {
         unless %*ENV<POD_RENDER_FORCE_HIGHLIGHTER_REFRESH> {
             # it already exists, and refresh is not forced
-            note "Highlighter already exists at $hilite-path, set env POD_RENDER_FORCE_HIGHLIGHTER_REFRESH to reinstall";
+            note "Highlighter already exists at $hilite-path.\nSet env POD_RENDER_FORCE_HIGHLIGHTER_REFRESH to reinstall";
             exit 0
         }
     }
