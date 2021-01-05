@@ -2,7 +2,7 @@ use v6.*;
 use Test;
 
 use Pod::To::HTML;
-my $processor = Pod::To::HTML.new;
+my $processor = Pod::To::HTML.new(:min-top);
 my $rv;
 my $pn = 0;
 
@@ -46,17 +46,7 @@ $rv = $processor.render-glossary
         .subst(/\s+/,' ',:g).trim;
 
 like $rv, /
-    '<table id="Glossary">'
-    \s* '<caption>Glossary</caption>'
-    \s* '<tr><th>Term</th><th>Section Location</th></tr>'
-    \s* '<tr class="glossary-defn-row">'
-    \s*     '<td class="glossary-defn">X format</td><td></td></tr>'
-    \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#index-entry-X_format">' .+ '</a></td></tr>'
-    \s* '<tr class="glossary-defn-row">'
-    \s*     '<td class="glossary-defn">an item</td><td></td></tr>'
-    \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#index-entry-an_item">' .+ '</a></td></tr>'
-    \s*         '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#index-entry-an_item_0">' .+ '</a></td></tr>'
-    \s* '</table>'
+    '<' .+? 'id="Glossary"' .+? '>'
     /, 'glossary rendered later';
 
 $processor.no-glossary = True;
@@ -64,7 +54,7 @@ $rv = $processor.render-glossary
         .subst(/\s+/,' ',:g).trim;
 
 unlike $rv, /
-    '<table id="Glossary">'
+    '<' .+? 'id="Glossary"' .+? '>'
     /, 'No glossary is rendered';
 
 =begin pod
@@ -104,24 +94,24 @@ like $rv,
 $rv = $processor.render-glossary;
 
 like $rv, /
-    '<tr class="glossary-defn-row">' \s* '<td class="glossary-defn">Define an item</td><td></td>'
+    'class="glossary-defn"' .+? 'Define an item'
     /, 'glossary contains the right entry text';
 
 like $rv, /
-    '<td class="glossary-defn">defining</td><td></td>' .* '<td></td><td class="glossary-place">' .+? 'a term' .+? '</td>'
+    'class="glossary-defn"' .+? 'defining' .+? 'class="glossary-place"' .+? 'a term'
     /, 'glossary contains hierarchy';
 
 like $rv, /
-    '<td class="glossary-defn">Same</td><td></td>'
+    'class="glossary-defn"' .+? 'Same'
     /, 'glossary contains Same';
 
 like $rv, /
-    '<td class="glossary-defn">Place</td><td></td>'
+    'class="glossary-defn"' .+? 'Place'
     /, 'glossary contains Place';
 
 like $rv, /
-    '<td class="glossary-defn">an entry can exist</td><td></td>'
+    'class="glossary-defn"' .+? 'an entry can exist'
     /, 'glossary contains entry of zero text marker';
-$rv ~~ /  [ '<td class="glossary-defn">' ~ '</td>'  $<es> =(.+?)  .*? ]* $ /;
+$rv ~~ /  [ 'class="glossary-defn">' ~ '</'  $<es> =(.+?)  .*? ]* $ /;
 
-is-deeply $<es>>>.Str, ['Define an item','Place','Same','an entry can exist','defining'], 'Entries match, nothing for the X<>';
+is-deeply $<es>>>.Str, ['Term explained','Define an item','Place','Same','an entry can exist','defining'], 'Entries match, nothing for the X<>';

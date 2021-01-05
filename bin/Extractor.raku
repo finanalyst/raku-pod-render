@@ -67,17 +67,15 @@ multi sub MAIN() {
 
     # ==Action when a file is added =================================
     # defined here so its in lexical scope and no need to pass lots of params.
-    sub add-to-files($fn) {
+    sub add-to-files($fn, $highlight-code) {
         state $grid-line = 0;
         my $io = $fn.IO;
         my $oname = $io.basename.substr(0,*-(+$io.extension.chars+1));
         my %record = convert => True,
                      path => $io.dirname,
                      name => $io.basename,
-                     md => True,
-                     html => False,
-                     hilite => False,
-                     nocss => True,
+                     md => ! $highlight-code,
+                     html => $highlight-code,
                      :$oname;
         $files-box.attach(
             [0, ++ $grid-line , 1, 1] => my $cnv = GTK::Simple::CheckButton.new(:label('')),
@@ -104,7 +102,7 @@ multi sub MAIN() {
 
     $file-chooser-button.file-set.tap: {
         $action.sensitive = True;
-        add-to-files($file-chooser-button.file-name);
+        add-to-files($file-chooser-button.file-name, $highlight-code);
     }
     $cancel.clicked.tap: -> $b { $app.exit };
     $action.sensitive = False;

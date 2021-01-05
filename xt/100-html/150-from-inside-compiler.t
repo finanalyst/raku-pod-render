@@ -6,14 +6,12 @@ if ! No_SHELL_TEST {
     plan 15;
     diag 'PODRENDER unset';
     my $p = run 'raku', '-Ilib', '--doc=HTML', 'xt/rend-test-file.raku', :out;
-    my $rv = $p.out.slurp.subst(/\s+/,' ',:g).trim;;
-    $p.out.close;
+    my $rv = $p.out.slurp(:close);
 
     like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'Pod::To::HTML works with compiler';
 
     like $rv, /
-        '<table id="Glossary">'
-        \s* '<caption>Glossary</caption>'
+        'id="Glossary"'
         /, 'glossary is rendered';
 
     like $rv, /
@@ -23,38 +21,22 @@ if ! No_SHELL_TEST {
 
     like $rv,
         /
-        '<table id="TOC">'
-                \s* '<caption>Table of Contents</caption>'
-                \s* '<tr class="toc-level-2">'
-                \s* '<td class="toc-text">'
-                \s* '<a href="#This_is_a_heading">'
-                .+ 'This is a heading</a>'
-                \s* '</td>'
-                \s* '</tr>'
-                \s* '</table>'
+        'id="TOC"'
         /
         , 'rendered TOC';
 
     like $rv, /
-        '<div class="footnotes">'
-        \s* '<ol>'
-        \s* '<li id="fn' .+ '">A footnote<a class="footnote" href="#fnret' .+ '"> « Back »</a></li>'
-        \s* '<li' .+ '>next to a word<a'
-        .+
-        '</ol>'
-        \s* '</div>'
+        'id="Footnotes"'
         /, 'footnotes rendered';
 
     diag 'PODRENDER="no-toc"';
     $p = shell 'PODRENDER="no-toc" raku -Ilib --doc=HTML xt/rend-test-file.raku', :out;
-    $rv = $p.out.slurp.subst(/\s+/,' ',:g).trim;;
-    $p.out.close;
+    $rv = $p.out.slurp(:close);
 
     like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'Pod::To::HTML works with compiler';
 
     like $rv, /
-        '<table id="Glossary">'
-        \s* '<caption>Glossary</caption>'
+        'id="Glossary"'
         /, 'glossary is rendered';
 
     like $rv, /
@@ -64,32 +46,22 @@ if ! No_SHELL_TEST {
 
     unlike $rv,
         /
-        '<table id="TOC">'
-                \s* '<caption>'
-                \s* '<h2 id="TOC_Title">Table of Contents</h2></caption>'
+        'id="TOC"'
         /
         , 'not rendered TOC';
 
     like $rv, /
-        '<div class="footnotes">'
-        \s* '<ol>'
-        \s* '<li id="fn' .+ '">A footnote<a class="footnote" href="#fnret' .+ '"> « Back »</a></li>'
-        \s* '<li' .+ '>next to a word<a'
-        .+
-        '</ol>'
-        \s* '</div>'
+        'id="Footnotes"'
         /, 'footnotes rendered';
 
     diag 'PODRENDER="no-toc no-glos"';
     $p = shell 'PODRENDER="no-toc no-glos" raku -Ilib --doc=HTML xt/rend-test-file.raku', :out;
-    $rv = $p.out.slurp.subst(/\s+/,' ',:g).trim;;
-    $p.out.close;
+    $rv = $p.out.slurp(:close);
 
     like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'Pod::To::HTML works with compiler';
 
     unlike $rv, /
-        '<table id="Glossary">'
-            \s* '<caption>Glossary</caption>'
+        'id="Glossary"'
             /, 'glossary not rendered';
 
     like $rv, /
@@ -99,20 +71,12 @@ if ! No_SHELL_TEST {
 
     unlike $rv,
             /
-            '<table id="TOC">'
-                    \s* '<caption>'
-                    \s* 'Table of Contents/caption>'
+            'id="TOC"'
             /
             , 'not rendered TOC';
 
     like $rv, /
-        '<div class="footnotes">'
-            \s* '<ol>'
-            \s* '<li id="fn' .+ '">A footnote<a class="footnote" href="#fnret' .+ '"> « Back »</a></li>'
-            \s* '<li' .+ '>next to a word<a'
-            .+
-            '</ol>'
-            \s* '</div>'
+        'id="Footnotes"'
             /, 'footnotes rendered';
 }
 else

@@ -332,6 +332,7 @@ class GenericPod {
     }
 
     #| deletes any previously processed pod, keeping the template engine cache
+    #| does not change flags relating to highlighting
     method emit-and-renew-processed-state(--> Hash) {
         self.render-structures;
         my %h =
@@ -339,7 +340,6 @@ class GenericPod {
             :$!title,
             :$!title-target,
             :$!subtitle,
-            :$!no-code-escape,
             :$!metadata,
             :$!toc,
             :$!glossary,
@@ -359,7 +359,6 @@ class GenericPod {
         $!title = Nil;
         $!title-target = Nil;
         $!subtitle = Nil;
-        $!no-code-escape = Nil;
         $!metadata = Nil;
         $!toc = Nil;
         $!glossary = Nil;
@@ -418,8 +417,6 @@ class GenericPod {
         # if no headers in pod, then no need to include a TOC
         return '' if (!?@!raw-toc or $.no-toc);
         my @filtered = @!raw-toc.grep({ !(.<is-title>) });
-        @filtered.map({ .<counter>.subst-mutate(/\./, $.counter-separator, :g) }) if $.counter-separator ne '.';
-        @filtered.map({ .<counter>:delete }) if $.no-counters;
         self.rendition('toc', %( :toc([@filtered])));
     }
 
@@ -449,15 +446,9 @@ class GenericPod {
     #| registers a header or title in the toc structure
     #| is-title is true for TITLE and SUBTITLE blocks, false otherwise
     method register-toc(:$level!, :$text!, Bool :$is-title = False --> Str) {
-        my $counter = '';
-        unless $is-title or $.no-counters {
-            @!counters[$level - 1]++;
-            @!counters.splice($level);
-            $counter = @!counters>>.Str.join: $.counter-separator;
-        }
         my $target = self.rewrite-target($text, :unique($is-title));
         # if a title (TITLE) then it must be unique
-        @!raw-toc.push: %( :$level, :$text, :$target, :$is-title, :$counter);
+        @!raw-toc.push: %( :$level, :$text, :$target, :$is-title );
         $target
     }
 

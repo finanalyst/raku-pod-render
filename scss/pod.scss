@@ -1,27 +1,57 @@
-@import 'style';
+@import 'highlights';
+
+.pod {
+    padding: 0;
+    margin: 0;
+}
+.pod-content    {
+    border: #F2C100 0.2em solid;
+    margin: 1em;
+    padding: 2em;
+    border-radius: 1em;
+    box-shadow: 0.5em 0.5em 1em #888888;
+    dt {
+        font-weight: bold;
+        margin-bottom: 0.2em;
+    }
+    dd {
+        margin-bottom: 1em;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        a {
+            color: black;
+        }
+    }
+    h1 {
+        padding-top: 0.25em;
+    }
+}
+.pod-table tr:nth-child(odd) {
+    background-color: rgba(0, 0, 0, 0.031373);
+}
 
 header {
-  text-align: center;
-  position: sticky;
-  top:0;
-  left: 0;
-  width: 100%;
-  font-family: sans-serif;
-  font-weight: bold;
-  border-radius: 0 0 1em 1em;
-  margin: 0 0 1em 0;
-  padding: 0.5em 0em 0.5em 0em;
-  line-height: 2em;
-  overflow: hidden;
-  border-top: none;
-  font-size: x-large;
-  background: #e6dbd0bd;
-  z-index: 10;
-  #Camelia_bug {
+    text-align: center;
+    position: sticky;
+    top:0;
+    left: 0;
+    width: 100%;
+    font-family: sans-serif;
+    font-weight: bold;
+    border-radius: 0 0 1em 1em;
+    margin: 0 0 1em 0;
+    padding: 0.5em 0em 0.5em 0em;
+    line-height: 0.75em;
+    overflow: hidden;
+    border-top: none;
+    font-size: x-large;
+    background: #e6dbd0bd;
+    z-index: 10;
+    #Camelia_bug {
       width: 100px;
       height: 48px;
       float: left
-  }
+    }
 }
 kbd {
     font-family: "Droid Sans Mono", "Luxi Mono", "Inconsolata", monospace;
@@ -32,125 +62,138 @@ samp {
 u {
     text-decoration: none;
 }
-.nested {
-    margin-left: 3em;
+a {
+    text-decoration: none;
 }
-.glossary-entry {
+
+pre {
+    background-color: rgba(120, 60, 0, 0.045);
+    border: 1px solid #CFCFCF;
+    padding: 0.6ex;
+    color: black;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-all; }
+
+nav {
+    display: grid;
+    grid-gap: 0.75em;
+    width: 25vw;
+    padding: 0.75em;
+    border-radius: 1em;
+    background-color: #bbb7b245;
+    float: left;
+    margin: 0 0.75em 0.7em 0;
+}
+#TOC {
+    grid-row: 1;
+}
+#Glossary {
+    grid-row: 2;
+}
+
+.glossary {
+    display: grid;
+    grid-template-columns: 10% 80% 10%;
+    border-radius: inherit;
+    padding: 15px;
+    background-color: inherit;
+    > * > a {
+        text-decoration: none;
+        color: navy;
+    }
+}
+.glossary-caption {
+    grid-column: 1 / span 3;
+    justify-self: center;
+    font-size:120%;
+    font-weight: bold;
+}
+.glossary-defn {
+    grid-column: 1 / span 2;
+    font-size:11pt;
+    line-height: 1.1;
+    margin-top: 0.4em;
     color: brown;
-    background-color: #c3d92b3d;
-    border-radius: 5px;
+    &.header {
+        font-weight: bold;
+    }
 }
-
-
-footer.pretty-box {
- padding:5px;
- text-align:center;
- font-size:80%;
- margin:0 auto 20px;
- p {
-    margin:3px 0;
- }
+.glossary-place {
+    grid-column: 2 / span 2;
+    line-height: 1.1;
+    &.header {
+        font-weight: bold;
+        color: navy;
+    }
 }
-.toc-glossary {
- float: left;
-}
-table#TOC {
- border-collapse:collapse;
- margin:0 0 0 12pt;
- caption {
-     text-align:left;
-     font-size:120%;
-     font-weight: bold;
+#TOC {
+    border-collapse: collapse;
+    border-radius: inherit;
+    background-color: inherit;
+    padding: 15px;
+    color: black;
+    caption {
+        text-align: center;
+        font-size: 120%;
+        font-weight: bold;
     }
     tr {
-     background-color:transparent;
-    }
-    td {
-         padding:0.25pt 5pt 0 0;
-         font-size:11pt;
-    }
-    tr.toc-level-1:first-child td {
-        padding-top:0;
-    }
-    td.toc-text {
-         position:relative;
-         left:6pt;
-    }
-    tr.toc-level-1 td {
-         padding-top:4pt;
-         font-weight:bold;
-    }
-    tr.toc-level-1 td.toc-text {
-         position:relative;
-         left:0;
-    }
-    tr.toc-level-2 td {
-        padding-top:3pt;
-    }
-    tr.toc-level-3 td {
-         padding-top:2pt;
-         font-size:0.9em;
-    }
-    tr.toc-level-3 td.toc-text {
-     padding-left:12px;
-    }
-    tr.toc-level-4 td {
-         padding-top:2pt;
-         font-size:0.8em;
-    }
-    tr.toc-level-4 td.toc-text {
-     padding-left:16px;
-    }
-    td.toc-number {
-        display:none;
-    }
-    code {
-     color:black;
+        padding: 0.25pt 5pt 0 0;
+        font-size: 11pt;
+        td a {
+            text-decoration: none;
+            color: navy;
+        }
+        &.toc-level-1 td {
+            padding-top: 4pt;
+            font-weight: bold;
+            position: relative;
+            left: 0;
+            &:first-child td {
+                padding-top: 0;
+            }
+        }
+        &.toc-level-2 td {
+            padding-top: 3pt;
+            position: relative;
+            left: 6px;
+        }
+        &.toc-level-3 td {
+            padding-top: 2pt;
+            font-size: 0.9em;
+            position: relative;
+            left: 8px;
+        }
+        &.toc-level-4 td {
+            padding-top: 2pt;
+            font-size: 0.8em;
+            position: relative;
+            left: 10px;
+        }
     }
 }
-
-table#Glossary {
- border-collapse:collapse;
- margin:40px 0 0 12pt;
- caption {
-         text-align:left;
-         font-size:120%;
-         font-weight: bold;
-    }
-    tr {
-        background-color:transparent
-    }
-    td {
-         padding:0.25pt 5pt 0 0;
-         font-size:11pt
-    }
-    th {
-        text-align: left;
-        padding: 0 0 0 10px;
-    }
+.subtitle {
+    font-style: italic;
+    text-align: center;
 }
-@media (max-width: 560px) {
- table#TOC tr[class^=toc-level] td {
-  padding:8px 0;
- }
- table#TOC tr.toc-level-1 td {
-  padding-top:18px;
- }
-}
-
 footer {
-  display: flex;
-  align-content: space-between;
-  padding: 30px;
-  background-color: #e6dbd0;
-  justify-content: space-evenly;
-  font-size: medium;
-  border-radius: 10px;
-  .path {
-    color: red;
-  }
-  .time {
-    color: #3800ff;
-  }
-}
+    padding: 5px;
+    text-align: center;
+    font-size: 80%;
+    margin: 0 1em 1em;
+    border-color: #F2C100;
+    background-color: #F5EF7B;
+    border-radius: 1em;
+    border-style: solid;
+    box-shadow: 0.5em 0.5em 1em #888888
 
+    p {
+        margin: 3px 0;
+    }
+}
+.footnptes {
+    border-style: solid;
+    border-color: blue;
+    border-radius: 1em;
+}

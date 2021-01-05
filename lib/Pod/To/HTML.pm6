@@ -330,6 +330,12 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
                         ~ "\t</tbody>\n"
                         ~ "</table>\n"
             },
+            'top-of-page' => sub ( %prm, %tml ) {
+                if %prm<title-target>:exists and %prm<title-target> ne '' {
+                    '<div id="' ~ %tml<escaped>(%prm<title-target>) ~ '"></div>'
+                }
+                else { '' }
+            },
             'title' => sub ( %prm, %tml) {
                 if %prm<title>:exists and %prm<title> ne '' {
                     '<h1 class="title"'
@@ -350,21 +356,24 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
                         ~ %tml<head-block>(%prm, %tml)
                         ~ "\t<body class=\"pod\">\n"
                         ~ %tml<header>(%prm, %tml)
-                        ~ (( %prm<toc>.defined or %prm<glossary>.defined ) ?? '<div class="toc-glossary">' !! '')
+                        ~ '<div class="pod-content">'
+                        ~ (( %prm<toc>.defined or %prm<glossary>.defined ) ?? '<nav>' !! '')
                         ~ (%prm<toc> // '')
                         ~ (%prm<glossary> // '')
-                        ~ (( %prm<toc>.defined or %prm<glossary>.defined ) ?? '</div>' !! '')
+                        ~ (( %prm<toc>.defined or %prm<glossary>.defined ) ?? '</nav>' !! '')
+                        ~ %tml<top-of-page>(%prm, %tml)
                         ~ %tml<subtitle>(%prm, %tml)
                         ~ '<div class="pod-body' ~ (( %prm<toc>.defined and %prm<toc> ne '' ) ?? '' !! ' no-toc') ~ '">'
                         ~ (%prm<body> // '')
                         ~ "\t\t</div>\n"
                         ~ (%prm<footnotes> // '')
+                        ~ '</div>'
                         ~ %tml<footer>(%prm, %tml)
                         ~ "\n\t</body>\n</html>\n"
             },
             'footnotes' => sub ( %prm, %tml ) {
                 with %prm<notes> {
-                    "<div class=\"footnotes\">\n<ol>"
+                    "<div id=\"Footnotes\" class=\"footnotes\">\n<ol>"
                             ~ [~] .map({ '<li id="' ~ %tml<escaped>($_<fnTarget>) ~ '">'
                             ~ ($_<text> // '')
                             ~ '<a class="footnote" href="#'
@@ -376,26 +385,28 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
                 else { '' }
             },
             'glossary' => sub ( %prm, %tml ) {
-                if %prm<glossary>.defined {
-                    "<table id=\"Glossary\">\n<caption>Glossary</caption>\n<tr><th>Term</th><th>Section Location</th></tr>\n"
-                            ~ [~] %prm<glossary>.map({ "<tr class=\"glossary-defn-row\">\n"
-                            ~ '<td class="glossary-defn">'
-                            ~ ($_<text> // '')
-                            ~ "</td><td></td></tr>\n"
-                            ~ [~] $_<refs>.map({
-                                '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#'
-                                        ~ %tml<escaped>($_<target>)
-                                        ~ '">'
-                                        ~ ($_<place>.defined ?? $_<place> !! '')
-                                        ~ "</a></td></tr>\n"
-                            })
-                    })
-                            ~ "\n</table>\n"
+                with %prm<glossary> {
+                    '<div id="Glossary" class="glossary">' ~ "\n"
+                            ~ '<div class="glossary-caption">Glossary</div>' ~ "\n"
+                            ~ '<div class="glossary-defn header">Term explained</div><div class="header glossary-place">In section</div>'
+                            ~ [~] %prm<glossary>.map({
+                                '<div class="glossary-defn">'
+                                ~ ($_<text> // '')
+                                ~ '</div>'
+                                ~ [~] $_<refs>.map({
+                                    '<div class="glossary-place"><a href="#'
+                                            ~ %tml<escaped>($_<target>)
+                                            ~ '">'
+                                            ~ ($_<place>.defined ?? $_<place> !! '')
+                                            ~ "</a></div>\n"
+                                })
+                        })
+                            ~ "</div>\n"
                 }
                 else { '' }
             },
             'meta' => sub ( %prm, %tml ) {
-                if %prm<meta>.defined {
+                with %prm<meta> {
                     [~] %prm<meta>.map({
                         '<meta name="' ~ %tml<escaped>( .<name> )
                                 ~ '" value="' ~ %tml<escaped>( .<value> )
@@ -405,18 +416,17 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
                 else { '' }
             },
             'toc' => sub ( %prm, %tml ) {
-                if %prm<toc>.defined {
-                    "<table id=\"TOC\">\n<caption>Table of Contents</caption>\n"
+                with %prm<toc> {
+                    "<div id=\"TOC\"><table>\n<caption>Table of Contents</caption>\n"
                             ~ [~] %prm<toc>.map({
                         '<tr class="toc-level-' ~ .<level> ~ '">'
                                 ~ '<td class="toc-text"><a href="#'
                                 ~ %tml<escaped>( .<target> )
                                 ~ '">'
-                                ~ ( $_<counter>.defined ?? ('<span class="toc-counter">' ~ %tml<escaped>( .<counter> ) ~ '</span>') !! '' )
-                                ~ ' ' ~ %tml<escaped>(  $_<text> // '' )
+                                ~ %tml<escaped>(  $_<text> // '' )
                                 ~ "</a></td></tr>\n"
                     })
-                            ~ "</table>\n"
+                            ~ "</table></div>\n"
                 }
                 else { '' }
             },
@@ -434,7 +444,7 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
                         ~ "\</head>\n"
             },
             'header' => sub ( %prm,%tml) {
-                '<header>' ~ %tml<camelia-img>(%prm, %tml) ~ %tml<title>(%prm, %tml) ~ '</header>'
+                '<header>' ~ %tml<camelia-img>(%prm, %tml) ~ '<h1 class="title">' ~ %prm<title> ~ '</h1></header>'
             },
             'footer' => sub ( %prm, %tml ) {
                 '<footer><div>Rendered from <span class="path">'

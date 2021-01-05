@@ -2,11 +2,11 @@ use v6.*;
 use Test;
 
 use Pod::To::HTML;
-my $processor = Pod::To::HTML.new;
+my $processor = Pod::To::HTML.new(:min-top);
 my $rv;
 my $pn = 0;
 
-plan 10;
+plan 8;
 
 =begin pod
 =TITLE This is a title
@@ -19,7 +19,7 @@ $rv = $processor.render-block( $=pod[$pn++] );
 
 unlike $rv,
         /
-        '<h1 class="title" id="This_is_a_title">This is a title</h1>'
+        'class="title"' .+? 'This is a title'
         /,
         'default html templates do not include title or subtitle with body';
 
@@ -27,7 +27,7 @@ $rv = $processor.source-wrap;
 like $rv,
         /
         '<header>'
-        .+  '<h1 class="title" id="This_is_a_title">This is a title</h1>'
+        .+  'class="title"' .+? 'This is a title'
         .* '</header>'
         .+ '<p>Some text</p>'
         /,
@@ -70,63 +70,15 @@ like $rv, /
 
 like $rv,
         /
-        '<table id="TOC">'
-        \s* '<caption>Table of Contents</caption>'
-        \s* '<tr class="toc-level-2">'
-        \s* '<td class="toc-text"><a href="#This_is_a_heading"><span class="toc-counter">0.1</span> This is a heading</a></td>'
-        \s* '</tr>'
-        \s* '<tr class="toc-level-1">'
-        \s* '<td class="toc-text"><a href="#An_upper_heading_after_a_second_level_one">'
-        '<span class="toc-counter">1</span> An upper heading after a second level one</a></td>'
-        \s* '</tr>'
-        \s* '<tr class="toc-level-2">'
-        \s* '<td class="toc-text"><a href="#A_lower_heading_within_upper_one">'
-        \s* '<span class="toc-counter">1.1</span> A lower heading within upper one</a>'
-        \s* '</td>'
-        \s* '</tr>'
-        \s* '</table>'
+        'id="TOC"'
         /
         , 'rendered TOC';
-$processor.counter-separator = '|';
-$rv = $processor.render-toc;
-
-like $rv,
-        /
-        '<table id="TOC">'
-        \s* '<caption>Table of Contents</caption>'
-        \s* '<tr class="toc-level-2">'
-        \s* '<td class="toc-text"><a href="#This_is_a_heading"><span class="toc-counter">0|1</span> This is a heading</a></td>'
-        /
-        , 'TOC has new heading separator';
-
-$processor.no-counters = True;
-$rv = $processor.render-toc;
-
-like $rv,
-        /
-        '<table id="TOC">'
-        \s* '<caption>Table of Contents</caption>'
-        \s* '<tr class="toc-level-2">'
-        \s* '<td class="toc-text"><a href="#This_is_a_heading"> This is a heading</a></td>'
-        \s* '</tr>'
-        \s* '<tr class="toc-level-1">'
-        \s* '<td class="toc-text"><a href="#An_upper_heading_after_a_second_level_one">'
-        \s* 'An upper heading after a second level one</a></td>'
-        \s* '</tr>'
-        \s* '<tr class="toc-level-2">'
-        \s* '<td class="toc-text"><a href="#A_lower_heading_within_upper_one">'
-        \s* 'A lower heading within upper one</a>'
-        \s* '</td>'
-        \s* '</tr>'
-        \s* '</table>'
-        /
-        , 'TOC has no Heading counters';
 
 $processor.no-toc = True;
 $rv = $processor.render-toc;
 unlike $rv,
         /
-        '<table id="TOC">'
+        'id="TOC"'
         /, 'TOC not rendered';
 
 =begin pod
