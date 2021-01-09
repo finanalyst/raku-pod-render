@@ -230,7 +230,7 @@ These must be the same name. Thus we would have:
 Generally it is desirable to highlight code contained in C< =code > blocks. While perhaps this may be done in-Browser,
 it can be done at HTML generation, via the Templates and a highlighter function.
 
-Raku::Ppd::Render by default sets up the atom-highlighter stack (installation dependencies can be found in L<README>).
+Raku::Pod::Render by default sets up the atom-highlighter stack (installation dependencies can be found in L<README>).
 
 Since highlighting generates considerably more HTML, it is turned off by default, which will affect the C< --doc=HTML > compiler option.
 

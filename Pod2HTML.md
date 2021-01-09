@@ -205,7 +205,7 @@ Then in the rendering program we need to provide to ProcessedPod the new object 
 # Highlighting
 Generally it is desirable to highlight code contained in `=code ` blocks. While perhaps this may be done in-Browser, it can be done at HTML generation, via the Templates and a highlighter function.
 
-Raku::Ppd::Render by default sets up the atom-highlighter stack (installation dependencies can be found in [README](README.md)).
+Raku::Pod::Render by default sets up the atom-highlighter stack (installation dependencies can be found in [README](README.md)).
 
 Since highlighting generates considerably more HTML, it is turned off by default, which will affect the `--doc=HTML ` compiler option.
 
@@ -318,4 +318,4 @@ This module deal with these problems as follows:
 
 
 ----
-Rendered from Pod2HTML at 2021-01-05T23:43:35Z
+Rendered from Pod2HTML at 2021-01-09T18:06:08Z

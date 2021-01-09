@@ -68,8 +68,8 @@ role RakuClosureTemplater {
 sub gen-closure-template ( Str $tag ) is export {
     my $start = '<' ~ $tag ~ '>';
     my $end = '</' ~ $tag ~ '>';
-    return sub ( %prm, %tml? ) {
-        return $start ~ (%prm<contents> // '') ~ $end;
+    return sub ( %prm, %tml? --> Str ) {
+        $start ~ (%prm<contents> // '') ~ $end;
     }
 }
 

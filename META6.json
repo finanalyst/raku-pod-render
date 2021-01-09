@@ -1,7 +1,7 @@
 {
   "name": "Raku::Pod::Render",
   "description": "A generic Pod Renderer for single or multiple files using templates, provides HTML and MarkDown",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "perl": "6.*",
   "auth": "github:finanalyst",
   "depends": [
