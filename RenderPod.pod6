@@ -67,6 +67,13 @@ Most Pod source files will begin with C<=begin pod>. Any line with C<=begin xxx>
 The first C<=begin pod> to be rendered after initiation, or after the C<.emit-and-renew-processed-state> method, will have its
 configuration data transferred to the C<ProcessedPod> object's C<%.pod-config-data> attribute.
 
+The rendering of page components can be explicitly turned off by setting C<no-toc>,
+C<no-glossary>, C<no-footnotes>, or C<no-meta> in the config of pod. eg
+
+=begin code
+    =begin pod :no-glossary
+=end code
+
 When multiple files are rendered, any meta data associated with the pod can be accessed during the Rendering Iteration.
 
 =head1 Templates

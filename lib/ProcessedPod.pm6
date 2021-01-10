@@ -415,14 +415,14 @@ class GenericPod {
     #| renders only the toc
     method render-toc(--> Str) {
         # if no headers in pod, then no need to include a TOC
-        return '' if (!?@!raw-toc or $.no-toc);
+        return '' if (!?@!raw-toc or $.no-toc or %.pod-config-data<no-toc>);
         my @filtered = @!raw-toc.grep({ !(.<is-title>) });
         self.rendition('toc', %( :toc([@filtered])));
     }
 
     #| renders only the glossary
     method render-glossary(-->Str) {
-        return '' if (!?%!raw-glossary.keys or $.no-glossary);
+        return '' if (!?%!raw-glossary.keys or $.no-glossary or %.pod-config-data<no-glossary>);
         #No render without any keys
         my @filtered = [gather for %!raw-glossary.sort { take %(:text(.key), :refs([.value.sort])) }];
         self.rendition('glossary', %( :glossary(@filtered)))
@@ -430,14 +430,14 @@ class GenericPod {
 
     #| renders only the footnotes
     method render-footnotes(--> Str) {
-        return '' if (!?@!raw-footnotes or $!no-footnotes);
+        return '' if (!?@!raw-footnotes or $!no-footnotes or %.pod-config-data<no-footnotes>);
         # no rendering of code if no footnotes
         self.rendition('footnotes', %( :notes(@!raw-footnotes)))
     }
 
     #| renders on the meta data
     method render-meta(--> Str) {
-        return '' if (!?@!raw-metadata or $!no-meta);
+        return '' if (!?@!raw-metadata or $!no-meta or %.pod-config-data<no-meta>);
         self.rendition('meta', %( :meta(@!raw-metadata)))
     }
 

@@ -78,6 +78,12 @@ Most Pod source files will begin with `=begin pod`. Any line with `=begin xxx` m
 ```
 The first `=begin pod` to be rendered after initiation, or after the `.emit-and-renew-processed-state` method, will have its configuration data transferred to the `ProcessedPod` object's `%.pod-config-data` attribute.
 
+The rendering of page components can be explicitly turned off by setting `no-toc`, `no-glossary`, `no-footnotes`, or `no-meta` in the config of pod. eg
+
+```
+    =begin pod :no-glossary
+
+```
 When multiple files are rendered, any meta data associated with the pod can be accessed during the Rendering Iteration.
 
 # Templates
@@ -421,4 +427,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2021-01-03T23:21:16Z
+Rendered from RenderPod at 2021-01-10T00:10:03Z
