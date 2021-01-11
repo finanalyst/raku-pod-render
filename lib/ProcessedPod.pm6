@@ -19,7 +19,7 @@ class X::ProcessedPod::Non-Existent-Template is Exception {
     has %.params;
     multi method message() {
         "Stopping processing because non-existent template ｢$.key｣ encountered with the following parameters:\n"
-                ~ %.params.fmt("\t%s: %s")
+                ~ %.params.gist
                 ~ "\nHave you provided a custom block without a custom template?"
     }
 }
@@ -118,8 +118,21 @@ role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
     has %.tmpl;
     #| allows for templates to be replaced during pod processing
     #| repeatedly generating the template engine is expensive
-    method modify-templates(%new-templates)
+    #| $templates may be either a Hash of templates, or
+    #| a Str path to a Raku program that evaluates to a Hash
+    #| Keys of the hash are added to the Templates, silently over-riding
+    #| previous keys.
+    method modify-templates($templates)
     {
+        return unless $templates; # no action for blank string or empty Hash
+        my %new-templates;
+        given $templates {
+            when Hash { %new-templates = $templates }
+            when Str {
+                #use SEE_NO_EVAL;
+                %new-templates = EVALFILE $templates;
+            }
+        }
         { %!tmpl{$^a} = $^b } for %new-templates.kv;
         self.restart-engine
     }
@@ -147,20 +160,27 @@ role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
         # the keys on the RHS above are required in %.tmpl. To throw here, the templates supplied are not
         # a superset of the required keys.
         $.templates-loaded = True;
+        self.set-engine
+    }
+    #| Some template engines need to be restarted when templates are changed in order to
+    #| recompile the templates
+    method restart-engine {
+        return self.mustache-restart-engine if $.templater-is eq 'mustache';
+        # rakuclosure does not restart engine because templates are compiled by Raku
+    }
+    #| rendition takes a key and parameters and calls the template for the key
+    method rendition(|c) {
+        # different engines will handle this differentiy. There is surely a more Raku way of doing this.
+        return self.mustache-rendition( |c ) if $.templater-is eq 'mustache';
+        self.rakuclosure-rendition( |c )
+    }
+    method set-engine {
         if %!tmpl<format-b> ~~ Str and %!tmpl<format-b> ~~ / '{{' / {
             $.templater-is = 'mustache'
         }
         else {
             $.templater-is = 'rakuclosure'
         }
-    }
-    method restart-engine {
-        return self.mustache-restart-engine if $.templater-is eq 'mustache';
-        # rakuclosure does not restart engine
-    }
-    method rendition(|c) {
-        return self.mustache-rendition( |c ) if $.templater-is eq 'mustache';
-        self.rakuclosure-rendition( |c )
     }
 }
 
@@ -240,16 +260,13 @@ class GenericPod {
     #| A pod line may have no config data, so flag if pod block processed
     has Bool $.pod-block-processed is rw = False;
 
-    # A separator and counters for Headers
-    has Int @.counters is default(0);
-    has Str $.counter-separator is rw = '.';
-    has Bool $.no-counters is rw = False;
-
     #| Structure to collect links, eg. to test whether they all work
     has %.links;
 
-    #| custom blocks and templates
-    has @.custom = <diagram object>;
+    #| custom blocks
+    has @.custom = ();
+    #| plugin data
+    has %.plugin-data = {};
 
     # variables to manage Pod state, where rendering is dependent on local context
     #| for multilevel lists
@@ -306,6 +323,30 @@ class GenericPod {
         $!targets{$candidate-name}++;
         # now add to targets, no effect if not unique
         $candidate-name
+    }
+
+    # Methods relating to customisation
+    method add-plugin(Str $plugin-name,
+                      :$path = $plugin-name,
+                      :$name-space = $plugin-name,
+                      :$template-path = "$path/templates.raku",
+                      :$custom-path = "$path/blocks.raku",
+                      :$data-path = "$path/data.raku"
+                      ) {
+        self.modify-templates( $template-path );
+        self.add-custom( $custom-path );
+        if $data-path and $data-path.IO.f {
+            %!plugin-data{$name-space} = EVALFILE $data-path
+        }
+    }
+    multi method add-custom( Str $block-path ) {
+        return unless $block-path.IO.f;
+        my @blocks = EVALFILE $block-path;
+        return unless +@blocks;
+        self.add-custom( @blocks );
+    }
+    multi method add-custom( @blocks ) {
+        for @blocks { @!custom.append( $_ ) if $_ ~~ Str:D };
     }
 
     #| process the pod block or tree passed to it, and concatenates it to previous pod tree
@@ -733,11 +774,19 @@ class GenericPod {
     multi method handle(Pod::Block::Named $node where .name ~~ any(@.custom), Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
+        my $template = $node.config<template> // $node.name.lc;
+        my $data;
+        my $name-space = $node.config<name-space> // $template // $node.name.lc;
+        if %!plugin-data{ $name-space }:exists {
+            $data = %!plugin-data{ $name-space }
+        }
         $.completion($in-level, 'zero', %(), :$defn )
-            ~ $.completion($in-level, $node.name.lc,
+            ~ $.completion($in-level, $template,
             %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
-            $node.config ), :$defn
-            )
+            $node.config,
+            "$name-space\-data" => $data
+            ), :$defn
+        )
     }
 
     multi method handle(Pod::Block::Para $node, Int $in-level, Context $context where *== Output, Bool :$defn = False, --> Str) {

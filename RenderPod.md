@@ -1,5 +1,5 @@
 # Rendering Pod Distribution
->A generic distribution to render Pod in a file (program or module) or in a cache (eg. the Raku documentation collection)
+>A generic distribution to render Pod in a file (program or module) or in a cache (eg. the Raku documentation collection). The module allows for user defined pod-blocks, user defined rendering templates, and user defined plugins that provide custom pod blocks, templates, and external data.
 
 
 ----
@@ -7,21 +7,27 @@
 [Creating a Renderer](#creating-a-renderer)  
 [Pod Source Configuration](#pod-source-configuration)  
 [Templates](#templates)  
+[New Templates](#new-templates)  
+[Additional Templates](#additional-templates)  
+[Raku Closure Templates](#raku-closure-templates)  
+[Mustache Templates - minor extension.](#mustache-templates---minor-extension)  
 [String Template](#string-template)  
 [Block Templates](#block-templates)  
 [Partials and New Templates](#partials-and-new-templates)  
 [Handling Declarator blocks](#handling-declarator-blocks)  
 [Change the Templating Engine](#change-the-templating-engine)  
-[Raku Closure Templates](#raku-closure-templates)  
 [Customised Pod and Templates](#customised-pod-and-templates)  
 [Custom Pod Block](#custom-pod-block)  
 [Para](#para)  
 [Custom Format Code](#custom-format-code)  
+[Plugins](#plugins)  
 [Rendering Strategy](#rendering-strategy)  
 [Rendering many Pod Sources](#rendering-many-pod-sources)  
 [Methods Provided by ProcessedPod](#methods-provided-by-processedpod)  
 [modify-templates](#modify-templates)  
 [rewrite-target](#rewrite-target)  
+[add-plugin](#add-plugin)  
+[add-custom( $block )](#add-custom-block-)  
 [process-pod](#process-pod)  
 [render-block](#render-block)  
 [render-tree](#render-tree)  
@@ -36,15 +42,15 @@
 ----
 This distribution ('distribution' because it contains several modules and other resources) provides a generic class `ProcessedPod`, which accepts templates, and renders one or more Pod trees. The class collects the information in the Pod files to create page components, such as _Table of Contents_, _Glossary_, _Metadata_ (eg. Author, version, etc), and _Footnotes_.
 
-The output depends entirely on the templates. The body of the text, TOC, Glossary, and Footnotes can be output or suppressed, and their position can be controlled using a combination of templates, or in the case of HTML, templates and CSS. It also means that the same generic class can be used for HTML and MarkDown.
+The output depends entirely on the templates. Absolutely no output rendering is performed in the module that processes the POD6 files. The body of the text, TOC, Glossary, and Footnotes can be output or suppressed, and their position can be controlled using a combination of templates, or in the case of HTML, templates and CSS. It also means that the same generic class can be used for HTML and MarkDown, or any other output format such as epub.
 
 Two other modules are provided: `Pod::To::HTML` and `Pod::To::MarkDown`. For more information on them, see [Pod::To::HTML](Pod2HTML.md). These have the functionality and default templates to be used in conjunction with the **raku** (aka perl6) compiler option `--doc=name`.
 
-The aim of ProcessedPod is to allow for a more flexible mechanism for rendering POD. For example, when multiple POD6 files are combined each individual source generates TOC, Glossary, Footnotes, and Metadata information. There is no single way these can be combined, and different uses will need a different approach. For example, a flat-file HTML page will need separate pages for each source, with a landing page and global TOC and glossary pages to link them all.
+ProcessedPod has also been designed to allow for rendering multiple POD6 files. In this case, the components collected from individual source, such as TOC, Glossary, Footnotes, and Metadata information, need to be combined. However, a user will want to have pages dedicated to the whole collection of sources, with the content of these collection pages described using POD6, which will require customised pod and associated templates, but also the templates will need to have data provided from an external source (eg. the collective TOC). This functionality can be added via plugins.
 
 The `Pod::To::HTML` has a simple way of handling customised CSS, but no way to access embedded images other than svg files. Modifying the templates, when there is information about the serving environment, can change this.
 
-This module uses BOTH a new RakuCustomTemplater and the Moustache templating system at `Template::Mustache`. The templating engine is chosen automatically depending on the templates provided. A custom template engine can also be added.
+This module uses BOTH a new Template system `Raku-Closure-Templates` and the Moustache templating system `Template::Mustache`. ProcessedPod choses the templating engine is automatically depending on how the template for Bold-face is provided. A different custom template engine can also be added.
 
 # Creating a Renderer
 The first step in rendering is to create a renderer.
@@ -75,6 +81,7 @@ Most Pod source files will begin with `=begin pod`. Any line with `=begin xxx` m
     =begin pod :kind<Language> :subkind<Language> :class<Major text>
     ...
 
+
 ```
 The first `=begin pod` to be rendered after initiation, or after the `.emit-and-renew-processed-state` method, will have its configuration data transferred to the `ProcessedPod` object's `%.pod-config-data` attribute.
 
@@ -83,14 +90,16 @@ The rendering of page components can be explicitly turned off by setting `no-toc
 ```
     =begin pod :no-glossary
 
+
 ```
-When multiple files are rendered, any meta data associated with the pod can be accessed during the Rendering Iteration.
-
 # Templates
-The nature of the templates and their interpretation depends on the `rendition` method, which must be over-ridden for a different templating engine. See [Change the Templating Engine](#change-the-templating-engine).
+POD6 files contain both content and hints about how to render the content. The aim of this module is to separate the output completely from processing the POD6.
 
-More about Templates can be found in [RakuClosureTemplates](RakuClosureTemplates.md).
+Both a new Raku-Closure-Template system (see [RakuClosureTemplates](RakuClosureTemplates.md)) and the Template::Mustache system can be used. Essentially Raku-Closure-Templates are Raku `subs` which are compiled by Raku and the run to generate a string.
 
+Another templating engine can be added, See [Change the Templating Engine](#change-the-templating-engine).
+
+## New Templates
 When a ProcessPod instance is instantiated, a templating object xxxx can be passed via the `:templates` parameter, eg.
 
 ```
@@ -98,16 +107,43 @@ my $p = ProcessedPod.new;
 $p.templates(:templates( xxxx ) );
 
 ```
-If the object is a Hash, then it is considered a Hash of the templates, and verified for completeness.
+If the object is a Hash, then it is considered a Hash of all the required templates, and verified for completeness.
 
-If the object is a String, then it is considered a `path/filename` to a file containing a Raku program that evaluates to a Hash, which is then verified as a Hash of templates.
+If the object is a String, then it is considered a `path/filename` to a file containing a Raku program that evaluates to a Hash, which is then verified as a Hash of all the required templates.
 
-Each entry in the template Hash depends on the Template Engine. The following notes are for the MustacheTemplater. The Hash structure for the default RakuClosureTemplater can be found in [Raku Closure Templater](RakuClosureTemplates.md).
+The format of the value assigned to each key in the template Hash depends on the Template Engine.
 
-## String Template
+The format difference allows for `ProcessedPod` to choose which Templating Engine to use.
+
+## Additional Templates
+Additional templates can be added to the existing templates. The templates are added in the same way as new templates, but no check is made to ensure that the additional templates are the same as the initial ones. Mixing templates will cause an Exception to be thrown when a new template is first used.
+
+```
+my $p = ProcessedPod.new;
+# some time later in the program
+$p.modify-templates(:templates( xxxx ) );
+
+```
+`xxxx` may be a Hash or a Str, in which case it is taken to be a path to a Raku program that evaluates to a Hash.
+
+The keys of the (resultant) Hash are added to the existing templates. Any previously existing templates are over-ridden.
+
+## Raku Closure Templates
+This system was introduced to speed up processing. The Pod Rendering engine generates a set of keys and parameters. It calls the method `rendition` with the key and the parameters, and expects a string back with the parameters interpolated into the output.
+
+In addition, templates may call templates. With the exception of the key 'escaped', which expects a string only, all the other templates expect the signature `( %prm, %tml? )`. `%prm` contains the parameters to be interpolated, `%tml` is the array of templates.
+
+Each template MUST return string, which may be ''.
+
+## Mustache Templates - minor extension.
+The following notes are for the MustacheTemplater, because an extension of Mustache templates is used here.
+
+The Hash structure for the default RakuClosureTemplater can be found in [Raku Closure Templater](RakuClosureTemplates.md).
+
+### String Template
 For example if `'escaped' =` '{{ contents }}', > is a line in a hash declaration of the templates, then the right hand side is the `Mustache` template for the `escaped` key. The template engine is called with a hash containing String data that are interpolated into the template. `contents` is provided for all keys, but some keys have more complex data.
 
-## Block Templates
+### Block Templates
 `Mustache` by design is not intended to have any logic, although it does allow lambdas. Since the latter are not well documented and some template-specific preprocessing is required, or the default action of the Templating engine needs to be over-ridden, extra functionality is provided.
 
 Instead of a plain text template being associated with a Template Hash key, the key can be associated with a block that can pre-process the data provided to the Mustache engine, or change the template. The block must return a String with a valid Mustache template.
@@ -121,7 +157,7 @@ For example,
 ```
 The block is called with a Hash parameter that is assigned to `%params`. The `contents` key of `%params`) is adjusted because `Mustache` does not escape single-quotes.
 
-## Partials and New Templates
+### Partials and New Templates
 Mustache allows for other templates to be used as partials. Thus it is possible to create new templates that use the templates needed by ProcessedPod and incorporate them in output templates.
 
 For example:
@@ -156,13 +192,6 @@ class NewProcessedPod is GenericPod does myNewTemplater {}
 The new role may only need to over-ride `method rendition( Str $key, Hash %params --` Str )>.
 
 Assuming that the templating engine is NewTemplateEngine, and that - like Template::Mustache - it is instantiates with `.new`, and has a `.render` method which takes a String template, and Hash of strings to interpolate, and which returns a String, viz `.render( Str $string, Hash %params, :from( %hash-of-templates) --` Str )>.
-
-## Raku Closure Templates
-This system was introduced to speed up processing. The Pod Rendering engine generates a set of keys and parameters. It calls the method `rendition` with the key and the parameters, and expects a string back with the parameters interpolated into the output.
-
-In addition, templates may call templates. With the exception of the key 'escaped', which expects a string only, all the other templates expect the signature `( %prm, %tml? )`. `%prm` contains the parameters to be interpolated, `%tml` is the array of templates.
-
-Each template MUST return string, which may be ''.
 
 # Customised Pod and Templates
 The POD6 specification is sufficiently generic to allow for some easy customisations, and the `Pod::To::HTML` renderer in this distribution passes the associated meta data on to the template. This allows for the customisation of Pod::Blocks and Format Codes.
@@ -201,10 +230,23 @@ Then in the rendering program we need to provide to ProcessedPod the new object 
     use v6;
     use Pod::To::HTML;
     my Pod::To::HTML $r .= new;
-    $r.custom = <diagram>;
+    $r.add-custom: <diagram>;
     $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
 
 ```
+It is possible to cause a Custom block to use another template by using the template configuration eg.,
+
+```
+    =for object :template<diagram-float-left>
+        Something here
+
+    =for object
+        Something else
+
+
+```
+In this case the first `object` is rendered with the template `diagram-float-left`, which must exist in the templates Hash, and the second time `object` is rendered with the default template `object`, which also must exist.
+
 ## Custom Format Code
 This is even easier to handle as all that is needed is to supply a template in the form `format-ß` where **ß** is a unicode character other than **B C E I K L N P T U V X Z**, which are defined in the Pod6 specification.
 
@@ -216,6 +258,56 @@ For example, lets assume that we want a Format Code to access the [Font Awesome 
 $r.modify-templates( %( :format-f( '<i class="fa {{{ contents }}}"></i>' ) ));
 ```
 And the pod text would include something like "this text has a F<fa-snowflake-o> icon" in it. Note that although the HTML will be rendered correctly, it will also be necessary to ensure that the `head-block` template is altered so that the `Font Awesome` Javascript library is included.
+
+# Plugins
+A plugin contains Custom Pod Blocks and Custom Templates, and it may contain other data that cannot be inferred from the POD6 content files.
+
+Data is provided by setting a key in the %.plugin attribute of a ProcessedPod object.
+
+Templates can be added using the `.modify-templates` method.
+
+Custom Pod-Blocks can be added by adding to the `.custom` array.
+
+It is better to use the convenience method `.add-plugin`
+
+```
+my $p = ProcessedPod.new;
+# some time later in the program
+$p.add-plugin( 'font-awesome' );
+
+```
+This means that the current working directory contains a sub-directory `font-awesome` with the following structure
+
+```
+font-awesome/
+-- templates.raku
+-- blocks.raku
+-- data.raku
+
+```
+`templates.raku` must be a valid Raku program that evaluates to a `Hash` whose keys are added as described in `.modify-templates`
+
+`blocks.raku` evaluates to an array of strings that are the names of custom blocks.
+
+`data-raku` evaluated to an object that is made the value of %.plugin-data<font-awesome> (as in the example). If no data is to be added, then it is best to set data-path to an empty string, eg
+
+```
+$p.add-plugin('font-awesome', :data-path( '' ) );
+```
+It should be noted that the data added to `%.plugin-data<name-space> ` could be a closure that can be called within the template.
+
+`add-plugin` is defined as
+
+```
+add-plugin(Str $plugin-name,
+      :$path = $plugin-name,
+      :$name-space = $plugin-name,
+      :$template-path = "$path/templates.raku",
+      :$custom-path = "$path/blocks.raku",
+      :$data-path = "$path/data.raku"
+)
+```
+so each of the paths can be individually set.
 
 # Rendering Strategy
 A rendering strategy is required for a complex task consisting of many Pod sources. A rendering strategy has to consider:
@@ -330,9 +422,28 @@ method rewrite-target(Str $candidate-name is copy, :$unique --> Str) {
     }
 
 ```
+## add-plugin
+This is documented above. It is defined as:
+
+```
+method add-plugin(Str $plugin-name,
+      :$path = $plugin-name,
+      :$name-space = $plugin-name,
+      :$template-path = "$path/templates.raku",
+      :$custom-path = "$path/blocks.raku",
+      :$data-path = "$path/data.raku"
+      )
+```
+## add-custom( $block )
+A method for adding strings to the @.custom array.
+
+If $block is a Str then it is a path to a Raku program that evaluates to an Array, whose elements are appended to @.custom.
+
+If $block is an Array, then the elemsnts are added to @.custom.
+
 ## process-pod
 ```
-method process-pod( $pod ) {
+method process-pod( $pod )
 ```
 Process the pod block or tree passed to it, and concatenates it to previous pod tree. Returns a string representation of the tree in the required format
 
@@ -379,29 +490,88 @@ The following are called by `source-wrap` but could be called separately, eg., i
 
 # Public Class Attributes
 ```
-# provided at instantiation or by attributes on Class instance
-has $.front-matter is rw = 'preface'; # Text between =TITLE and first header, this is used to refer for textual placenames
-has Str $.name is rw;
-has Str $.title is rw = $!name;
-has Str $.subtitle is rw = '';
-has Str $.path is rw; # should be path of original document, defaults to $.name
-has Str $.top is rw = $!default-top; # defaults to top, then becomes target for TITLE
-has &.highlighter is rw; # a callable (eg. provided by external program) that converts [html] to highlighted raku code
+    #| the name of the anchor at the top of a source file
+    constant DEFAULT_TOP = '___top';
+    #| Text between =TITLE and first header, this is used to refer for textual placenames
+    has $.front-matter is rw = 'preface';
+    #| Name to be used in titles and files.
+    has Str $.name is rw is default('UNNAMED') = 'UNNAMED';
+    #| The string part of a Title.
+    has Str $.title is rw is default('UNNAMED') = 'UNNAMED';
+    #| A target associated with the Title Line
+    has Str $.title-target is rw is default(DEFAULT_TOP) = DEFAULT_TOP;
+    has Str $.subtitle is rw is default('') = '';
+    #| should be path of original document, defaults to $.name
+    has Str $.path is rw is default('UNNAMED') = 'UNNAMED';
+    #| defaults to top, then becomes target for TITLE
+    has Str $.top is rw is default(DEFAULT_TOP) = DEFAULT_TOP;
+    #| defaults to not escaping characters when in a code block
+    has Bool $.no-code-escape is rw is default(False) = False;
 
-# document level information
-has $.lang is rw = 'en'; # language of pod file
+    # document level information
 
-# Output rendering information
-has Bool $.no-meta is rw = False; # set to True eliminates meta data rendering
-has Bool $.no-footnotes is rw = False; # set to True eliminates rendering of footnotes
-has Bool $.no-toc is rw = False; # set to True to exclude TOC even if there are headers
-has Bool $.no-glossary is rw = False; # set to True to exclude Glossary even if there are internal anchors
+    #| language of pod file
+    has $.lang is rw is default('en') = 'en';
+    #| default extension for saving to file
+    #| should be set by subclasses
+    has $.def-ext is rw is default('') = '';
 
-# debugging
-has Bool $.debug is rw; # outputs to STDERR information on processing
-has Bool $.verbose is rw; # outputs to STDERR more detail about errors.
+    # Output rendering information
+    #| set to True eliminates meta data rendering
+    has Bool $.no-meta is rw = False;
+    #| set to True eliminates rendering of footnotes
+    has Bool $.no-footnotes is rw = False;
+    #| set to True to exclude TOC even if there are headers
+    has Bool $.no-toc is rw = False;
+    #| set to True to exclude Glossary even if there are internal anchors
+    has Bool $.no-glossary is rw = False;
 
-# Structure to collect links, eg. to test whether they all work
+    # debugging
+    #| outputs to STDERR information on processing
+    has Bool $.debug is rw = False;
+    #| outputs to STDERR more detail about errors.
+    has Bool $.verbose is rw = False;
+
+    # populated by process-pod method
+    #| single process call
+    has Str $.pod-body is rw;
+    #| concatenation of multiple process calls
+    has Str $.body is rw = '';
+    #| information to be included in eg html header
+    has @.raw-metadata;
+    #| metadata when rendered
+    has Str $.metadata;
+    #| toc structure , collected and rendered separately to body
+    has @.raw-toc;
+    #| rendered toc
+    has Str $.toc;
+    #| glossary structure
+    has %.raw-glossary;
+    #| rendered glossary
+    has Str $.glossary;
+    #| footnotes structure
+    has @.raw-footnotes;
+    #| rendered footnotes
+    has Str $.footnotes;
+    #| when source wrap is called
+    has Str $.renderedtime is rw is default('') = '';
+    #| the set of targets used in a rendering process
+    has SetHash $.targets .= new;
+    #| config data given to the first =begin pod line encountered
+    #| there may be multiple pod blocks in a file, and they may be
+    #| sequentially rendered.
+    has %.pod-config-data is rw;
+    #| A pod line may have no config data, so flag if pod block processed
+    has Bool $.pod-block-processed is rw = False;
+
+    #| Structure to collect links, eg. to test whether they all work
+    has %.links;
+
+    #| custom blocks
+    has @.custom = ();
+    #| plugin data
+    has %.plugin-data = {};
+
 ```
 # ExtractPod
 This is a helper module that provides a version of `load` instead of the file load version of Pod::Load.
@@ -427,4 +597,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2021-01-10T00:10:03Z
+Rendered from RenderPod at 2021-01-11T20:04:46Z

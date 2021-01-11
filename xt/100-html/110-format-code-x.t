@@ -114,4 +114,4 @@ like $rv, /
     /, 'glossary contains entry of zero text marker';
 $rv ~~ /  [ 'class="glossary-defn">' ~ '</'  $<es> =(.+?)  .*? ]* $ /;
 
-is-deeply $<es>>>.Str, ['Term explained','Define an item','Place','Same','an entry can exist','defining'], 'Entries match, nothing for the X<>';
+is-deeply $<es>>>.Str, ['Define an item','Place','Same','an entry can exist','defining'], 'Entries match, nothing for the X<>';

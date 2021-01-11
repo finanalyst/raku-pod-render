@@ -3,7 +3,7 @@ use Test;
 
 use ProcessedPod;
 
-plan 4;
+plan 5;
 
 # use the Mustache variant
 my ProcessedPod $pro;
@@ -54,6 +54,18 @@ $pro.custom.push: 'superdooper';
 throws-like { $pro.render-block($=pod[$pn++]) }, X::ProcessedPod::Non-Existent-Template,
         'traps custom object without template',
         message => / 'non-existent template ｢superdooper｣' .+ 'key' .+ 'pair' /;
+
+=begin pod
+
+=for superdooper :template<object>
+Will render this
+
+=end pod
+
+$rv = $pro.render-block($=pod[$pn++]);
+like $rv, /
+    '<object>' .+ 'Will render this' .+ '</object>'
+/, 'new block rendered by existing template';
 
 =begin pod
 
