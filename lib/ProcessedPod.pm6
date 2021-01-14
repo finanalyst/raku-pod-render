@@ -156,7 +156,7 @@ role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
         }
 
         X::ProcessedPod::MissingTemplates.new(:missing((@.required (-) %!tmpl.keys).keys.flat)).throw
-        unless %!tmpl.keys (>=) @.required;
+            unless %!tmpl.keys (>=) @.required;
         # the keys on the RHS above are required in %.tmpl. To throw here, the templates supplied are not
         # a superset of the required keys.
         $.templates-loaded = True;
@@ -421,8 +421,8 @@ class GenericPod {
 
     #| saves the rendered pod tree as a file, and its document structures, uses source wrap
     #| filename defaults to the name of the pod tree, and ext defaults to html
-    method file-wrap(:$filename = $.name, :$ext = $.def-ext) {
-        ($filename ~ ('.' if $ext ne '') ~ $ext).IO.spurt: self.source-wrap
+    method file-wrap(:$filename = $.name, :$ext = $.def-ext, :$dir = '') {
+        ($dir ~ ('/' if $dir) ~ $filename ~ ('.' if $ext ne '') ~ $ext).IO.spurt: self.source-wrap
     }
 
     #| renders all of the document structures, and wraps them and the body

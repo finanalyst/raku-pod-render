@@ -467,9 +467,11 @@ Deletes any previously processed pod, keeping the template engine cache Returns 
 
 ## file-wrap
 ```
-method file-wrap(:$filename = $.name, :$ext = 'html' )
+method file-wrap(:$filename = $.name, :$ext = 'html' , :$dir = '')
 ```
-Saves the rendered pod tree as a file, and its document structures, uses source wrap Filename defaults to the name of the pod tree, and ext defaults to html
+Saves the rendered pod tree as a file, and its document structures, uses source wrap Filename defaults to the name of the pod tree, and ext defaults to html, to another directory dir.
+
+So `.file-wrap(:filename(fn),:ext<txt>,:dir<some/other/path> )` would be `some/other/path/fn.txt`
 
 ## source-wrap
 ```
@@ -597,4 +599,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2021-01-11T20:04:46Z
+Rendered from RenderPod at 2021-01-14T14:00:50Z

@@ -540,10 +540,12 @@ are processed.
 
 =head2 file-wrap
 
-    method file-wrap(:$filename = $.name, :$ext = 'html' )
+    method file-wrap(:$filename = $.name, :$ext = 'html' , :$dir = '')
 
 Saves the rendered pod tree as a file, and its document structures, uses source wrap
-Filename defaults to the name of the pod tree, and ext defaults to html
+Filename defaults to the name of the pod tree, and ext defaults to html, to another directory dir.
+
+So C<.file-wrap(:filename(fn),:ext<txt>,:dir<some/other/path> )> would be C<some/other/path/fn.txt>
 
 =head2 source-wrap
 
