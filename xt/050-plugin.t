@@ -7,7 +7,7 @@ my $rv;
 my $processor = ProcessedPod.new;
 my $pc = 0;
 
-plan 2;
+plan 5;
 
 my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
@@ -18,6 +18,27 @@ my %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
 $processor.templates( %templates );
 $processor.modify-templates( { escaped => sub ( $str ) { "<escp>$str\</escp>" } } );
 =begin pod
+
+=newblocktype Here are some words
+
+=end pod
+
+$rv = $processor.render-block($=pod[$pc]);
+unlike $rv, /
+    '<newblocktype>'
+    .+ '</newblocktype>'
+    /, 'new block treated as ordinary named';
+
+$processor.add-custom(['newblocktype',]);
+$processor.modify-templates( %( 'newblocktype' => gen-closure-template( 'newblocktype' )) );
+$rv = $processor.render-block($=pod[$pc++]);
+like $rv, /
+    '<newblocktype>'
+    .+ '</newblocktype>'
+    /, 'new block gets template';
+
+=begin pod
+
 Some pod
 
 =for plugin
@@ -78,7 +99,6 @@ and %%interpolation%% is changed by the custom template
 "$dir/data.raku".IO.spurt( q:to/END/ );
     'VERY NEWX WORDS'
     END
-
 $processor.add-plugin('plugin', :name-space<newspace> );
 $rv = $processor.render-block( $=pod[$pc++] );
 
@@ -90,6 +110,42 @@ like $rv, /
 \s+ 'is changed by the custom template'
 /, 'plugin works with different name-space';
 
-rmtree($dir) if $dir.IO.e;
+rmtree($dir);
 
+# now in another directory
+$dir = 'xt/plugin';
+rmtree($dir) if $dir.IO.e;
+mktree($dir);
+
+=begin pod
+Some pod
+
+=for testing :template<myplugin>
+Here is some custom text
+with no data
+
+=end pod
+
+"$dir/templates.raku".IO.spurt( q:to/END/ );
+    %( myplugin => sub ( %a, %b ) {
+        '<div class="myplugin">'
+        ~ %a<contents>
+        ~ </div>
+        },
+    )
+    END
+"$dir/blocks.raku".IO.spurt( q:to/END/ );
+    < testing >
+    END
+
+$processor.add-plugin('plugin',:path($dir), :data-raku('') );
+$rv = $processor.render-block( $=pod[$pc++] );
+
+like $rv, /
+'<div class="myplugin">'
+.* 'Here is some custom text'
+\s+ 'with no data'
+/, 'plugin works with blank data in another directory';
+
+rmtree($dir);
 done-testing;

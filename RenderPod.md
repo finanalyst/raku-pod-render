@@ -285,7 +285,7 @@ font-awesome/
 -- data.raku
 
 ```
-`templates.raku` must be a valid Raku program that evaluates to a `Hash` whose keys are added as described in `.modify-templates`
+`templates.raku` must be a valid Raku program that evaluates to a `Hash` whose keys are added as described in `.modify-templates`.
 
 `blocks.raku` evaluates to an array of strings that are the names of custom blocks.
 
@@ -302,13 +302,29 @@ It should be noted that the data added to `%.plugin-data<name-space> ` could be 
 add-plugin(Str $plugin-name,
       :$path = $plugin-name,
       :$name-space = $plugin-name,
-      :$template-path = "$path/templates.raku",
-      :$custom-path = "$path/blocks.raku",
-      :$data-path = "$path/data.raku"
+      :$template-path = "templates.raku",
+      :$custom-path = "blocks.raku",
+      :$data-path = "data.raku"
 )
 ```
 so each of the paths can be individually set.
 
+Each of the raku programs are evaluated with the working directory path set to `:path`. For example, given
+
+```
+font-awesome/
+-- some-dir/
+------ templates.raku
+-- blocks.raku
+-- data.raku
+-- file-containing-data
+
+```
+`ProcessedPod::add-plugin` will change directory to `font-awesome` and run `some-dir/templates.raku` from there. If `templates.raku` needs to access `file-containing-data` it should do so like:
+
+```
+'file-containing-data'.IO.slurp
+```
 # Rendering Strategy
 A rendering strategy is required for a complex task consisting of many Pod sources. A rendering strategy has to consider:
 
@@ -473,6 +489,8 @@ Saves the rendered pod tree as a file, and its document structures, uses source 
 
 So `.file-wrap(:filename(fn),:ext<txt>,:dir<some/other/path> )` would be `some/other/path/fn.txt`
 
+Raku has limits on file system management, so this may fail if the directory does not exist.
+
 ## source-wrap
 ```
 method source-wrap( --> Str )
@@ -599,4 +617,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2021-01-14T14:00:50Z
+Rendered from RenderPod at 2021-01-15T17:40:09Z

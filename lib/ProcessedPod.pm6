@@ -1,39 +1,7 @@
 use v6.d;
 use URI;
 use LibCurl::Easy;
-
-class X::ProcessedPod::MissingTemplates is Exception {
-    has @.missing;
-    method message() {
-        if +@.missing { "The following templates should be supplied, but are not:\n"
-                ~ (@.missing.elems > 5
-                        ?? @.missing[^5].join("\n") ~ "\n(more keys missing, not listed)"
-                        !! @.missing.join("\n")
-                )
-        }
-        else { "No templates loaded, ProcessedPod object method \.templates not called" }
-    }
-}
-class X::ProcessedPod::Non-Existent-Template is Exception {
-    has $.key;
-    has %.params;
-    multi method message() {
-        "Stopping processing because non-existent template ｢$.key｣ encountered with the following parameters:\n"
-                ~ %.params.gist
-                ~ "\nHave you provided a custom block without a custom template?"
-    }
-}
-class X::ProcessedPod::Unexpected-Nil is Exception {
-    multi method message() {
-        "Unexpected handle with Nil value enountered"
-    }
-}
-class X::ProcessedPod::TemplateFailure is Exception {
-    has $.error;
-    multi method message() {
-        "Problems getting templates: $!error"
-    }
-}
+use Pod::Render::Exceptions;
 
 #class GenericPod { ... }
 # class ProcessedPod is GenericPod does RakuClosureTemplater { ... };
@@ -122,7 +90,7 @@ role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
     #| a Str path to a Raku program that evaluates to a Hash
     #| Keys of the hash are added to the Templates, silently over-riding
     #| previous keys.
-    method modify-templates($templates)
+    method modify-templates($templates, :$path = '.' )
     {
         return unless $templates; # no action for blank string or empty Hash
         my %new-templates;
@@ -130,7 +98,7 @@ role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
             when Hash { %new-templates = $templates }
             when Str {
                 #use SEE_NO_EVAL;
-                %new-templates = EVALFILE $templates;
+                %new-templates = indir( $path, { EVALFILE $templates } );
             }
         }
         { %!tmpl{$^a} = $^b } for %new-templates.kv;
@@ -139,12 +107,12 @@ role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
     #| accepts a string filename that must evaluate to a hash
     #| or a hash of templates
     #| the keys must be a superset of the required templates
-    method templates($templates) {
+    method templates($templates, :$path = '.' ) {
         given $templates {
             when Hash { %!tmpl = $templates }
             when Str {
                 #use SEE_NO_EVAL;
-                %!tmpl = EVALFILE $templates;
+                %!tmpl = indir( $path, { EVALFILE $templates } );
             }
         }
         # a string is a filename with a compilable file
@@ -329,24 +297,32 @@ class GenericPod {
     method add-plugin(Str $plugin-name,
                       :$path = $plugin-name,
                       :$name-space = $plugin-name,
-                      :$template-path = "$path/templates.raku",
-                      :$custom-path = "$path/blocks.raku",
-                      :$data-path = "$path/data.raku"
+                      :$template-raku = "templates.raku",
+                      :$custom-raku = "blocks.raku",
+                      :$data-raku = "data.raku"
                       ) {
-        self.modify-templates( $template-path );
-        self.add-custom( $custom-path );
-        if $data-path and $data-path.IO.f {
-            %!plugin-data{$name-space} = EVALFILE $data-path
-        }
+        self.modify-templates( $template-raku, :$path ) if $template-raku;
+        self.add-custom( $custom-raku, :$path ) if $custom-raku;
+        self.add-data( $name-space, $data-raku, :$path ) if $data-raku;
     }
-    multi method add-custom( Str $block-path ) {
-        return unless $block-path.IO.f;
-        my @blocks = EVALFILE $block-path;
-        return unless +@blocks;
+    multi method add-custom( Str $filename, :$path = $filename ) {
+        return unless "$path/$filename".IO.f;
+        my @blocks = indir($path, { EVALFILE $filename } );
+        X::ProcessedPod::NoBlocksAdded.new(:$filename,:$path).throw
+            unless +@blocks;
         self.add-custom( @blocks );
     }
     multi method add-custom( @blocks ) {
         for @blocks { @!custom.append( $_ ) if $_ ~~ Str:D };
+    }
+
+    method add-data($name-space, $data-raku, :$path = $data-raku ) {
+        return unless $data-raku;
+        %!plugin-data{$name-space} = indir($path, { EVALFILE $data-raku })
+    }
+    method get-data($name-space) {
+        return Nil unless %!plugin-data{$name-space}:exists;
+        %!plugin-data{$name-space}
     }
 
     #| process the pod block or tree passed to it, and concatenates it to previous pod tree

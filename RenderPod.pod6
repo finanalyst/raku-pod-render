@@ -331,7 +331,8 @@ font-awesome/
 -- data.raku
 =end code
 
-C<templates.raku> must be a valid Raku program that evaluates to a C<Hash> whose keys are added as described in C<.modify-templates>
+C<templates.raku> must be a valid Raku program that evaluates to a C<Hash> whose keys are added as
+described in C<.modify-templates>.
 
 C<blocks.raku> evaluates to an array of strings that are the names of custom blocks.
 
@@ -348,12 +349,27 @@ C<add-plugin> is defined as
     add-plugin(Str $plugin-name,
           :$path = $plugin-name,
           :$name-space = $plugin-name,
-          :$template-path = "$path/templates.raku",
-          :$custom-path = "$path/blocks.raku",
-          :$data-path = "$path/data.raku"
+          :$template-path = "templates.raku",
+          :$custom-path = "blocks.raku",
+          :$data-path = "data.raku"
     )
 
 so each of the paths can be individually set.
+
+Each of the raku programs are evaluated with the working directory path set to C<:path>. For example, given
+=begin code
+font-awesome/
+-- some-dir/
+------ templates.raku
+-- blocks.raku
+-- data.raku
+-- file-containing-data
+=end code
+
+C<ProcessedPod::add-plugin> will change directory to C<font-awesome> and run C<some-dir/templates.raku> from there. If
+C<templates.raku> needs to access C<file-containing-data> it should do so like:
+
+    'file-containing-data'.IO.slurp
 
 =head1 Rendering Strategy
 
@@ -375,6 +391,7 @@ There have to be the following facilities
     =item A strategy to create one or more TOC's for the whole collection that collect and combine all the B<Component>
     TOC's. The intent is to allow for TOCs that are designed and do not follow the alphabetical name of the B<Component>
     source, together with a default alphabetical list.
+
     =item A strategy to create one or more Glossary(ies) from all the B<Component> glossaries
 
 =head1 Rendering many Pod Sources
@@ -546,6 +563,8 @@ Saves the rendered pod tree as a file, and its document structures, uses source 
 Filename defaults to the name of the pod tree, and ext defaults to html, to another directory dir.
 
 So C<.file-wrap(:filename(fn),:ext<txt>,:dir<some/other/path> )> would be C<some/other/path/fn.txt>
+
+Raku has limits on file system management, so this may fail if the directory does not exist.
 
 =head2 source-wrap
 
