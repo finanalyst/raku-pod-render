@@ -228,7 +228,7 @@ Then in the rendering program we need to provide to ProcessedPod the new object 
 
 ```
     use v6;
-    use Pod::To::HTML;
+    use Pod::To::HTML2;
     my Pod::To::HTML $r .= new;
     $r.add-custom: <diagram>;
     $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
@@ -348,7 +348,7 @@ For example, suppose we want to render each POD source file as a separate html f
 The the `ProcessedPob` object expects a compiled Pod object. One way to do this is use the `Pod::From::Cache` module.
 
 ```
-    use Pod::To::HTML;
+    use Pod::To::HTML2;
     my $p = Pod::To::HTML.new;
     my %pod-input; # key is the path-name for the output file, value is a Pod::Block
     my @processed;
@@ -617,4 +617,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2021-01-15T17:40:09Z
+Rendered from RenderPod at 2021-01-17T12:14:45Z

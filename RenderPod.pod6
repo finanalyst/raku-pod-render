@@ -266,7 +266,7 @@ Then in the rendering program we need to provide to ProcessedPod the new object 
 These must be the same name. Thus we would have:
 =begin code
     use v6;
-    use Pod::To::HTML;
+    use Pod::To::HTML2;
     my Pod::To::HTML $r .= new;
     $r.add-custom: <diagram>;
     $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
@@ -406,7 +406,7 @@ separately.
 The the C<ProcessedPob> object expects a compiled Pod object. One way to do this is use the C<Pod::From::Cache> module.
 
 =begin code :lang<raku>
-    use Pod::To::HTML;
+    use Pod::To::HTML2;
     my $p = Pod::To::HTML.new;
     my %pod-input; # key is the path-name for the output file, value is a Pod::Block
     my @processed;

@@ -68,7 +68,7 @@ In fact the order of the Pod segments is irrelavant, but it is conventional to s
 with the code that accesses it.
 
 =begin code :lang<raku>
-use Pod::To::HTML;
+use Pod::To::HTML2;
 # for repeated pod trees to be output as a single page or html snippets (as in a test file)
 my $renderer = Pod::To::HTML.new(:name<Optional name defaults to UNNAMED>);
 # later
@@ -145,7 +145,7 @@ If C<:css-type> is specified, then C<:css-src> must be specified.
 =head2 CSS Load
 
 =begin code :lang<raku>
-    use Pod::To::HTML;
+    use Pod::To::HTML2;
     my Pod::To::HTML $processor .= new(:css-type<load>, :css-src('path/to/custom.css') );
 =end code
 
@@ -160,7 +160,7 @@ is know where the source is, eg.,C<assets/pod.css>, or it might be loaded from a
 C<https://somedomain.com/assets/pod.css>.
 
 =begin code :lang<raku>
-    use Pod::To::HTML;
+    use Pod::To::HTML2;
     my Pod::To::HTML $processor .= new(:css-type<link>, :css-src('https://somedomain.dom/assets/pod.css') );
 =end code
 
@@ -187,7 +187,7 @@ If another favicon is required, then it can be inserted by
 =item provide that filename when instantiating a C<Pod::To::HTML> object, eg.,
 
 =begin code
-use Pod::To::HTML;
+use Pod::To::HTML2;
 my Pod::To::HTML $p .= new(:favicon-src('assets/favicon.bin') );
 ...
 =end code
@@ -219,7 +219,7 @@ Then in the rendering program we need to provide to ProcessedPod the new object 
 These must be the same name. Thus we would have:
 =begin code
     use v6;
-    use Pod::To::HTML;
+    use Pod::To::HTML2;
     my Pod::To::HTML $r .= new;
     $r.custom = <diagram>;
     $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
@@ -252,7 +252,7 @@ This is the default behaviour. If a different behaviour is required, then C<no-c
 =head1 Templates
 
 The default templating system is a hash of Raku closures. More about templates can be found in L<RenderPod>. Another template
-engine is Template::Mustache. This can be accessed as C<use Pod::To::HTML::Mustache>.
+engine is Template::Mustache. This can be accessed as C<use Pod::To::HTML2::Mustache>.
 A minimal default set of templates is provided with the Module.
 
 Each template can be changed using the C<modify-templates> method. Be careful when over-riding C<head-block> to ensure
@@ -261,7 +261,7 @@ the css is properly referenced.
 A full set of new templates can be provided to ProcessedPod either by providing a path/filename to the processor method, eg.,
 
 =begin code
-use Pod::To::HTML;
+use Pod::To::HTML2;
 my Pod::To::HTML $p .= new;
 
 $p.templates<path/to/mytemplates.raku>;

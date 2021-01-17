@@ -71,7 +71,7 @@ Any or all of 'NoTOC' 'NoMETA' 'NoGloss' 'NoFoot' may be included in any order. 
 What is happening in this case is that the raku compiler has compiled the Pod in the file, and the code then accesses the Pod segments. In fact the order of the Pod segments is irrelavant, but it is conventional to show Pod definitions interwoven with the code that accesses it.
 
 ```
-use Pod::To::HTML;
+use Pod::To::HTML2;
 # for repeated pod trees to be output as a single page or html snippets (as in a test file)
 my $renderer = Pod::To::HTML.new(:name<Optional name defaults to UNNAMED>);
 # later
@@ -134,7 +134,7 @@ If `:css-type` is specified, then `:css-src` must be specified.
 
 ## CSS Load
 ```
-    use Pod::To::HTML;
+    use Pod::To::HTML2;
     my Pod::To::HTML $processor .= new(:css-type<load>, :css-src('path/to/custom.css') );
 
 ```
@@ -146,7 +146,7 @@ This is similar to the default action of the module, except that the pod.css fil
 Normally, when HTML is served a separate CSS file is loaded from a path on the server, or an http/https link. Then it is know where the source is, eg.,`assets/pod.css`, or it might be loaded from another internet source, eg. `https://somedomain.com/assets/pod.css`.
 
 ```
-    use Pod::To::HTML;
+    use Pod::To::HTML2;
     my Pod::To::HTML $processor .= new(:css-type<link>, :css-src('https://somedomain.dom/assets/pod.css') );
 
 ```
@@ -169,7 +169,7 @@ If another favicon is required, then it can be inserted by
 *  provide that filename when instantiating a `Pod::To::HTML` object, eg.,
 
 ```
-use Pod::To::HTML;
+use Pod::To::HTML2;
 my Pod::To::HTML $p .= new(:favicon-src('assets/favicon.bin') );
 ...
 
@@ -196,7 +196,7 @@ Then in the rendering program we need to provide to ProcessedPod the new object 
 
 ```
     use v6;
-    use Pod::To::HTML;
+    use Pod::To::HTML2;
     my Pod::To::HTML $r .= new;
     $r.custom = <diagram>;
     $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
@@ -224,14 +224,14 @@ Another highlighter could be attached to a Pod::To::HTML object, in which case t
 The `atom-highlighter` automatically escapes HTML entities, but so does `GenericPod`. Consequently, if a different highlighter is used for highlighting when HTML is generated, escaping needs to be turned off within GenericPod for Pod::Code blocks. This is the default behaviour. If a different behaviour is required, then `no-code-escape` needs to be set to False.
 
 # Templates
-The default templating system is a hash of Raku closures. More about templates can be found in [RenderPod](RenderPod.md). Another template engine is Template::Mustache. This can be accessed as `use Pod::To::HTML::Mustache`. A minimal default set of templates is provided with the Module.
+The default templating system is a hash of Raku closures. More about templates can be found in [RenderPod](RenderPod.md). Another template engine is Template::Mustache. This can be accessed as `use Pod::To::HTML2::Mustache`. A minimal default set of templates is provided with the Module.
 
 Each template can be changed using the `modify-templates` method. Be careful when over-riding `head-block` to ensure the css is properly referenced.
 
 A full set of new templates can be provided to ProcessedPod either by providing a path/filename to the processor method, eg.,
 
 ```
-use Pod::To::HTML;
+use Pod::To::HTML2;
 my Pod::To::HTML $p .= new;
 
 $p.templates<path/to/mytemplates.raku>;
@@ -318,4 +318,4 @@ This module deal with these problems as follows:
 
 
 ----
-Rendered from Pod2HTML at 2021-01-09T18:06:08Z
+Rendered from Pod2HTML at 2021-01-17T12:14:41Z
