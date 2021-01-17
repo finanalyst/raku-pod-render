@@ -25,13 +25,13 @@ A simple default set of templates is provided with a default set of css and a he
 
 Since no assumption can be made about the way the html is served, everything in the default templates assumes output to an html file that can be served as a file (eg., no embedded images from external files). The default behaviour can be changed by changing one or more or all of the templates.
 
-The rationale for re-writing the whole Pod::To::HTML module is in the section [Why Reinvent the Wheel?](#why-reinvent-the-wheel?).
+The rationale for re-writing the whole Pod::To::HTML2 module is in the section [Why Reinvent the Wheel?](#why-reinvent-the-wheel?).
 
 For more information about methods not covered here see the [PodProcess Class](RenderPod.md). A sister class [Markdown](MarkDown.md) is available.
 
 The default templating engine is `RakuClosureTemplater`, but the `Mustache` templating engine is retained. Some of the `xt` tests use the `Mustache` engine, and `Pod::To::Markdown` uses Mustache.
 
-The templating system is chosen automatically ddepending on the templates that are provided. The default templates are `Raku Closure Templates`, but the class `Pod::To::HTML::Mustache` is provided which supplies `Mustache` templates by default.
+The templating system is chosen automatically ddepending on the templates that are provided. The default templates are `Raku Closure Templates`, but the class `Pod::To::HTML2::Mustache` is provided which supplies `Mustache` templates by default.
 
 # Usage with compiler
 From the terminal:
@@ -64,16 +64,16 @@ Any or all of 'NoTOC' 'NoMETA' 'NoGloss' 'NoFoot' may be included in any order. 
 # Standalone usage mixing Pod and code
 'Standalone ... mixing' means that the program itself contains pod definitions (some examples are given below). This functionality is mainly for tests, but can be adapted to render other pod sources.
 
-`Pod::To::HTML` is a subclass of `PodProcessed`, which contains the code for a generic Pod Render. `Pod::To::HTML` provides a default set of templates and minimal css (see [Templates](#templates)). It also exports some routines (not documented here) to pass the tests of the legacy `Pod::To::HTML` module (see below for the rationale for choosing a different API).
+`Pod::To::HTML2` is a subclass of `PodProcessed`, which contains the code for a generic Pod Render. `Pod::To::HTML2` provides a default set of templates and minimal css (see [Templates](#templates)). It also exports some routines (not documented here) to pass the tests of the legacy `Pod::To::HTML2` module (see below for the rationale for choosing a different API).
 
-`Pod::To::HTML` also allows, as covered below, for a customised css file to be included, for individual template components to be changed on the fly, and also to provide a different set of templates.
+`Pod::To::HTML2` also allows, as covered below, for a customised css file to be included, for individual template components to be changed on the fly, and also to provide a different set of templates.
 
 What is happening in this case is that the raku compiler has compiled the Pod in the file, and the code then accesses the Pod segments. In fact the order of the Pod segments is irrelavant, but it is conventional to show Pod definitions interwoven with the code that accesses it.
 
 ```
 use Pod::To::HTML2;
 # for repeated pod trees to be output as a single page or html snippets (as in a test file)
-my $renderer = Pod::To::HTML.new(:name<Optional name defaults to UNNAMED>);
+my $renderer = Pod::To::HTML2.new(:name<Optional name defaults to UNNAMED>);
 # later
 
 =begin pod
@@ -128,14 +128,14 @@ The different customisations are incompatible during object instantiation.
 ## Customisable CSS
 Two variables `:css-type` and `:css-src` are provided to customise the loading of css for the 'source-wrap' template provided here. These can be specified as arguments to `processor`.
 
-If the `head-block` templates, which is used in the `source-wrap` template, contain the Mustache stanza `{{> css-text }}`, which calls the partial template `css-text` . When `Pod::To::HTML` is instantiated using these variables, a style string is given to the css-text. In order to use the default css behaviour of `Pod::To::HTML`, only over-ride some templates, keeping css-text, and use the `css-text` or `head-block` templates.
+If the `head-block` templates, which is used in the `source-wrap` template, contain the Mustache stanza `{{> css-text }}`, which calls the partial template `css-text` . When `Pod::To::HTML2` is instantiated using these variables, a style string is given to the css-text. In order to use the default css behaviour of `Pod::To::HTML2`, only over-ride some templates, keeping css-text, and use the `css-text` or `head-block` templates.
 
 If `:css-type` is specified, then `:css-src` must be specified.
 
 ## CSS Load
 ```
     use Pod::To::HTML2;
-    my Pod::To::HTML $processor .= new(:css-type<load>, :css-src('path/to/custom.css') );
+    my Pod::To::HTML2 $processor .= new(:css-type<load>, :css-src('path/to/custom.css') );
 
 ```
 The contents of path/to/custom.css are slurped into a `<style> ` container and given to the template `css-text`.
@@ -147,7 +147,7 @@ Normally, when HTML is served a separate CSS file is loaded from a path on the s
 
 ```
     use Pod::To::HTML2;
-    my Pod::To::HTML $processor .= new(:css-type<link>, :css-src('https://somedomain.dom/assets/pod.css') );
+    my Pod::To::HTML2 $processor .= new(:css-type<link>, :css-src('https://somedomain.dom/assets/pod.css') );
 
 ```
 This generates a string that is given to the template `css-text`. For example: `<link rel="stylesheet" type="text/css" href="https://somedomain.com/assets/pod.css" media="screen" title="default" /> `
@@ -166,11 +166,11 @@ If another favicon is required, then it can be inserted by
 
 *  store the text string produced in a file, eg 'assets/favicon.bin'
 
-*  provide that filename when instantiating a `Pod::To::HTML` object, eg.,
+*  provide that filename when instantiating a `Pod::To::HTML2` object, eg.,
 
 ```
 use Pod::To::HTML2;
-my Pod::To::HTML $p .= new(:favicon-src('assets/favicon.bin') );
+my Pod::To::HTML2 $p .= new(:favicon-src('assets/favicon.bin') );
 ...
 
 ```
@@ -197,7 +197,7 @@ Then in the rendering program we need to provide to ProcessedPod the new object 
 ```
     use v6;
     use Pod::To::HTML2;
-    my Pod::To::HTML $r .= new;
+    my Pod::To::HTML2 $r .= new;
     $r.custom = <diagram>;
     $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
 
@@ -211,15 +211,15 @@ Since highlighting generates considerably more HTML, it is turned off by default
 
 Highlighting is handled in the Templates. The default Templates use the atom-highlighter, which is installed with `Raku::Pod::Render` by default.
 
-Highlighting is enabled at the time of HTML generation by setting `$render.highlight-code=True` after `Pod::To::HTML` object instantiation.
+Highlighting is enabled at the time of HTML generation by setting `$render.highlight-code=True` after `Pod::To::HTML2` object instantiation.
 
-Another highlighter could be attached to a Pod::To::HTML object, in which case the following need to be done:
+Another highlighter could be attached to a Pod::To::HTML2 object, in which case the following need to be done:
 
 *  the getter and setter functions of `.highlight-code` need to be over-ridden so as to set up the code, and turn it off
 
 *  a closure needs to be assigned to `.highlight `. The closure should accept a Str and highlight it.
 
-*  the `Pod::To::HTML` object has an attribut `.atom-highlighter` of type `Proc` to hold an external function.
+*  the `Pod::To::HTML2` object has an attribut `.atom-highlighter` of type `Proc` to hold an external function.
 
 The `atom-highlighter` automatically escapes HTML entities, but so does `GenericPod`. Consequently, if a different highlighter is used for highlighting when HTML is generated, escaping needs to be turned off within GenericPod for Pod::Code blocks. This is the default behaviour. If a different behaviour is required, then `no-code-escape` needs to be set to False.
 
@@ -232,7 +232,7 @@ A full set of new templates can be provided to ProcessedPod either by providing 
 
 ```
 use Pod::To::HTML2;
-my Pod::To::HTML $p .= new;
+my Pod::To::HTML2 $p .= new;
 
 $p.templates<path/to/mytemplates.raku>;
 
@@ -244,7 +244,7 @@ $p.templates( %( format-b => '<b>{{ contents }}</b>' .... ) );
 ```
 If :templates is given a string, then it expects a file that can be compiled by raku and evaluates to a Hash containing the templates. More about the hash can be found in [RenderPod](renderpod.md).
 
-When a `Pod::To::HTML` object is instantiated, and the file 'html-templates.raku' exists in the current working directory, it will be evaluated and treated as the source of the templates hash (see above).
+When a `Pod::To::HTML2` object is instantiated, and the file 'html-templates.raku' exists in the current working directory, it will be evaluated and treated as the source of the templates hash (see above).
 
 This allows a developer to use the compiler option `--doc=HTML` together with her own templates. Note that css must also be provided explicitly in the `head-block` template.
 
@@ -256,7 +256,7 @@ The utility function `Extractor.raku` is provided to take POD6 in input sources 
 The `html` files use the default templates, or templates in a `html-templates.raku` file in the current working directory.
 
 # Exported Subroutines
-Two functions are exported to provide backwards compatibility with legacy Pod::To::HTML module. They map onto the methods described above.
+Two functions are exported to provide backwards compatibility with legacy Pod::To::HTML2 module. They map onto the methods described above.
 
 Only those options actually tested will be supported.
 
@@ -278,7 +278,7 @@ The default separator (.) can be changed by setting (eg to _) as :counter-separa
 The header levels can be omitted by setting :no-counters
 
 # Why Reinvent the Wheel?
-The two original Pod rendering modules are `Pod::To::HTML ` (later **legacy P2HTML** ) and `Pod::To::BigPage `. So why rewrite the modules and create another API? There was an attempt to rewrite the existing modules, but the problems go deeper than a rewrite. The following difficulties can be found with the legacy Modules:
+The two original Pod rendering modules are `Pod::To::HTML2 ` (later **legacy P2HTML** ) and `Pod::To::BigPage `. So why rewrite the modules and create another API? There was an attempt to rewrite the existing modules, but the problems go deeper than a rewrite. The following difficulties can be found with the legacy Modules:
 
 *  Inside the code of legacy P2HTML there were several comments such as 'fix me'. The API provided a number of functions with different parameters that are not documented.
 
@@ -304,7 +304,7 @@ This module deal with these problems as follows:
 
 *  There is a clear distinction between what is needed for a particular output format, eg., HTML or MarkDown, and what is needed to render Pod. Thus, HTML requires css and headers, etc. MarkDown requires the anchors to connect a Table of Contents to specific Headers in the text to be written in a specific way.
 
-*  `Pod::To::HTML` subclass allows for a more flexible provision of css or other assets.
+*  `Pod::To::HTML2` subclass allows for a more flexible provision of css or other assets.
 
 *  The `source-wrap` template can be completely rewritten to allow for different assets.
 
@@ -318,4 +318,4 @@ This module deal with these problems as follows:
 
 
 ----
-Rendered from Pod2HTML at 2021-01-17T12:14:41Z
+Rendered from Pod2HTML2 at 2021-01-17T14:06:11Z

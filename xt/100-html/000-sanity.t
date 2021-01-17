@@ -1,5 +1,5 @@
 use Test;
 
-use-ok "Pod::To::HTML";
+use-ok "Pod::To::HTML2";
 
 done-testing;

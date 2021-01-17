@@ -44,11 +44,11 @@ This distribution ('distribution' because it contains several modules and other 
 
 The output depends entirely on the templates. Absolutely no output rendering is performed in the module that processes the POD6 files. The body of the text, TOC, Glossary, and Footnotes can be output or suppressed, and their position can be controlled using a combination of templates, or in the case of HTML, templates and CSS. It also means that the same generic class can be used for HTML and MarkDown, or any other output format such as epub.
 
-Two other modules are provided: `Pod::To::HTML` and `Pod::To::MarkDown`. For more information on them, see [Pod::To::HTML](Pod2HTML.md). These have the functionality and default templates to be used in conjunction with the **raku** (aka perl6) compiler option `--doc=name`.
+Two other modules are provided: `Pod::To::HTML2` and `Pod::To::MarkDown`. For more information on them, see [Pod::To::HTML2](Pod2HTML2.md). These have the functionality and default templates to be used in conjunction with the **raku** (aka perl6) compiler option `--doc=name`.
 
 ProcessedPod has also been designed to allow for rendering multiple POD6 files. In this case, the components collected from individual source, such as TOC, Glossary, Footnotes, and Metadata information, need to be combined. However, a user will want to have pages dedicated to the whole collection of sources, with the content of these collection pages described using POD6, which will require customised pod and associated templates, but also the templates will need to have data provided from an external source (eg. the collective TOC). This functionality can be added via plugins.
 
-The `Pod::To::HTML` has a simple way of handling customised CSS, but no way to access embedded images other than svg files. Modifying the templates, when there is information about the serving environment, can change this.
+The `Pod::To::HTML2` module has a simple way of handling customised CSS, but no way to access embedded images other than svg files. Modifying the templates, when there is information about the serving environment, can change this.
 
 This module uses BOTH a new Template system `Raku-Closure-Templates` and the Moustache templating system `Template::Mustache`. ProcessedPod choses the templating engine is automatically depending on how the template for Bold-face is provided. A different custom template engine can also be added.
 
@@ -57,7 +57,7 @@ The first step in rendering is to create a renderer.
 
 The renderer needs to take into account the output format, eg., html, incorporate non-default templates (eg., a designer may want to have customised classes in paragraphs or headers). The Pod renderer requires templates for a number of document elements, see TEMPLATES below.
 
-Essentially, a hash of element keys pointing to Mustache strings is provided to the renderer. The `Pod::To::HTML` and `Pod::To::MarkDown` modules in this distribution provide default templates to the `ProcessedPod` class.
+Essentially, a hash of element keys pointing to Mustache strings is provided to the renderer. The `Pod::To::HTML2` and `Pod::To::MarkDown` modules in this distribution provide default templates to the `ProcessedPod` class.
 
 The renderer can be customised on-the-fly by modifying the keys of the template hash. For example, (using a Mustache template)
 
@@ -194,7 +194,7 @@ The new role may only need to over-ride `method rendition( Str $key, Hash %param
 Assuming that the templating engine is NewTemplateEngine, and that - like Template::Mustache - it is instantiates with `.new`, and has a `.render` method which takes a String template, and Hash of strings to interpolate, and which returns a String, viz `.render( Str $string, Hash %params, :from( %hash-of-templates) --` Str )>.
 
 # Customised Pod and Templates
-The POD6 specification is sufficiently generic to allow for some easy customisations, and the `Pod::To::HTML` renderer in this distribution passes the associated meta data on to the template. This allows for the customisation of Pod::Blocks and Format Codes.
+The POD6 specification is sufficiently generic to allow for some easy customisations, and the `Pod::To::HTML2` renderer in this distribution passes the associated meta data on to the template. This allows for the customisation of Pod::Blocks and Format Codes.
 
 ## Custom Pod Block
 Standard Pod allows for Pod::Blocks to be **named** and configuration data provided. This allows us to leverage the standard syntax to allow for non-standard blocks and templates.
@@ -229,7 +229,7 @@ Then in the rendering program we need to provide to ProcessedPod the new object 
 ```
     use v6;
     use Pod::To::HTML2;
-    my Pod::To::HTML $r .= new;
+    my Pod::To::HTML2 $r .= new;
     $r.add-custom: <diagram>;
     $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
 
@@ -250,7 +250,7 @@ In this case the first `object` is rendered with the template `diagram-float-lef
 ## Custom Format Code
 This is even easier to handle as all that is needed is to supply a template in the form `format-ß` where **ß** is a unicode character other than **B C E I K L N P T U V X Z**, which are defined in the Pod6 specification.
 
-If the `Pod::To::HTML` renderer in this distribution comes across a Format Code letter, it will check the templates it has, and if one of the form `format-ß` exists, then it will call the template with the enclosed text as `contents`.
+If the `Pod::To::HTML2` renderer in this distribution comes across a Format Code letter, it will check the templates it has, and if one of the form `format-ß` exists, then it will call the template with the enclosed text as `contents`.
 
 For example, lets assume that we want a Format Code to access the [Font Awesome Icons](https://fontawesome.com/v4.7.0/icons). The template will need to be defined as follows (assuming the Mustache templater):
 
@@ -341,7 +341,7 @@ A rendering strategy is required for a complex task consisting of many Pod sourc
 # Rendering many Pod Sources
 A complete render strategy has to deal with multiple page components.
 
-The following sketches the use of the `Pod::To::HTML` class.
+The following sketches the use of the `Pod::To::HTML2` class.
 
 For example, suppose we want to render each POD source file as a separate html file, and combine the global page components separately.
 
@@ -349,7 +349,7 @@ The the `ProcessedPob` object expects a compiled Pod object. One way to do this 
 
 ```
     use Pod::To::HTML2;
-    my $p = Pod::To::HTML.new;
+    my $p = Pod::To::HTML2.new;
     my %pod-input; # key is the path-name for the output file, value is a Pod::Block
     my @processed;
 
@@ -607,7 +607,7 @@ There is a minimum set of templates that must be provided for a Pod file to be r
         item list meta named output para pod raw source-wrap table toc >
 
 ```
-When the `.templates` method is called, the templates will be checked against this list for completeness. An Exception will be thrown if all the templates are not provided. Extra templates can be included. `Pod::To::HTML` uses this to have partial templates that use the required templates.
+When the `.templates` method is called, the templates will be checked against this list for completeness. An Exception will be thrown if all the templates are not provided. Extra templates can be included. `Pod::To::HTML2` uses this to have partial templates that use the required templates.
 
 
 
@@ -617,4 +617,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2021-01-17T12:14:45Z
+Rendered from RenderPod at 2021-01-17T14:06:27Z

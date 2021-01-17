@@ -5,7 +5,7 @@ use Test;
 # do NOT move this below `Pod::To::HTML` line, the module exports a fake Pod::Defn
 constant no-pod-defn = ::('Pod::Defn') ~~ Failure;
 
-use Pod::To::HTML;
+use Pod::To::HTML2;
 
 plan :skip-all<Compiler does not support Pod::Defn> if no-pod-defn;
 plan 1;

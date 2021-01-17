@@ -1,6 +1,6 @@
 use Test;
-use Pod::To::HTML;
-my $pro = Pod::To::HTML.new;
+use Pod::To::HTML2;
+my $pro = Pod::To::HTML2.new;
 my $rv;
 my $pn = 0;
 

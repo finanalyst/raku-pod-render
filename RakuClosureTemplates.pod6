@@ -103,7 +103,7 @@ A C<Hash> element is specified as a C<Hash>, as shown above and a C<Array> as an
 Examples of a set of RakuClosureTemplates can be found in the C<resources> directory of the distribution, as
 
 =item C<closure-temp.raku> is an array of templates, including a custom C<image> template. The templates are designed
-for C<Pod::To::HTML>.
+for C<Pod::To::HTML2>.
 
 =item C<extra-test.raku> is a hash with the template structure for the C<image> template.
 

@@ -1,8 +1,8 @@
 use v6.*;
 use Test;
 
-use Pod::To::HTML;
-my $processor = Pod::To::HTML.new;
+use Pod::To::HTML2;
+my $processor = Pod::To::HTML2.new;
 my $rv;
 my $pn = 0;
 

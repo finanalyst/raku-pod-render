@@ -1,5 +1,5 @@
 use Test; # -*- mode: perl6 -*-
-use Pod::To::HTML;
+use Pod::To::HTML2;
 plan 9;
 
 use MONKEY-SEE-NO-EVAL;

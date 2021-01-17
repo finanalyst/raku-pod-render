@@ -1,6 +1,6 @@
 use Test; # -*- mode: perl6 -*- 
 use Test::Output;
-use Pod::To::HTML;
+use Pod::To::HTML2;
 plan 5;
 my $r;
 

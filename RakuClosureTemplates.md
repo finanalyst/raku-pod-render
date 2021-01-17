@@ -83,7 +83,7 @@ Examples of a set of RakuClosureTemplates can be found in the `resources` direct
 
 
 
-*  `closure-temp.raku` is an array of templates, including a custom `image` template. The templates are designed for `Pod::To::HTML`.
+*  `closure-temp.raku` is an array of templates, including a custom `image` template. The templates are designed for `Pod::To::HTML2`.
 
 *  `extra-test.raku` is a hash with the template structure for the `image` template.
 
@@ -93,4 +93,4 @@ Examples of a set of RakuClosureTemplates can be found in the `resources` direct
 
 
 ----
-Rendered from RakuClosureTemplates at 2020-08-28T23:43:27Z
+Rendered from RakuClosureTemplates at 2021-01-17T14:06:22Z

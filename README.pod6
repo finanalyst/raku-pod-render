@@ -5,7 +5,7 @@
 
 Intended
 
-=item to be a plugin replacement for original Pod::To::HTML and to pass all its tests.
+=item to be a plugin replacement for the original (legacy) Pod::To::HTML and to pass all its tests.
 =item to use Templates for all output (legacy Pod::To::HTML hard codes HTML)
 =item use the same API for outputting MarkDown and other output formats. Hence simply changing templates will generate new output
 =item generate Glossary, TOC and Footnote structures for each set of Pod trees.
@@ -13,7 +13,7 @@ Intended
 =item has a GUI for converting one or more Pod6-containing files into MarkDown or HTML.
 =item allows for Raku code to be highlighted at HTML generation time.
 
-The Renderers, eg., Pod::To::HTML, will chose the templating engine depending on the templates provided. So far only
+The Renderers, eg., Pod::To::HTML2, will chose the templating engine depending on the templates provided. So far only
 Template::Mustache and the new RakuClosureTemplates are handled.
 
 =head1 Extractor GUI
@@ -102,7 +102,7 @@ Pod6 allows for metadata such as AUTHOR or VERSION to be set. These can be inclu
 
 =head1 RakuClosureTemplates
 
-A new templating system is introduced to speed up the rendering. The Pod::To::HTML renderer is now slightly
+A new templating system is introduced to speed up the rendering. The Pod::To::HTML2 renderer is now slightly
 faster than the legacy Pod::To::HTML renderer, whilst achieving considerably more.
 
 =head2 Testing tool
@@ -131,6 +131,6 @@ This behaviour can be over-riden by
 
 See L<RenderPod> for the generic module and L<Pod2HTML> for
 information about the HTML 
-specific module `Pod::To::HTML`. `Pod::To::Markdown`, see L<MarkDown>, follows `Pod::To::HTML` mostly.
+specific module `Pod::To::HTML2`. `Pod::To::Markdown`, see L<MarkDown>, follows `Pod::To::HTML2` mostly.
 
 =end pod

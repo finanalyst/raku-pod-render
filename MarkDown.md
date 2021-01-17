@@ -4,7 +4,7 @@
 ## Table of Contents
 [Usage with compiler](#usage-with-compiler)  
 [Extract Pod in a Module to README.md](#extract-pod-in-a-module-to-readmemd)  
-[More detail and differences from Pod::To::HTML](#more-detail-and-differences-from-podtohtml)  
+[More detail and differences from Pod::To::HTML2](#more-detail-and-differences-from-podtohtml2)  
 
 ----
 # Usage with compiler
@@ -38,8 +38,8 @@ The utility function `Extractor.raku` is provided to take POD6 in input sources 
 
 `Extractor.raku` depends on `GTK::Simple`, which in turns requires the `GTK-3.0` library to be installed (see installation documentation of `GTK::Simple`.
 
-# More detail and differences from Pod::To::HTML
-See [RenderPod](RenderPod.md) [PodToHTML](PodToHTML.md) for more detail. `Pod::To::MarkDown` has templates to produce MarkDown and not HTML. In addition:
+# More detail and differences from Pod::To::HTML2
+See [RenderPod](RenderPod.md) [PodToHTML2](PodToHTML2.md) for more detail. `Pod::To::MarkDown` has templates to produce MarkDown and not HTML. In addition:
 
 
 
@@ -57,4 +57,4 @@ See [RenderPod](RenderPod.md) [PodToHTML](PodToHTML.md) for more detail. `Pod::T
 
 
 ----
-Rendered from MarkDown at 2020-08-28T23:43:27Z
+Rendered from MarkDown at 2021-01-17T14:24:40Z

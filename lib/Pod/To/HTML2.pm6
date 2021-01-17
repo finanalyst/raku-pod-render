@@ -31,7 +31,7 @@ our $camelia-svg = %?RESOURCES<Camelia.svg>.slurp;
 our $default-css-text = '<style>' ~ %?RESOURCES<pod.css>.slurp ~ '</style>';
 our $camelia-ico = %?RESOURCES<camelia-ico.bin>.slurp;
 
-class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
+class Pod::To::HTML2:auth<github:finanalyst> is ProcessedPod {
     # needed for HTML rendering
     has $.def-ext is rw;
     #| When true reduces css, camelia image, favicon to minimum
@@ -164,7 +164,7 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
         $!highlight-code
     }
 
-    #| The Pod::To::HTML version, which uses css
+    #| The Pod::To::HTML2 version, which uses css
     #| renders all of the document structures, and wraps them and the body
     #| uses the source-wrap template
     method source-wrap(--> Str) {
@@ -470,7 +470,7 @@ class Pod::To::HTML:auth<github:finanalyst> is ProcessedPod {
     }
 }
 
-class Pod::To::HTML::Mustache:auth<github:finanalyst> is Pod::To::HTML:auth<github:finanalyst> {
+class Pod::To::HTML2::Mustache:auth<github:finanalyst> is Pod::To::HTML2:auth<github:finanalyst> {
 
     #| returns a hash of keys and Mustache templates
     method html-templates(:$css-text = $default-css-text, :$favicon-bin = $camelia-ico) {
@@ -629,12 +629,12 @@ class Pod::To::HTML::Mustache:auth<github:finanalyst> is Pod::To::HTML:auth<gith
 # All of the code below is solely to pass the legacy tests.
 
 sub get-processor {
-    my $proc = Pod::To::HTML.new;
+    my $proc = Pod::To::HTML2.new;
     $proc.css = 'assets/pod.css';
     $proc
 }
 
-#| Backwards compatibility for older Pod::To::HTML module
+#| Backwards compatibility for legacy Pod::To::HTML module
 #| function renders a pod fragment
 sub node2html($pod) is export {
     my $proc = get-processor;
@@ -642,12 +642,12 @@ sub node2html($pod) is export {
     $proc.render-block($pod)
 }
 
-#| Function provided by older Pod::To::HTML module to encapsulate a pod-tree in a file
+#| Function provided by legacy Pod::To::HTML module to encapsulate a pod-tree in a file
 sub pod2html($pod, *%options) is export {
     my $proc = get-processor;
     with %options<templates> {
         if  "$_/main.mustache".IO ~~ :f {
-            $proc.templates(Pod::To::HTML::Mustache.html-templates);
+            $proc.templates(Pod::To::HTML2::Mustache.html-templates);
             $proc.modify-templates(%( source-wrap => "$_/main.mustache".IO.slurp))
         }
         else {

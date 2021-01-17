@@ -121,9 +121,9 @@ multi sub MAIN() {
 }
 
 sub HTML(@fn, $report, $highlight-code, $min-top) {
-    use Pod::To::HTML:auth<github:finanalyst>;
+    use Pod::To::HTML2:auth<github:finanalyst>;
     # when there is no highlighting, the code needs escaping
-    my Pod::To::HTML $pr .= new(:$min-top,:$highlight-code);
+    my Pod::To::HTML2 $pr .= new(:$min-top,:$highlight-code);
     process(@fn, $report, $pr, 'html')
 }
 

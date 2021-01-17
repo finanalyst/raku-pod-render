@@ -1,5 +1,5 @@
 use Test;
-use Pod::To::HTML;
+use Pod::To::HTML2;
 plan 1;
 my $r;
 

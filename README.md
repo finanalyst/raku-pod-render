@@ -21,7 +21,7 @@
 ----
 Intended
 
-*  to be a plugin replacement for original Pod::To::HTML and to pass all its tests.
+*  to be a plugin replacement for the original (legacy) Pod::To::HTML and to pass all its tests.
 
 *  to use Templates for all output (legacy Pod::To::HTML hard codes HTML)
 
@@ -35,7 +35,7 @@ Intended
 
 *  allows for Raku code to be highlighted at HTML generation time.
 
-The Renderers, eg., Pod::To::HTML, will chose the templating engine depending on the templates provided. So far only Template::Mustache and the new RakuClosureTemplates are handled.
+The Renderers, eg., Pod::To::HTML2, will chose the templating engine depending on the templates provided. So far only Template::Mustache and the new RakuClosureTemplates are handled.
 
 # Extractor GUI
 Run `Extractor.raku` in the directory where the transformed files are needed. Select POD6 files by clicking on the FileChooser button at the top of the panel. The Output file name by default is the same as the basename of the input file, but can be changed. Select the output formats.
@@ -101,7 +101,7 @@ Links should be tested. While the data is collected, verifying links is left to 
 Pod6 allows for metadata such as AUTHOR or VERSION to be set. These can be included in HTML or other formats.
 
 # RakuClosureTemplates
-A new templating system is introduced to speed up the rendering. The Pod::To::HTML renderer is now slightly faster than the legacy Pod::To::HTML renderer, whilst achieving considerably more.
+A new templating system is introduced to speed up the rendering. The Pod::To::HTML2 renderer is now slightly faster than the legacy Pod::To::HTML renderer, whilst achieving considerably more.
 
 ## Testing tool
 A testing tool is included that will test the array of RakuClosureTemplates, including the possibility of specifying the structure of a custom template and testing it against the template.
@@ -123,7 +123,7 @@ This behaviour can be over-riden by
 RAKU_POD_RENDER_FORCE_HIGHLIGHTER_REFRESH zef install Raku::Pod::Render
 ```
 # More Information
-See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md) for information about the HTML specific module ``Pod::To::HTML``. ``Pod::To::Markdown``, see [MarkDown](MarkDown.md), follows ``Pod::To::HTML`` mostly.
+See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md) for information about the HTML specific module ``Pod::To::HTML2``. ``Pod::To::Markdown``, see [MarkDown](MarkDown.md), follows ``Pod::To::HTML2`` mostly.
 
 
 
@@ -133,4 +133,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2021-01-11T19:58:47Z
+Rendered from README at 2021-01-17T14:21:28Z

@@ -37,9 +37,9 @@ using in-code POD6 and this can be extracted into a C<README.md> file with C<Ext
 C<Extractor.raku> depends on C<GTK::Simple>, which in turns requires the C<GTK-3.0> library to
 be installed (see installation documentation of C<GTK::Simple>.
 
-=head1 More detail and differences from Pod::To::HTML
+=head1 More detail and differences from Pod::To::HTML2
 
-See L<RenderPod> L<PodToHTML> for more detail. C<Pod::To::MarkDown> has
+See L<RenderPod> L<PodToHTML2> for more detail. C<Pod::To::MarkDown> has
 templates to produce MarkDown and not HTML. In addition:
 
 =item The target rewrite function needs to be over-ridden.

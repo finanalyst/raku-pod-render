@@ -1,5 +1,5 @@
 use Test; # -*- mode: perl6 -*-
-use Pod::To::HTML;
+use Pod::To::HTML2;
 plan 1;
 
 my $example-path = "multi.pod6".IO.e??"multi.pod6"!!"t/multi.pod6";

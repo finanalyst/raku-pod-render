@@ -1,8 +1,8 @@
 use v6.*;
 use Test;
 
-use Pod::To::HTML;
-my $processor = Pod::To::HTML.new;
+use Pod::To::HTML2;
+my $processor = Pod::To::HTML2.new;
 my $rv;
 my $pn = 0;
 
@@ -80,7 +80,7 @@ like $rv,
     \s* '</pre>'
     /, 'highlighter turned off again';
 
-$processor = Pod::To::HTML.new(:highlight-code);
+$processor = Pod::To::HTML2.new(:highlight-code);
 $rv = $processor.render-block( $=pod[$pn] ); # call initial code and highlight it
 like $rv,
         /

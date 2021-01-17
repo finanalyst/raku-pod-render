@@ -8,7 +8,7 @@ if ! No_SHELL_TEST {
     my $p = run 'raku', '-Ilib', '--doc=HTML', 'xt/rend-test-file.raku', :out;
     my $rv = $p.out.slurp(:close);
 
-    like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'Pod::To::HTML works with compiler';
+    like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'Pod::To::HTML2 works with compiler';
 
     like $rv, /
         'id="Glossary"'
@@ -30,10 +30,10 @@ if ! No_SHELL_TEST {
         /, 'footnotes rendered';
 
     diag 'PODRENDER="no-toc"';
-    $p = shell 'PODRENDER="no-toc" raku -Ilib --doc=HTML xt/rend-test-file.raku', :out;
+    $p = shell 'PODRENDER="no-toc" raku -Ilib --doc=HTML2 xt/rend-test-file.raku', :out;
     $rv = $p.out.slurp(:close);
 
-    like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'Pod::To::HTML works with compiler';
+    like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'Pod::To::HTML2 works with compiler';
 
     like $rv, /
         'id="Glossary"'
@@ -55,10 +55,10 @@ if ! No_SHELL_TEST {
         /, 'footnotes rendered';
 
     diag 'PODRENDER="no-toc no-glos"';
-    $p = shell 'PODRENDER="no-toc no-glos" raku -Ilib --doc=HTML xt/rend-test-file.raku', :out;
+    $p = shell 'PODRENDER="no-toc no-glos" raku -Ilib --doc=HTML2 xt/rend-test-file.raku', :out;
     $rv = $p.out.slurp(:close);
 
-    like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'Pod::To::HTML works with compiler';
+    like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'Pod::To::HTML2 works with compiler';
 
     unlike $rv, /
         'id="Glossary"'

@@ -15,7 +15,7 @@ The body of the text, TOC, Glossary, and Footnotes can be output or suppressed, 
 can be controlled using a combination of templates, or in the case of HTML, templates and CSS.
 It also means that the same generic class can be used for HTML and MarkDown, or any other output format such as epub.
 
-Two other modules are provided: C<Pod::To::HTML> and C<Pod::To::MarkDown>. For more information on them, see L<Pod::To::HTML|Pod2HTML>. These have
+Two other modules are provided: C<Pod::To::HTML2> and C<Pod::To::MarkDown>. For more information on them, see L<Pod::To::HTML2|Pod2HTML2>. These have
 the functionality and default templates to be used in conjunction with the
 B<raku> (aka perl6) compiler option C<--doc=name>.
 
@@ -26,7 +26,7 @@ with the content of these collection pages described using POD6, which will requ
 but also the templates will need to have data provided from an external source (eg. the collective TOC). This functionality
 can be added via plugins.
 
-The C<Pod::To::HTML> has a simple way of handling customised CSS, but no way to access embedded images other than svg files.
+The C<Pod::To::HTML2> module has a simple way of handling customised CSS, but no way to access embedded images other than svg files.
 Modifying the templates, when there is information about the serving environment, can change this.
 
 This module uses BOTH a new Template system C<Raku-Closure-Templates> and the Moustache templating system C<Template::Mustache>.
@@ -41,7 +41,7 @@ The renderer needs to take into account the output format, eg., html, incorporat
 may want to have customised classes in paragraphs or headers). The Pod renderer requires templates for a number of
 document elements, see TEMPLATES below.
 
-Essentially, a hash of element keys pointing to Mustache strings is provided to the renderer. The C<Pod::To::HTML> and C<Pod::To::MarkDown>
+Essentially, a hash of element keys pointing to Mustache strings is provided to the renderer. The C<Pod::To::HTML2> and C<Pod::To::MarkDown>
 modules in this distribution provide default templates to the C<ProcessedPod> class.
 
 The renderer can be customised on-the-fly by modifying the keys of the template hash. For example, (using a Mustache template)
@@ -223,7 +223,7 @@ which returns a String, viz C< .render( Str $string, Hash %params, :from( %hash-
 
 =head1 Customised Pod and Templates
 
-The POD6 specification is sufficiently generic to allow for some easy customisations, and the C<Pod::To::HTML> renderer
+The POD6 specification is sufficiently generic to allow for some easy customisations, and the C<Pod::To::HTML2> renderer
 in this distribution passes the associated meta data on to the template. This allows for the customisation of Pod::Blocks
 and Format Codes.
 
@@ -267,7 +267,7 @@ These must be the same name. Thus we would have:
 =begin code
     use v6;
     use Pod::To::HTML2;
-    my Pod::To::HTML $r .= new;
+    my Pod::To::HTML2 $r .= new;
     $r.add-custom: <diagram>;
     $r.modify-templates( %( diagram => '<figure source="{{ src }}" class="{{ class }}">{{ contents }}</figure>' , ) );
 =end code
@@ -292,7 +292,7 @@ This is even easier to handle as all that is needed is to supply a template in t
 unicode character other than B<B C E I K L N P T U V X Z>, which are defined
 in the Pod6 specification.
 
-If the C<Pod::To::HTML> renderer in this distribution comes across a Format Code letter, it will check the templates
+If the C<Pod::To::HTML2> renderer in this distribution comes across a Format Code letter, it will check the templates
 it has, and if one of the form C<format-ß> exists, then it will call the template with the enclosed text as C<contents>.
 
 For example, lets assume that we want a Format Code to access the L<Font Awesome Icons|https://fontawesome.com/v4.7.0/icons>.
@@ -398,7 +398,7 @@ There have to be the following facilities
 
 A complete render strategy has to deal with multiple page components.
 
-The following sketches the use of the C<Pod::To::HTML> class.
+The following sketches the use of the C<Pod::To::HTML2> class.
 
 For example, suppose we want to render each POD source file as a separate html file, and combine the global page components
 separately.
@@ -407,7 +407,7 @@ The the C<ProcessedPob> object expects a compiled Pod object. One way to do this
 
 =begin code :lang<raku>
     use Pod::To::HTML2;
-    my $p = Pod::To::HTML.new;
+    my $p = Pod::To::HTML2.new;
     my %pod-input; # key is the path-name for the output file, value is a Pod::Block
     my @processed;
 
@@ -685,7 +685,7 @@ There is a minimum set of templates that must be provided for a Pod file to be r
 =end code
 
 When the C<.templates> method is called, the templates will be checked against this list for completeness. An
-Exception will be thrown if all the templates are not provided. Extra templates can be included. C<Pod::To::HTML>
+Exception will be thrown if all the templates are not provided. Extra templates can be included. C<Pod::To::HTML2>
 uses this to have partial templates that use the required templates.
 
 =end pod

@@ -3,7 +3,7 @@
 ----
 ## Table of Contents
 [Minimum Set](#minimum-set)  
-[Table of Required templates, their parameters, and helper templates in Pod::To::HTML](#table-of-required-templates-their-parameters-and-helper-templates-in-podtohtml)  
+[Table of Required templates, their parameters, and helper templates in Pod::To::HTML2](#table-of-required-templates-their-parameters-and-helper-templates-in-podtohtml2)  
 [Notes](#notes)  
 [Sample Templates for HTML using Raku-Closure Template Engine](#sample-templates-for-html-using-raku-closure-template-engine)  
 
@@ -19,7 +19,7 @@ The developer may decide not to render a parameter. The verification tool will f
 
 If the minimum set of templates is not provided, the renderer will throw an error.
 
-# Table of Required templates, their parameters, and helper templates in Pod::To::HTML
+# Table of Required templates, their parameters, and helper templates in Pod::To::HTML2
 >Required templates and their normal parameters
 
  | Key | Parameter | Sub-param | Type | Description |
@@ -137,7 +137,7 @@ If the minimum set of templates is not provided, the renderer will throw an erro
  |  |  | name | String | Name of meta data, eg. AUTHOR |
  |  |  | value | String | Value of key |
 
->Helper templates in Pod::To::HTML
+>Helper templates in Pod::To::HTML2
 
  | Key | Parameter | Calls | Called-by | Description |
 |:----:|:----:|:----:|:----:|:----:|
@@ -172,7 +172,7 @@ If the minimum set of templates is not provided, the renderer will throw an erro
 
 *  The template does not need to render a parameter, but the template verification tool will issue a warning if it does not.
 
-*  required templates are called by the Renderer, but it is cleaner to break the template into sections. The templates for Pod::To::HTML do this, with footer, header and head-block templates, all of which are called by file-wrap. This structure is shown in the table above.
+*  required templates are called by the Renderer, but it is cleaner to break the template into sections. The templates for Pod::To::HTML2 do this, with footer, header and head-block templates, all of which are called by file-wrap. This structure is shown in the table above.
 
 # Sample Templates for HTML using Raku-Closure Template Engine
 The following set includes an extra `Image` Custom Pod Block.
@@ -449,4 +449,4 @@ The following set includes an extra `Image` Custom Pod Block.
 
 
 ----
-Rendered from PodTemplates at 2021-01-05T23:43:26Z
+Rendered from PodTemplates at 2021-01-17T14:06:21Z

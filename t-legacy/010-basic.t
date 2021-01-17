@@ -1,5 +1,5 @@
 use Test; # -*- mode: perl6 -*-
-use Pod::To::HTML;
+use Pod::To::HTML2;
 plan 3;
 
 # XXX Need a module to walk HTML trees

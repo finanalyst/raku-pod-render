@@ -1,6 +1,6 @@
 use v6;
 use Test;
-use Pod::To::HTML;
+use Pod::To::HTML2;
 
 plan 2;
 
