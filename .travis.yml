@@ -10,4 +10,7 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get -y install libgtk-3-dev node.js npm
 
-script: docker run -t --user root -v  $TRAVIS_BUILD_DIR:/test jjmerelo/raku-test
+script: docker run -t --user root --entrypoint="/bin/sh" \
+  -v /home/richard/development/raku-pod-render:/test jjmerelo/raku-test \
+  -c "zef install --deps-only . && prove6 --lib"
+
