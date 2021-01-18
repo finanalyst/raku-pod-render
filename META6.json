@@ -9,15 +9,15 @@
     "URI",
     "LibCurl",
     "Pod::Load",
-    "File::Temp",
-    "Test::META",
     "Test::Deeply::Relaxed",
     "File::Directory::Tree",
     "Test::Output"
   ],
   "build-depends": [],
   "test-depends": [
-    "Test"
+    "Test",
+    "File::Temp",
+    "Test::META"
   ],
   "provides": {
     "Pod::Render::Exceptions": "lib/Pod/Render/Exceptions.pm6",
