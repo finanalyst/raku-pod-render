@@ -15,7 +15,6 @@
 [Custom Pod and Template](#custom-pod-and-template)  
 [Highlighting](#highlighting)  
 [Templates](#templates)  
-[Extract Pod in a Module to README.md](#extract-pod-in-a-module-to-readmemd)  
 [Exported Subroutines](#exported-subroutines)  
 [Miscellaneous](#miscellaneous)  
 [Why Reinvent the Wheel?](#why-reinvent-the-wheel?)  
@@ -248,13 +247,6 @@ When a `Pod::To::HTML2` object is instantiated, and the file 'html-templates.rak
 
 This allows a developer to use the compiler option `--doc=HTML` together with her own templates. Note that css must also be provided explicitly in the `head-block` template.
 
-# Extract Pod in a Module to README.md
-The utility function `Extractor.raku` is provided to take POD6 in input sources and turn it into a .md file (eg., for a github `README.md`). So now, a Module can be written using in-code POD6 and this can be extracted into a `README.md` file with `Extractor.raku`.
-
-`Extractor.raku` depends on `GTK::Simple`, which in turns requires the `GTK-3.0` library to be installed (see installation documentation of `GTK::Simple`.
-
-The `html` files use the default templates, or templates in a `html-templates.raku` file in the current working directory.
-
 # Exported Subroutines
 Two functions are exported to provide backwards compatibility with legacy Pod::To::HTML2 module. They map onto the methods described above.
 
@@ -318,4 +310,4 @@ This module deal with these problems as follows:
 
 
 ----
-Rendered from Pod2HTML2 at 2021-01-17T14:06:11Z
+Rendered from Pod2HTML2 at 2021-01-18T13:06:54Z

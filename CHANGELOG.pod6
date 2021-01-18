@@ -1,0 +1,31 @@
+=begin pod :no-toc :no-glossary
+=TITLE Raku::Pod::Render
+=SUBTITLE Change log
+
+=head1 Prior to 2021-01-17
+
+=item Module runs, passes all tests.
+=item P2HTML passes all legacy tests
+=item custom blocks
+=item custom templates
+
+=head1 2021-01-17
+=item resolved issue relating to name. Changed Pod::To::HTML to Pod::To::HTML2
+
+=head1 2021-01-18
+=item added CHANGELOG.pod6 / CHANGELOD.md
+=item Added functionality to Unused B<FormatCodes>
+=item2 Codes such as B<L> and B<X> have the form C<CodeLetter<some content | data ; more data> >
+=item2 The C<Pod::Block> then provides B<some content> as C<contents> and then C<meta> is a list of B<'data', 'more data'>
+=item2 This syntax is applied to all non-standard format codes
+=item added new test for formatting
+=item refactored tests
+=item2 removed meta file test to xt/ and so no need for Environment flag
+=item2 moved several large testing modules from test-depends to depends
+=item modified xt/100-html/150* to not run unless SHELL_TEST environment set
+=item spun off Extractor to a different module 'raku-pod-extraction'
+=item2 Changed all documentation references to Extractor
+=item removal of Extractor removes dependence on GTK::Simple
+=item2 resolves issue regarding GTK::Simple
+
+=end pod

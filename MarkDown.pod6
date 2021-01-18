@@ -28,15 +28,6 @@ regex applied |  if Match, then Turns off
 Any or all of 'NoTOC', 'NoMeta', or 'NoFoot' may be included in any order.
 Default is to include each section.
 
-=head1 Extract Pod in a Module to README.md
-
-The utility function C<Extractor.raku> is provided to take POD6 in input sources and
-turn it into a .md file (eg., for a github C<README.md>). So now, a Module can be written
-using in-code POD6 and this can be extracted into a C<README.md> file with C<Extractor.raku>.
-
-C<Extractor.raku> depends on C<GTK::Simple>, which in turns requires the C<GTK-3.0> library to
-be installed (see installation documentation of C<GTK::Simple>.
-
 =head1 More detail and differences from Pod::To::HTML2
 
 See L<RenderPod> L<PodToHTML2> for more detail. C<Pod::To::MarkDown> has

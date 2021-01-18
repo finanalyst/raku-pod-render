@@ -3,7 +3,6 @@
 ----
 ## Table of Contents
 [Usage with compiler](#usage-with-compiler)  
-[Extract Pod in a Module to README.md](#extract-pod-in-a-module-to-readmemd)  
 [More detail and differences from Pod::To::HTML2](#more-detail-and-differences-from-podtohtml2)  
 
 ----
@@ -33,11 +32,6 @@ The following regexen are applied to PODRENDER and switch off the default render
 
 Any or all of 'NoTOC', 'NoMeta', or 'NoFoot' may be included in any order. Default is to include each section.
 
-# Extract Pod in a Module to README.md
-The utility function `Extractor.raku` is provided to take POD6 in input sources and turn it into a .md file (eg., for a github `README.md`). So now, a Module can be written using in-code POD6 and this can be extracted into a `README.md` file with `Extractor.raku`.
-
-`Extractor.raku` depends on `GTK::Simple`, which in turns requires the `GTK-3.0` library to be installed (see installation documentation of `GTK::Simple`.
-
 # More detail and differences from Pod::To::HTML2
 See [RenderPod](RenderPod.md) [PodToHTML2](PodToHTML2.md) for more detail. `Pod::To::MarkDown` has templates to produce MarkDown and not HTML. In addition:
 
@@ -57,4 +51,4 @@ See [RenderPod](RenderPod.md) [PodToHTML2](PodToHTML2.md) for more detail. `Pod:
 
 
 ----
-Rendered from MarkDown at 2021-01-17T14:24:40Z
+Rendered from MarkDown at 2021-01-18T13:06:51Z

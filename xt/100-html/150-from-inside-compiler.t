@@ -1,8 +1,6 @@
 use Test;
 
-constant No_SHELL_TEST = ?%*ENV<NO_SHELL_TEST>;
-
-if ! No_SHELL_TEST {
+if %*ENV<SHELL_TEST> {
     plan 15;
     diag 'PODRENDER unset';
     my $p = run 'raku', '-Ilib', '--doc=HTML', 'xt/rend-test-file.raku', :out;
@@ -82,7 +80,7 @@ if ! No_SHELL_TEST {
 else
 {
     plan 1;
-    skip-rest "Repeat these tests with prove, eg.  PROVE_TEST=1 prove -ve 'raku -Ilib' xt/100-html/150*";
+    skip-rest "Repeat these tests SHELL_TEST=1 prove6 -v --lib' xt/100-html/150*";
 }
 
 done-testing;

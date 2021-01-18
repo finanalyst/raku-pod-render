@@ -3,6 +3,40 @@ use URI;
 use LibCurl::Easy;
 use Pod::Render::Exceptions;
 
+grammar FC {
+    # head is what is left of vertical bar, any non-vertical bar char, or empty
+    # attrs is on right of bar
+    # attrs is semicolon-separated list of things, can be double-quoted, or empty
+    # What we care about are "head" and "meta" results
+    # credit to @yary for this grammar
+
+    # TODO rule instead of token? use .ws instead of \s or \h
+    token TOP {
+        <head>
+        | <head> \s* '|' \s* <metas> \s*
+    }
+
+    token head-word { <-[|\h]>+ }
+    token head {
+        <head-word>+ % \h+ | ''
+    }
+
+    token metas { <meta>* % [\s* ';' \s*] }
+    # Semicolon-separated 0-or-more attr
+
+    token meta-word { <-[;\"\h]>+ }
+    # Anything without quote or solidus or space
+    token meta-words { <meta-word>+ % \h* }
+    token inside-quotes { <-[ " ]>+ }
+    token meta-quoted {
+        '"' ~ '"' <inside-quotes>*
+    }
+    token meta {
+        <meta-words> | <meta-quoted>
+    }
+    # TODO: use "make" to pull inside-quotes value to meta
+}
+
 #class GenericPod { ... }
 # class ProcessedPod is GenericPod does RakuClosureTemplater { ... };
 # class ProcessedPod::Mustache is GenericPod does MustacheTemplater { ... };
@@ -873,18 +907,22 @@ class GenericPod {
     multi method handle(Pod::FormattingCode $node where .type ~~ none(<E Z X N L P V>), Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
+        my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) };
+        my $meta = @($node.meta) // []; # by default an empty array
+        unless $node.type ~~ any(<B C I K T U>) {
+            my $rv = FC.parse($contents);
+            $contents = ~ $rv<head>;
+            $meta.append($rv<metas><meta>».Str) if $rv<metas><meta>
+        }
         if %.tmpl{ 'format-' ~ $node.type.lc }:exists {
             $.completion($in-level, 'format-' ~ $node.type.lc ,
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) })
-                )
-                , :$defn
+                %( :$contents, :$meta ), :$defn
             )
-
         }
         else {
             $.completion($in-level, 'escaped',
                 %( :contents($node.type ~ '<'
-                    ~ [~] gather for $node.contents { take $.handle($_, $in-level,$context, :$defn) }
+                    ~ $contents
                     ~ '>')
                 )
             ), :$defn

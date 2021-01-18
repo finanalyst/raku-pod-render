@@ -16,19 +16,6 @@ Intended
 The Renderers, eg., Pod::To::HTML2, will chose the templating engine depending on the templates provided. So far only
 Template::Mustache and the new RakuClosureTemplates are handled.
 
-=head1 Extractor GUI
-
-Run C<Extractor.raku> in the directory where the transformed files are needed. Select POD6 files by
-clicking on the FileChooser button at the top of the panel. The Output file name by default is the same
-as the basename of the input file, but can be changed. Select the output formats.
-
-If a file was selected by mistake, uncheck the 'convert' box on the far left and it will not be processed.
-
-When the list is complete, click on B<Convert>. The converted files will be shown, or the failure message.
-
-This tool is fairly primitive and it may not handle all error conditions. The tool is intended for generating
-md and html files in an adhoc manner.
-
 =head1 Installation
 
 The best way is to use (unless highlighting is not wanted)
@@ -40,10 +27,6 @@ In order to prevent the highlighter (see L<Highlighting> below) use
     RAKU_NO_HIGHLIGHTER=1 zef install Raku::Pod::Render
 
 =head2 Dependencies
-
-The Extractor.raku programme requires GTK::Simple. It is known that this is difficult to install on Windows. However, if
-the GTK library has already been installed on Windows, then GTK::Simple will load with no problem. Look at the GTK website
-for information about Windows installations of GTK.
 
 The highlighter is a Node based toolstack. It requires an uptodate version of npm. The Raku-Pod-Render Build command
 is known not to work with node.js v13.0 while it is known to work with v14.15.

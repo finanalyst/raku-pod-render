@@ -248,9 +248,11 @@ It is possible to cause a Custom block to use another template by using the temp
 In this case the first `object` is rendered with the template `diagram-float-left`, which must exist in the templates Hash, and the second time `object` is rendered with the default template `object`, which also must exist.
 
 ## Custom Format Code
-This is even easier to handle as all that is needed is to supply a template in the form `format-ß` where **ß** is a unicode character other than **B C E I K L N P T U V X Z**, which are defined in the Pod6 specification.
+This is even easier to handle as all that is needed is to supply a template in the form `format-ß` where **ß** is a unicode character other than the standard codes, viz., **B C E I K L N P T U V X Z**, which are defined in the Pod6 specification. Several of the standard codes, such as **L** and **X**, parse the contents, placing all data after `|` in the meta container, and if separated by `;`, meta contains a list of data itmes.
 
-If the `Pod::To::HTML2` renderer in this distribution comes across a Format Code letter, it will check the templates it has, and if one of the form `format-ß` exists, then it will call the template with the enclosed text as `contents`.
+If a ProcessedPod object comes across a non-standard Format Code letter, it will parse the contents, using the semantics defined for **X**, as described above.
+
+If a template has been supplied of the form `format-ß`, then it will call the template with the enclosed text as `contents` or `meta` as described above.
 
 For example, lets assume that we want a Format Code to access the [Font Awesome Icons](https://fontawesome.com/v4.7.0/icons). The template will need to be defined as follows (assuming the Mustache templater):
 
@@ -258,6 +260,28 @@ For example, lets assume that we want a Format Code to access the [Font Awesome 
 $r.modify-templates( %( :format-f( '<i class="fa {{{ contents }}}"></i>' ) ));
 ```
 And the pod text would include something like "this text has a F<fa-snowflake-o> icon" in it. Note that although the HTML will be rendered correctly, it will also be necessary to ensure that the `head-block` template is altered so that the `Font Awesome` Javascript library is included.
+
+Alternatively, using `RakuClosure Templates` a FormatCode **S** could be defined as:
+
+```
+$r.modify-templates( %( format-s => sub(%prm, %tmpl) {
+    '<div class="' ~ %prm<meta> ~ '">' ~ %prm<contents> ~ '</div>'
+} ) );
+```
+In which case
+
+```
+    =begin pod
+    This is an item for sale S<Click to purchase with XXXProvider | xxxprovider_button>
+    =end pod
+
+```
+Would yield
+
+```
+<div class="xxxprovider_button">Click to ourchase with XXXProvider</div>
+```
+Naturally, the developer would need to set up significantly more HMTL/JS/CSS boilerplate in the header for this to have any action.
 
 # Plugins
 A plugin contains Custom Pod Blocks and Custom Templates, and it may contain other data that cannot be inferred from the POD6 content files.
@@ -617,4 +641,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2021-01-17T14:06:27Z
+Rendered from RenderPod at 2021-01-18T13:06:59Z
