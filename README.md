@@ -1,5 +1,5 @@
 # Generic Pod Renderer
->Transforms POD in a Raku module/pod to HTML and MarkDown.
+>Transforms POD in a Raku module/pod to other format such as HTML or MarkDown.
 
 
 ----
@@ -20,35 +20,38 @@
 ----
 Intended
 
-*  to be a plugin replacement for the original (legacy) Pod::To::HTML and to pass all its tests.
+*  to provide a plugin replacement for the original (legacy) Pod::To::HTML and to pass all its tests.
 
-*  to use Templates for all output (legacy Pod::To::HTML hard codes HTML)
+*  to use templates for all output (legacy Pod::To::HTML hard codes HTML)
 
 *  use the same API for outputting MarkDown and other output formats. Hence simply changing templates will generate new output
 
 *  generate Glossary, TOC and Footnote structures for each set of Pod trees.
 
-*  can be used to generate HTML and Markdown with raku's --doc flag.
+*  to generate HTML and Markdown with raku's --doc flag.
 
-*  has a GUI for converting one or more Pod6-containing files into MarkDown or HTML.
+*  optionally to highlight Raku code at HTML generation time.
 
-*  allows for Raku code to be highlighted at HTML generation time.
-
-The Renderers, eg., Pod::To::HTML2, will chose the templating engine depending on the templates provided. So far only Template::Mustache and the new RakuClosureTemplates are handled.
+The Renderers, eg., Pod::To::HTML2, will chose the templating engine depending on the templates provided. So far only Template::Mustache and the new RakuClosureTemplates are handled, though other engines can be subclassed in.
 
 # Installation
-The best way is to use (unless highlighting is not wanted)
+If highlighting is desired (see [Highlighting](Highlighting.md) below) from the start, an environment variable needs to be set (also see [Dependencies](Dependencies.md)).
+
+```
+POD_RENDER_HIGHLIGHTER=1 zef install Raku::Pod::Render
+```
+Since it is intended that `Raku::Pod::Render` can be used as a dependency for other modules, eg `raku-alt-documentation`, and it cannot be known whether all dependencies are installed, the default must be to prevent highlighting from being installed. If this is desired then,
 
 ```
 zef install Raku::Pod::Render
 ```
-In order to prevent the highlighter (see [Highlighting](Highlighting.md) below) use
+will install the module without checking or installing a highlighter. If, after default installation, the highlighter is needed, then it can be installed without re-running `zef` by running the following in a terminal:
 
 ```
-RAKU_NO_HIGHLIGHTER=1 zef install Raku::Pod::Render
+raku-render-install-highlighter
 ```
 ## Dependencies
-The highlighter is a Node based toolstack. It requires an uptodate version of npm. The Raku-Pod-Render Build command is known not to work with node.js v13.0 while it is known to work with v14.15.
+The default highlighter at present is a Node based toolstack called **atom-perl-highlighter**. In order to install it automatically, `Raku::Pod::Render` requires an uptodate version of npm. The builder is known not to work with `node.js` > ****v13.0> and `npm` > **v14.15**.
 
 # Page Components
 A Pod6 source will generate body text and generate information for TOC, Footnotes, Glossaries, Links and Metadata
@@ -121,4 +124,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2021-01-18T13:06:55Z
+Rendered from README at 2021-01-19T15:07:55Z

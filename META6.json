@@ -1,7 +1,7 @@
 {
   "name": "Raku::Pod::Render",
   "description": "A generic Pod6 Renderer with custom Pod::Blocks, FormatCodes for one or more files using templates, provides HTML and MarkDown.",
-  "version": "3.6.1",
+  "version": "3.6.2",
   "perl": "6.*",
   "auth": "github:finanalyst",
   "depends": [
@@ -26,7 +26,9 @@
     "Pod::To::MarkDown:auth<github:finanalyst>": "lib/Pod/To/MarkDown.pm6",
     "ProcessedPod": "lib/ProcessedPod.pm6",
     "ExtractPod": "lib/ExtractPod.pm6",
-    "test-templates": "bin/test-templates.raku"
+    "test-templates": "bin/test-templates",
+    "InstallAtomHighlighter": "lib/InstallAtomHighlighter.pm6",
+    "raku-pod-render-install-highlighter": "bin/raku-pod-render-install-highlighter"
   },
   "resources": [
     "pod.css",
