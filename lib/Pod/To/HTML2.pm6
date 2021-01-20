@@ -31,7 +31,7 @@ our $camelia-svg = %?RESOURCES<Camelia.svg>.slurp;
 our $default-css-text = '<style>' ~ %?RESOURCES<pod.css>.slurp ~ '</style>';
 our $camelia-ico = %?RESOURCES<camelia-ico.bin>.slurp;
 
-class Pod::To::HTML2:auth<github:finanalyst> is ProcessedPod {
+class Pod::To::HTML2 is ProcessedPod {
     # needed for HTML rendering
     has $.def-ext is rw;
     #| When true reduces css, camelia image, favicon to minimum
@@ -470,7 +470,7 @@ class Pod::To::HTML2:auth<github:finanalyst> is ProcessedPod {
     }
 }
 
-class Pod::To::HTML2::Mustache:auth<github:finanalyst> is Pod::To::HTML2:auth<github:finanalyst> {
+class Pod::To::HTML2::Mustache is Pod::To::HTML2 {
 
     #| returns a hash of keys and Mustache templates
     method html-templates(:$css-text = $default-css-text, :$favicon-bin = $camelia-ico) {

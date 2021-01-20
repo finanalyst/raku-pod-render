@@ -28,4 +28,11 @@
 =item removal of Extractor removes dependence on GTK::Simple
 =item2 resolves issue regarding GTK::Simple
 
+=head1 2021-01-19
+=item change installation default from installing highlighter to not installing highlighter
+=item added utility to install highlighter post installation
+
+=head1 2021-01-20
+=item change META6.json to ensure module passes tests with prove6 -I.
+
 =end pod

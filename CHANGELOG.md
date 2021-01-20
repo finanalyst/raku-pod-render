@@ -17,8 +17,6 @@
 *  resolved issue relating to name. Changed Pod::To::HTML to Pod::To::HTML2
 
 # 2021-01-18
-
-
 *  added CHANGELOG.pod6 / CHANGELOD.md
 
 *  Added functionality to Unused **FormatCodes**
@@ -47,10 +45,20 @@
 
 	*  resolves issue regarding GTK::Simple
 
+# 2021-01-19
+*  change installation default from installing highlighter to not installing highlighter
+
+*  added utility to install highlighter post installation
+
+# 2021-01-20
+
+
+*  change META6.json to ensure module passes tests with prove6 -I.
+
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-01-18T13:10:33Z
+Rendered from CHANGELOG at 2021-01-20T13:36:54Z
