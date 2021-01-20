@@ -6,5 +6,4 @@ services:
 install:
   - docker pull jjmerelo/raku-test
 
-script: docker run -t --user root --entrypoint="/bin/sh" -v  $TRAVIS_BUILD_DIR:/test jjmerelo/raku-test -c "zef install --deps-only . && prove6 --lib"
-
+script: docker run -t --user root -v  $TRAVIS_BUILD_DIR:/test jjmerelo/raku-test
