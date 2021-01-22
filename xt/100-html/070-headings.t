@@ -70,7 +70,7 @@ like $rv, /
 
 like $rv,
         /
-        'id="TOC"'
+        'id="_TOC"'
         /
         , 'rendered TOC';
 
@@ -78,7 +78,7 @@ $processor.no-toc = True;
 $rv = $processor.render-toc;
 unlike $rv,
         /
-        'id="TOC"'
+        'id="_TOC"'
         /, 'TOC not rendered';
 
 =begin pod

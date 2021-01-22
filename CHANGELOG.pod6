@@ -35,4 +35,11 @@
 =head1 2021-01-20
 =item change META6.json to ensure module passes tests with prove6 -I.
 
+=head1 2021-01-22
+=item improve css
+=item2 change nav ids to _TOC/_Glossary to avoid name clash with possible block names TOC or Glossary
+-item2 change tests of TOC and Glossary
+=item2 error in footnote scss
+=item change templates so that no nav divs appear when no component structures have content.
+
 =end pod

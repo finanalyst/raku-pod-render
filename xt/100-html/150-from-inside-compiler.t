@@ -3,13 +3,13 @@ use Test;
 if %*ENV<SHELL_TEST> {
     plan 15;
     diag 'PODRENDER unset';
-    my $p = run 'raku', '-Ilib', '--doc=HTML', 'xt/rend-test-file.raku', :out;
+    my $p = run 'raku', '-Ilib', '--doc=HTML2', 'xt/rend-test-file.raku', :out;
     my $rv = $p.out.slurp(:close);
 
     like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'Pod::To::HTML2 works with compiler';
 
     like $rv, /
-        'id="Glossary"'
+        'id="_Glossary"'
         /, 'glossary is rendered';
 
     like $rv, /
@@ -19,12 +19,12 @@ if %*ENV<SHELL_TEST> {
 
     like $rv,
         /
-        'id="TOC"'
+        'id="_TOC"'
         /
         , 'rendered TOC';
 
     like $rv, /
-        'id="Footnotes"'
+        'id="_Footnotes"'
         /, 'footnotes rendered';
 
     diag 'PODRENDER="no-toc"';
@@ -34,7 +34,7 @@ if %*ENV<SHELL_TEST> {
     like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'Pod::To::HTML2 works with compiler';
 
     like $rv, /
-        'id="Glossary"'
+        'id="_Glossary"'
         /, 'glossary is rendered';
 
     like $rv, /
@@ -44,12 +44,12 @@ if %*ENV<SHELL_TEST> {
 
     unlike $rv,
         /
-        'id="TOC"'
+        'id="_TOC"'
         /
         , 'not rendered TOC';
 
     like $rv, /
-        'id="Footnotes"'
+        'id="_Footnotes"'
         /, 'footnotes rendered';
 
     diag 'PODRENDER="no-toc no-glos"';
@@ -59,7 +59,7 @@ if %*ENV<SHELL_TEST> {
     like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'Pod::To::HTML2 works with compiler';
 
     unlike $rv, /
-        'id="Glossary"'
+        'id="_Glossary"'
             /, 'glossary not rendered';
 
     like $rv, /
@@ -69,12 +69,12 @@ if %*ENV<SHELL_TEST> {
 
     unlike $rv,
             /
-            'id="TOC"'
+            'id="_TOC"'
             /
             , 'not rendered TOC';
 
     like $rv, /
-        'id="Footnotes"'
+        'id="_Footnotes"'
             /, 'footnotes rendered';
 }
 else

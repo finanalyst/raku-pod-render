@@ -357,13 +357,13 @@ class Pod::To::HTML2 is ProcessedPod {
                         ~ "\t<body class=\"pod\">\n"
                         ~ %tml<header>(%prm, %tml)
                         ~ '<div class="pod-content">'
-                        ~ (( %prm<toc>.defined or %prm<glossary>.defined ) ?? '<nav>' !! '')
+                        ~ (( (%prm<toc>.defined and %prm<toc>.keys) or (%prm<glossary>.defined and %prm<glossary>.keys) ) ?? '<nav>' !! '')
                         ~ (%prm<toc> // '')
                         ~ (%prm<glossary> // '')
-                        ~ (( %prm<toc>.defined or %prm<glossary>.defined ) ?? '</nav>' !! '')
+                        ~ (( (%prm<toc>.defined and %prm<toc>.keys) or (%prm<glossary>.defined and %prm<glossary>.keys) ) ?? '</nav>' !! '')
                         ~ %tml<top-of-page>(%prm, %tml)
                         ~ %tml<subtitle>(%prm, %tml)
-                        ~ '<div class="pod-body' ~ (( %prm<toc>.defined and %prm<toc> ne '' ) ?? '' !! ' no-toc') ~ '">'
+                        ~ '<div class="pod-body' ~ (( %prm<toc>.defined and %prm<toc>.keys ) ?? '' !! ' no-toc') ~ '">'
                         ~ (%prm<body> // '')
                         ~ "\t\t</div>\n"
                         ~ (%prm<footnotes> // '')
@@ -372,8 +372,8 @@ class Pod::To::HTML2 is ProcessedPod {
                         ~ "\n\t</body>\n</html>\n"
             },
             'footnotes' => sub ( %prm, %tml ) {
-                with %prm<notes> {
-                    "<div id=\"Footnotes\" class=\"footnotes\">\n<ol>"
+                if %prm<notes>.defined and %prm<notes>.keys {
+                    "<div id=\"_Footnotes\" class=\"footnotes\">\n<ol>"
                             ~ [~] .map({ '<li id="' ~ %tml<escaped>($_<fnTarget>) ~ '">'
                             ~ ($_<text> // '')
                             ~ '<a class="footnote" href="#'
@@ -385,8 +385,8 @@ class Pod::To::HTML2 is ProcessedPod {
                 else { '' }
             },
             'glossary' => sub ( %prm, %tml ) {
-                with %prm<glossary> {
-                    '<div id="Glossary" class="glossary">' ~ "\n"
+                if %prm<glossary>.defined and %prm<glossary>.keys {
+                    '<div id="_Glossary" class="glossary">' ~ "\n"
                             ~ '<div class="glossary-caption">Glossary</div>' ~ "\n"
                             ~ '<div class="glossary-defn header">Term explained</div><div class="header glossary-place">In section</div>'
                             ~ [~] %prm<glossary>.map({
@@ -416,8 +416,8 @@ class Pod::To::HTML2 is ProcessedPod {
                 else { '' }
             },
             'toc' => sub ( %prm, %tml ) {
-                with %prm<toc> {
-                    "<div id=\"TOC\"><table>\n<caption>Table of Contents</caption>\n"
+                if %prm<toc>.defined and %prm<toc>.keys {
+                    "<div id=\"_TOC\"><table>\n<caption>Table of Contents</caption>\n"
                             ~ [~] %prm<toc>.map({
                         '<tr class="toc-level-' ~ .<level> ~ '">'
                                 ~ '<td class="toc-text"><a href="#'

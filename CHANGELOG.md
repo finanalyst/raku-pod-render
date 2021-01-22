@@ -51,9 +51,18 @@
 *  added utility to install highlighter post installation
 
 # 2021-01-20
-
-
 *  change META6.json to ensure module passes tests with prove6 -I.
+
+# 2021-01-22
+
+
+*  improve css
+
+	*  change nav ids to _TOC/_Glossary to avoid name clash with possible block names TOC or Glossary -item2 change tests of TOC and Glossary
+
+	*  error in footnote scss
+
+*  change templates so that no nav divs appear when no component structures have content.
 
 
 
@@ -61,4 +70,4 @@
 
 
 ----
-Rendered from CHANGELOG at 2021-01-20T13:36:54Z
+Rendered from CHANGELOG at 2021-01-22T13:44:47Z

@@ -3,7 +3,7 @@ use Test;
 
 use Pod::To::HTML2;
 
-my $processor = Pod::To::HTML2.new;
+my $processor = Pod::To::HTML2.new(:min-top);
 my $rv;
 my $pn = 0;
 
@@ -40,12 +40,12 @@ like $rv, /
 $rv = $processor.render-footnotes.subst(/\s+/,' ',:g).trim;
 
 like $rv, /
-    'id="Footnotes"'
+    'id="_Footnotes"'
     /, 'footnotes rendered later';
 
 $processor.no-footnotes = True;
 $rv = $processor.render-footnotes;
 
-unlike $rv, / 'id="Footnotes"' / , 'footnote rendering switched off';
+unlike $rv, / 'id="_Footnotes"' / , 'footnote rendering switched off';
 
 done-testing;

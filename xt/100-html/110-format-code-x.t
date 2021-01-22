@@ -46,7 +46,7 @@ $rv = $processor.render-glossary
         .subst(/\s+/,' ',:g).trim;
 
 like $rv, /
-    '<' .+? 'id="Glossary"' .+? '>'
+    '<' .+? 'id="_Glossary"' .+? '>'
     /, 'glossary rendered later';
 
 $processor.no-glossary = True;
@@ -54,7 +54,7 @@ $rv = $processor.render-glossary
         .subst(/\s+/,' ',:g).trim;
 
 unlike $rv, /
-    '<' .+? 'id="Glossary"' .+? '>'
+    '<' .+? 'id="_Glossary"' .+? '>'
     /, 'No glossary is rendered';
 
 =begin pod

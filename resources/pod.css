@@ -282,10 +282,10 @@ nav {
   float: left;
   margin: 0 0.75em 0.7em 0; }
 
-#TOC {
+#_TOC {
   grid-row: 1; }
 
-#Glossary {
+#_Glossary {
   grid-row: 2; }
 
 .glossary {
@@ -320,39 +320,39 @@ nav {
     font-weight: bold;
     color: navy; }
 
-#TOC {
+#_TOC {
   border-collapse: collapse;
   border-radius: inherit;
   background-color: inherit;
   padding: 15px;
   color: black; }
-  #TOC caption {
+  #_TOC caption {
     text-align: center;
     font-size: 120%;
     font-weight: bold; }
-  #TOC tr {
+  #_TOC tr {
     padding: 0.25pt 5pt 0 0;
     font-size: 11pt; }
-    #TOC tr td a {
+    #_TOC tr td a {
       text-decoration: none;
       color: navy; }
-    #TOC tr.toc-level-1 td {
+    #_TOC tr.toc-level-1 td {
       padding-top: 4pt;
       font-weight: bold;
       position: relative;
       left: 0; }
-      #TOC tr.toc-level-1 td:first-child td {
+      #_TOC tr.toc-level-1 td:first-child td {
         padding-top: 0; }
-    #TOC tr.toc-level-2 td {
+    #_TOC tr.toc-level-2 td {
       padding-top: 3pt;
       position: relative;
       left: 6px; }
-    #TOC tr.toc-level-3 td {
+    #_TOC tr.toc-level-3 td {
       padding-top: 2pt;
       font-size: 0.9em;
       position: relative;
       left: 8px; }
-    #TOC tr.toc-level-4 td {
+    #_TOC tr.toc-level-4 td {
       padding-top: 2pt;
       font-size: 0.8em;
       position: relative;
@@ -374,7 +374,7 @@ footer {
   box-shadow: 0.5em 0.5em 1em #888888 p;
     box-shadow-margin: 3px 0; }
 
-.footnptes {
+.footnotes {
   border-style: solid;
   border-color: blue;
   border-radius: 1em; }
