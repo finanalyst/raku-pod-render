@@ -85,10 +85,10 @@ nav {
     float: left;
     margin: 0 0.75em 0.7em 0;
 }
-#TOC {
+#_TOC {
     grid-row: 1;
 }
-#Glossary {
+#_Glossary {
     grid-row: 2;
 }
 
@@ -127,7 +127,7 @@ nav {
         color: navy;
     }
 }
-#TOC {
+#_TOC {
     border-collapse: collapse;
     border-radius: inherit;
     background-color: inherit;
@@ -192,7 +192,7 @@ footer {
         margin: 3px 0;
     }
 }
-.footnptes {
+.footnotes {
     border-style: solid;
     border-color: blue;
     border-radius: 1em;
