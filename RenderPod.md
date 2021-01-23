@@ -14,6 +14,7 @@
 [String Template](#string-template)  
 [Block Templates](#block-templates)  
 [Partials and New Templates](#partials-and-new-templates)  
+[Debugging](#debugging)  
 [Handling Declarator blocks](#handling-declarator-blocks)  
 [Change the Templating Engine](#change-the-templating-engine)  
 [Customised Pod and Templates](#customised-pod-and-templates)  
@@ -176,6 +177,18 @@ Now the pod line `This is some B<boldish text> in a line` will result in
 ```
 <p>This is some <container>boldish text</container> in a line</p>
 ```
+# Debugging
+The processing stages can be followed by setting `:debug` and/or `:verbose`, eg
+
+```
+$p.debug = True;
+```
+`:verbose` has no effect without `:debug`
+
+Debug causes information to be produced in each Block Handle, so will be triggered for each `Pod::Block`
+
+Verbose causes information to be produced by the template handler and rendering subs.
+
 # Handling Declarator blocks
 Currently POD6 that starts with `|#` or `#=` next to a declaration are not handled consistently or correctly. Declarator comments only work when associated with `Routine` declarations, such as `sub` or `method`. Declarator comments associated with variables are concatenated by the compiler with the next `Routine` declaration.
 
@@ -246,6 +259,8 @@ It is possible to cause a Custom block to use another template by using the temp
 
 ```
 In this case the first `object` is rendered with the template `diagram-float-left`, which must exist in the templates Hash, and the second time `object` is rendered with the default template `object`, which also must exist.
+
+The ability to specify another template for rendering applies to most `Pod::Block::Named`, except for the reserved `TITLE`, `SUBTILE` etc. Care needs to be taken to ensure the template specified can handle the parameters it is given.
 
 ## Custom Format Code
 This is even easier to handle as all that is needed is to supply a template in the form `format-ß` where **ß** is a unicode character other than the standard codes, viz., **B C E I K L N P T U V X Z**, which are defined in the Pod6 specification. Several of the standard codes, such as **L** and **X**, parse the contents, placing all data after `|` in the meta container, and if separated by `;`, meta contains a list of data itmes.
@@ -533,6 +548,24 @@ The following are called by `source-wrap` but could be called separately, eg., i
 *  method render-meta(--> Str)
 
 # Public Class Attributes
+Within the templating Role
+
+```
+    #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
+    has @.required = < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta named output para pod raw source-wrap table toc >;
+    #| must have templates. Generically, no templates loaded.
+    has Bool $.templates-loaded is rw = False;
+    has $.templater-is is rw = 'rakuclosure';
+    #| storage of loaded templates
+    has %.tmpl;
+    #| a variable to collect which templates have been used for trace and debugging
+    has BagHash $.templs-used .= new;
+
+```
+Within GenericPod class
+
 ```
     #| the name of the anchor at the top of a source file
     constant DEFAULT_TOP = '___top';
@@ -641,4 +674,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2021-01-18T13:06:59Z
+Rendered from RenderPod at 2021-01-23T19:00:32Z

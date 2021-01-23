@@ -194,6 +194,19 @@ Now the pod line C< This is some B<boldish text> in a line> will result in
 
     <p>This is some <container>boldish text</container> in a line</p>
 
+=head1 Debugging
+
+The processing stages can be followed by setting C<:debug> and/or C<:verbose>, eg
+
+    $p.debug = True;
+
+C<:verbose> has no effect without C<:debug>
+
+Debug causes information to be produced in each Block Handle, so will be triggered for each
+C<Pod::Block>
+
+Verbose causes information to be produced by the template handler and rendering subs.
+
 =head1 Handling Declarator blocks
 
 Currently POD6 that starts with C<|#> or C<#=> next to a declaration are not handled consistently or correctly.
@@ -285,6 +298,10 @@ It is possible to cause a Custom block to use another template by using the temp
 
 In this case the first C<object> is rendered with the template C<diagram-float-left>, which must exist in the templates
 Hash, and the second time C<object> is rendered with the default template C<object>, which also must exist.
+
+The ability to specify another template for rendering applies to most C<Pod::Block::Named>, except for the reserved
+C<TITLE>, C<SUBTILE> etc. Care needs to be taken to ensure the template specified can handle the parameters it is
+given.
 
 =head2 Custom Format Code
 
@@ -609,6 +626,22 @@ as C<format-b> should be used inside the component.
 
 =head1 Public Class Attributes
 
+Within the templating Role
+=begin code
+    #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
+    has @.required = < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta named output para pod raw source-wrap table toc >;
+    #| must have templates. Generically, no templates loaded.
+    has Bool $.templates-loaded is rw = False;
+    has $.templater-is is rw = 'rakuclosure';
+    #| storage of loaded templates
+    has %.tmpl;
+    #| a variable to collect which templates have been used for trace and debugging
+    has BagHash $.templs-used .= new;
+=end code
+
+Within GenericPod class
 =begin code
     #| the name of the anchor at the top of a source file
     constant DEFAULT_TOP = '___top';

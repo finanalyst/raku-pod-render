@@ -54,15 +54,24 @@
 *  change META6.json to ensure module passes tests with prove6 -I.
 
 # 2021-01-22
-
-
 *  improve css
 
-	*  change nav ids to _TOC/_Glossary to avoid name clash with possible block names TOC or Glossary -item2 change tests of TOC and Glossary
+	*  change nav ids to _TOC/_Glossary to avoid name clash with possible block names TOC or Glossary
+
+	*  change tests of TOC and Glossary
 
 	*  error in footnote scss
 
 *  change templates so that no nav divs appear when no component structures have content.
+
+# 2021-01-23
+
+
+*  add $.templs-used to Template manager. records each time a template is used during rendering. The intention is to make the information available for debugging when dealing with multiple files.
+
+*  test added to xt/030* for templates-used
+
+*  extend to other named & header Pod::Blocks the ability to use another template if given as a config variable.
 
 
 
@@ -70,4 +79,4 @@
 
 
 ----
-Rendered from CHANGELOG at 2021-01-22T13:44:47Z
+Rendered from CHANGELOG at 2021-01-23T19:00:28Z

@@ -1,7 +1,8 @@
 use Test;
+use Test::Deeply::Relaxed;
 use ProcessedPod;
 
-plan 17;
+plan 18;
 
 my ProcessedPod $pro .= new;
 
@@ -64,7 +65,10 @@ for <metadata toc footnotes glossary>
     ok +%pod-structure{"raw-$_"}, "raw-$_ has content"
 }
 
-nok $pro.renderedtime, 'time should be blank after a emit-and-renew-processed-state';
+is-deeply-relaxed %pod-structure<templates-used>,
+        ("pod"=>1,"glossary"=>1,"heading"=>5,"zero"=>22,"para"=>7,"format-x"=>4,"footnotes"=>1,"meta"=>1,"format-n"=>1,"raw"=>5,"toc"=>1,"escaped"=>22).BagHash,
+        'used the expected templates';
 
+nok $pro.renderedtime, 'time should be blank after a emit-and-renew-processed-state';
 
 done-testing;

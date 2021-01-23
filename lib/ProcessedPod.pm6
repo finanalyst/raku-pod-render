@@ -116,8 +116,10 @@ role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
     #| must have templates. Generically, no templates loaded.
     has Bool $.templates-loaded is rw = False;
     has $.templater-is is rw = 'rakuclosure';
-
+    #| storage of loaded templates
     has %.tmpl;
+    #| a variable to collect which templates have been used for trace and debugging
+    has BagHash $.templs-used .= new;
     #| allows for templates to be replaced during pod processing
     #| repeatedly generating the template engine is expensive
     #| $templates may be either a Hash of templates, or
@@ -171,10 +173,11 @@ role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
         # rakuclosure does not restart engine because templates are compiled by Raku
     }
     #| rendition takes a key and parameters and calls the template for the key
-    method rendition(|c) {
+    method rendition(Str $key, %params --> Str) {
+        $.templs-used{ $key }++; # add name to Set
         # different engines will handle this differentiy. There is surely a more Raku way of doing this.
-        return self.mustache-rendition( |c ) if $.templater-is eq 'mustache';
-        self.rakuclosure-rendition( |c )
+        return self.mustache-rendition( $key, %params ) if $.templater-is eq 'mustache';
+        self.rakuclosure-rendition( $key, %params )
     }
     method set-engine {
         if %!tmpl<format-b> ~~ Str and %!tmpl<format-b> ~~ / '{{' / {
@@ -404,7 +407,9 @@ class GenericPod {
             :raw-metadata(@!raw-metadata.clone),
             :raw-toc(@!raw-toc.clone),
             :raw-glossary(%!raw-glossary.clone),
-            :raw-footnotes(@!raw-footnotes.clone);
+            :raw-footnotes(@!raw-footnotes.clone),
+            :templates-used( $.templs-used.clone )
+        ;
         #clean out the variables, whilst keeping the Templating engine cache.
         $!name = Nil;
         $!title = Nil;
@@ -422,6 +427,7 @@ class GenericPod {
         %!pod-config-data = Empty;
         $!pod-block-processed = False;
         $!targets = Nil;
+        $.templs-used = Nil;
         %h
     }
 
@@ -599,6 +605,7 @@ class GenericPod {
     #| returns the string representation of the block / list
     method completion(Int $in-level, Str $key, %params, Bool :$defn --> Str) {
         note "At $?LINE completing with template ｢$key｣ list level $in-level definition list ｢$defn｣" if $!debug;
+        note 'Templates used so far: ', $.templs-used.raku if $!debug and $!verbose;
         # most blocks would end a list if it exists, so call with zero
         # but if no list, viz $in-level=0, or a defn list then just return.
         # this is an optimisation
@@ -697,8 +704,9 @@ class GenericPod {
     multi method handle(Pod::Block::Named $node, Int $in-level, Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         my $target = $.register-toc(:1level, :text($node.name.tclc));
+        my $template = $node.config<template> // 'named';
         $.completion($in-level, 'zero', %(), :$defn )
-            ~ $.completion($in-level, 'named', %(
+            ~ $.completion($in-level, $template, %(
                 :name($node.name),
                 :$target,
                 :1level,
@@ -718,7 +726,8 @@ class GenericPod {
             %.pod-config-data = $node.config;
             $.pod-block-processed = True;
         }
-        $.completion($in-level, 'pod', %(
+        my $template = $node.config<template> // 'pod';
+        $.completion($in-level, $template, %(
             :$name,
             :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
             :tail($.completion( 0, 'zero', %(), :$defn ))
@@ -819,9 +828,10 @@ class GenericPod {
 
     multi method handle(Pod::Block::Table $node, Int $in-level, Context $context, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name }" if $.debug;
+        my $template = $node.config<template> // 'table';
         my @headers = gather for $node.headers { take self.handle($_, $in-level, $context) };
         $.completion($in-level, 'zero', %(), :$defn)
-            ~ $.completion($in-level, 'table', %(
+            ~ $.completion($in-level, $template, %(
                 :caption($node.caption ?? $.handle($node.caption, $in-level, $context) !! ''),
                 :headers(+@headers ?? %( :cells(@headers)) !! Nil),
                 :rows([gather for $node.contents -> @r {
@@ -848,10 +858,11 @@ class GenericPod {
         my $retained-list = $.completion($in-level, 'zero', %(), :$defn);
         # process before contents
         my $level = $node.level;
+        my $template = $node.config<template> // 'heading';
         my $target = $.register-toc(:$level, :text(recurse-until-str($node).join));
         # must register toc before processing content!!
         my $text = [~] gather for $node.contents { take $.handle($_, $in-level, Heading, :$defn) };
-        $retained-list ~ $.completion($in-level, 'heading', {
+        $retained-list ~ $.completion($in-level, $template, {
             :$level,
             :$text,
             :$target,

@@ -38,8 +38,16 @@
 =head1 2021-01-22
 =item improve css
 =item2 change nav ids to _TOC/_Glossary to avoid name clash with possible block names TOC or Glossary
--item2 change tests of TOC and Glossary
+=item2 change tests of TOC and Glossary
 =item2 error in footnote scss
 =item change templates so that no nav divs appear when no component structures have content.
+
+=head1 2021-01-23
+=item add $.templs-used to Template manager. records each time a template is used during rendering.
+The intention is to make the information available for debugging when dealing with multiple
+files.
+
+=item test added to xt/030* for templates-used
+=item extend to other named & header Pod::Blocks the ability to use another template if given as a config variable.
 
 =end pod
