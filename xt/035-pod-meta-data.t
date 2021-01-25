@@ -2,7 +2,7 @@ use Test;
 use Test::Deeply::Relaxed;
 use ProcessedPod;
 
-plan 3;
+plan 4;
 
 my $rv;
 my $pro = ProcessedPod.new;
@@ -14,6 +14,12 @@ my @templates = <block-code comment declarator defn dlist-end dlist-start escape
 
 my %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
 %templates<escaped> = sub ($s) { $s };
+%templates<meta> = sub ( %prm, %tmp ) {
+    "<meta>\n"
+    ~ %prm<meta>.map( { $_<name> ~ '=' ~ $_<value> ~ "\n"} )
+    ~ '</meta>'
+};
+%templates<source-wrap> = sub (%prm, %tml ) { "<file><body>{ %prm<body> }</body>{ %prm<metadata> }</file>"};
 
 $pro.templates(%templates);
 
@@ -49,4 +55,23 @@ $pro.emit-and-renew-processed-state;
 $pro.render-block( $=pod[$pv]) ;
 is-deeply-relaxed $pro.pod-config-data, %( :different("This is different"), :difficult("shouldnt be") ), 'second block config data accepted';
 
+=begin pod
+=AUTHOR A.N. Writer
+=LICENSE Artistic-2.0
+
+Stuff
+
+=end pod
+
+$pro.emit-and-renew-processed-state;
+$pro.render-tree( $=pod[++$pv] );
+like $pro.source-wrap,
+        /
+        '<file><body>'
+        .+ 'Stuff'
+        .+ '</body>'
+        '<meta>'
+        [ \s* 'Author=A.N. Writer' | \s* 'License=Artistic-2.0' ] **2
+        \s* '</meta></file>'
+        /, 'Got meta data structure';
 done-testing;

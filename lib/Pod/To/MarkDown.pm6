@@ -67,7 +67,7 @@ method md-templates {
         'declarator' => '## {{{ code }}}{{> nl2 }}{{{ contents }}}{{> nl2 }} ',
         # Markup doesn't have Definition lists. This seems a nice way to mimic them
         'dlist-start' => '',
-        'defn' => '> **{{ term }}**  {{> nl }}{{{ contents }}}{{> nl }}',
+        'defn' => '> **{{ term }}**  {{> nl }}{{{ contents }}}{{> nl2 }}',
         :dlist-end(''),
         'format-b' => '**{{{ contents }}}**',
         'format-c' => '`{{{ contents }}}`',
@@ -115,7 +115,7 @@ method md-templates {
             {{{ footnotes }}}{{/ footnotes }}
             {{# meta }}
             ----
-            {{{ meta }}}{{/ meta }}
+            {{{ metadata }}}{{/ metadata }}
             ----
             {{> footer }}
             TEMPL

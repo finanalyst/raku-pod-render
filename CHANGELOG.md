@@ -65,13 +65,20 @@
 *  change templates so that no nav divs appear when no component structures have content.
 
 # 2021-01-23
-
-
 *  add $.templs-used to Template manager. records each time a template is used during rendering. The intention is to make the information available for debugging when dealing with multiple files.
 
 *  test added to xt/030* for templates-used
 
 *  extend to other named & header Pod::Blocks the ability to use another template if given as a config variable.
+
+# 2021-01-25
+
+
+*  add LICENSE to meta headers
+
+*  fix default Markdown template of metadata
+
+*  fix default Markdown of =defn blocks
 
 
 
@@ -79,4 +86,4 @@
 
 
 ----
-Rendered from CHANGELOG at 2021-01-23T19:00:28Z
+Rendered from CHANGELOG at 2021-01-25T21:05:02Z

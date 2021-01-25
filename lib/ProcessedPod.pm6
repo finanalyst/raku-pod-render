@@ -752,10 +752,10 @@ class GenericPod {
         # we can't guarantee SUBTITLE will be after TITLE
     }
 
-    multi method handle(Pod::Block::Named $node where $node.name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>),
+    multi method handle(Pod::Block::Named $node where $node.name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY LICENSE>),
                         Int $in-level, Context $context, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
-        $.register-meta(:name($node.name.lc), :value(recurse-until-str($node)));
+        $.register-meta(:name($node.name.tclc), :value(recurse-until-str($node)));
         $.completion($in-level, 'zero', %(), :$defn )
         # make sure any list is correctly ended.
     }

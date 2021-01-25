@@ -50,4 +50,9 @@ files.
 =item test added to xt/030* for templates-used
 =item extend to other named & header Pod::Blocks the ability to use another template if given as a config variable.
 
+=head1 2021-01-25
+=item add LICENSE to meta headers
+=item fix default Markdown template of metadata
+=item fix default Markdown of =defn blocks
+
 =end pod

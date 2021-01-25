@@ -28,11 +28,11 @@ This text has no footnotes or indexed item.
 $processor.process-pod( $=pod[$pn++] );
 $rv = $processor.render-meta.subst(/\s+/,' ',:g).trim;
 like $rv, /
-    \s* '<meta name="author" value="An author' .+ '"' .+ '/>'
-    .+ '<meta name="summary" value="This page' .+ '/>'
+    \s* '<meta name="Author" value="An author' .+ '"' .+ '/>'
+    .+ '<meta name="Summary" value="This page' .+ '/>'
     /, 'meta is rendered';
 
 $processor.no-meta = True;
 
-unlike $processor.render-meta, / '<meta name="author' /, "Meta flag cancels rendering of meta data";
+unlike $processor.render-meta, / '<meta Name="author' /, "Meta flag cancels rendering of meta data";
 
