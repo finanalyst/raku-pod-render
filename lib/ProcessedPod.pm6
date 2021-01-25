@@ -605,7 +605,7 @@ class GenericPod {
     #| returns the string representation of the block / list
     method completion(Int $in-level, Str $key, %params, Bool :$defn --> Str) {
         note "At $?LINE completing with template ｢$key｣ list level $in-level definition list ｢$defn｣" if $!debug;
-        note 'Templates used so far: ', $.templs-used.raku if $!debug and $!verbose;
+        note 'Templates used so far: ', $.templs-used if $!debug and $!verbose;
         # most blocks would end a list if it exists, so call with zero
         # but if no list, viz $in-level=0, or a defn list then just return.
         # this is an optimisation
@@ -752,7 +752,7 @@ class GenericPod {
         # we can't guarantee SUBTITLE will be after TITLE
     }
 
-    multi method handle(Pod::Block::Named $node where $node.name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY LICENSE>),
+    multi method handle(Pod::Block::Named $node where $node.name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>),
                         Int $in-level, Context $context, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         $.register-meta(:name($node.name.tclc), :value(recurse-until-str($node)));

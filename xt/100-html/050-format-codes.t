@@ -152,12 +152,12 @@ like $rv, /
 
 
 =begin pod
-Perl 6 makes considerable use of the E<171> and E<187> characters.
-Perl 6 makes considerable use of the E<laquo> and E<raquo> characters.
-Perl 6 makes considerable use of the E<0b10101011> and E<0b10111011> characters.
-Perl 6 makes considerable use of the E<0o253> and E<0o273> characters.
-Perl 6 makes considerable use of the E<0d171> and E<0d187> characters.
-Perl 6 makes considerable use of the E<0xAB> and E<0xBB> characters.
+Raku makes considerable use of the E<171> and E<187> characters.
+Raku makes considerable use of the E<laquo> and E<raquo> characters.
+Raku makes considerable use of the E<0b10101011> and E<0b10111011> characters.
+Raku makes considerable use of the E<0o253> and E<0o273> characters.
+Raku makes considerable use of the E<0d171> and E<0d187> characters.
+Raku makes considerable use of the E<0xAB> and E<0xBB> characters.
 =end pod
 $rv = $processor.render-block( $=pod[$pn++] );
 
@@ -169,14 +169,14 @@ like $rv, /
 
     =begin pod
 
-    Perl 6 is awesomeZ<Of course it is!> without doubt.
+    Raku is awesomeZ<Of course it is!> without doubt.
     =end pod
 $rv = $processor.render-block( $=pod[$pn++] );
 
 like $rv, /
     '<section'
     .+? '<p>'
-    \s* 'Perl 6 is awesome without doubt.'
+    \s* 'Raku is awesome without doubt.'
     /, 'Z format';
 
 

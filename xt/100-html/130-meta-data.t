@@ -22,7 +22,7 @@ is $processor.render-meta, '', 'No meta data is rendered';
 This text has no footnotes or indexed item.
 =AUTHOR An author is named
 
-=SUMMARY This page is about Perl 6
+=SUMMARY This page is about Raku
 =end pod
 
 $processor.process-pod( $=pod[$pn++] );

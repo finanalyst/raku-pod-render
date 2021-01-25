@@ -113,7 +113,7 @@ method md-templates {
             {{# footnotes }}
             ----
             {{{ footnotes }}}{{/ footnotes }}
-            {{# meta }}
+            {{# metadata }}
             ----
             {{{ metadata }}}{{/ metadata }}
             ----

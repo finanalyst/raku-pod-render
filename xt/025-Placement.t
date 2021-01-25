@@ -30,7 +30,7 @@ like $rv,
 =begin pod
 
     =LICENSE
-    P<https://github.com/Raku/doc/blob/master/LICENSE>
+    P<https://github.com/raku/doc/blob/master/LICENSE>
 
 =end pod
 

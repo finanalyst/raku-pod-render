@@ -8,7 +8,7 @@ my $rv;
 my $pn = 0;
 plan 1;
 
-# The 'Perl 6' in the lines below should contain Non-breaking spaces, which might bot be shown as such
+# The 'Perl 6' in the lines below should contain Non-breaking spaces, which might not be shown as such
 
 =head1 Talking about Perl 6
 

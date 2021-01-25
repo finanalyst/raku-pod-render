@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-Template::Classic - Templates with arbitrary Perl 6 code inside them
+Template::Classic - Templates with arbitrary Raku code inside them
 
 =head1 SYNOPSIS
 
@@ -22,8 +22,8 @@ Template::Classic - Templates with arbitrary Perl 6 code inside them
 
 =head1 DESCRIPTION
 
-Templates are strings with C«<% %>»-delimited snippets of Perl 6 code inside
-them. Embedded Perl 6 code can use I«take» to emit strings into the rendered
+Templates are strings with C«<% %>»-delimited snippets of Raku code inside
+them. Embedded Raku code can use I«take» to emit strings into the rendered
 template. In addition, C«<%= %>» delimiters can be used to emit the result of
 evaluating an expression. This value is converted to a string by calling its
 I«.Str» method and special HTML characters are escaped.

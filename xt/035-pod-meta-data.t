@@ -57,7 +57,7 @@ is-deeply-relaxed $pro.pod-config-data, %( :different("This is different"), :dif
 
 =begin pod
 =AUTHOR A.N. Writer
-=LICENSE Artistic-2.0
+=SUMMARY Some summerised remarks
 
 Stuff
 
@@ -71,7 +71,7 @@ like $pro.source-wrap,
         .+ 'Stuff'
         .+ '</body>'
         '<meta>'
-        [ \s* 'Author=A.N. Writer' | \s* 'License=Artistic-2.0' ] **2
+        [ \s* 'Author=A.N. Writer' | \s* 'Summary=Some summerised remarks' ] **2
         \s* '</meta></file>'
         /, 'Got meta data structure';
 done-testing;

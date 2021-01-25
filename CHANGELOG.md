@@ -74,11 +74,11 @@
 # 2021-01-25
 
 
-*  add LICENSE to meta headers
-
 *  fix default Markdown template of metadata
 
 *  fix default Markdown of =defn blocks
+
+*  change Perl 6 => Raku in tests, except non-breaking space
 
 
 
@@ -86,4 +86,4 @@
 
 
 ----
-Rendered from CHANGELOG at 2021-01-25T21:05:02Z
+Rendered from CHANGELOG at 2021-01-25T22:09:21Z
