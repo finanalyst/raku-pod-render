@@ -104,7 +104,9 @@ method md-templates {
         # In HTML Meta tags can go in the Head section, but for Markdown they will be at the top above the TOC.
         'source-wrap' => q:to/TEMPL/,
             {{> title }}
-            {{> subtitle }}
+            {{# metadata }}
+            {{{ metadata }}}{{/ metadata }}
+            ----
             {{# toc }}
             ----
             {{{ toc }}}{{/ toc }}
@@ -113,9 +115,6 @@ method md-templates {
             {{# footnotes }}
             ----
             {{{ footnotes }}}{{/ footnotes }}
-            {{# metadata }}
-            ----
-            {{{ metadata }}}{{/ metadata }}
             ----
             {{> footer }}
             TEMPL
@@ -126,7 +125,7 @@ method md-templates {
             {{/ notes }}
             TEMPL
         'glossary' => '',
-        'meta' => '> {{# meta }} **{{ name }}** {{ value }}{{/ meta }}{{> nl2 }}',
+        'meta' => '{{# meta }}> **{{ name }}** {{ value }}{{> nl2 }}{{/ meta }}',
         'toc' => q:to/TEMPL/,
             ## Table of Contents
             {{# toc }}
