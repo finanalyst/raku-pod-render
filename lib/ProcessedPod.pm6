@@ -424,10 +424,11 @@ class GenericPod {
         $!renderedtime = Nil;
         @!raw-metadata = @!raw-toc = @!raw-footnotes = ();
         %!raw-glossary = Empty;
+        %!links = Empty;
         %!pod-config-data = Empty;
         $!pod-block-processed = False;
         $!targets = Nil;
-        $.templs-used = Nil;
+        $.templs-used = Nil; # provided by Role
         %h
     }
 
