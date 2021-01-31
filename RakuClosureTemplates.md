@@ -1,13 +1,12 @@
 # Raku Closure Templates
->Templates are Raku Subroutines
 
-
+----
 ----
 ## Table of Contents
 [Template structure](#template-structure)  
 [The %prm keys](#the-prm-keys)  
 [The %tml Hash](#the-tml-hash)  
-[Head](#head)  
+[Utility program test-templates](#utility-program-test-templates)  
 [Structure syntax](#structure-syntax)  
 [Examples](#examples)  
 
@@ -17,8 +16,14 @@ In order to increase the speed of Pod6 Renderering, it was necessary for the tem
 This distribution provides a tool for testing any set of templates against the [minimum template set](PodTemplates.md) and against custom templates whose structure is passed to it.
 
 # Template structure
-The templates are collected together into a hash of subroutines. With the sole exceptions of 'raw' and 'escaped', every subroutine has the form 'template-name' => sub (%prm, %tml) { ... }; # the exceptions are 'escaped' => sub ( $s ) { $s.trans( ... , ... ); } 'raw' => sub ( $s ) { $s };
+The templates are collected together into a hash of subroutines. With the sole exceptions of 'raw' and 'escaped', every subroutine has the form
 
+```
+'template-name' => sub (%prm, %tml) { ... };
+# the exceptions are
+'escaped' => sub ( $s ) { $s.trans( ... , ... ); }
+'raw' => sub ( $s ) { $s };
+```
 In fact, 'escaped' and 'raw' are treated specially by the `RakuClosureTemplater` Role. `GenericPod` provides the information to both as a hash with the text in `contents`. This text is extracted and sent to the `escaped` template as a string, and simply returned without template processing for `raw`.
 
 The hash `%prm` contains the parameters to be included in the template, `%tml` contains the hash of the templates.
@@ -51,25 +56,52 @@ This is the hash of the subroutines.
 
 There should be no reason to call `raw` since it is anticipated it will be the same as the characters themselves.
 
-The `escaped` template should be called as %tml<escaped>( ｢some string｣ )
+The `escaped` template should be called as
 
-Another template typically will be called as %tml<toc>( %prm, %tml)
+```
+%tml<escaped>( ｢some string｣ )
+```
+Another template typically will be called as
 
-However, since a template is a normal **Raku** subroutine, `%prm` could be substituted with any `Hash`, eg., %tml<title>( { :title(｢Some arbitrary string｣) }, %tml )
+```
+%tml<toc>( %prm, %tml)
+```
+However, since a template is a normal **Raku** subroutine, `%prm` could be substituted with any `Hash`, eg.,
 
-# head
+```
+%tml<title>( { :title(｢Some arbitrary string｣) }, %tml )
+```
+# Utility program test-templates
+This testing tool has the structure of the minimum template set coded into it. It is called as
 
-test-templates.raku
+```
+test-templates --extra='filename-of-custom-template-structure.raku' --verbosity=2 'filename-of-templates.raku'
+```
+*  **--extra (optional, default: `Any` )**
 
-This testing tool has the structure of the minimum template set coded into it. It is called as raku test-templates.raku --extra='filename-of-custom-template-structure.raku' --verbose 'filename-of-templates.raku'
+This is a **Raku** compilable program that returns a `Hash` with the structure of the key, more below.
 
-> **--extra (optional, default: C&lt;Any&gt; )**  
-This is a B<Raku> compilable program that returns a C<Hash> with the structure of the key, more below.
-> **--verbose (optional, default: False )**  
-A boolean that if True will print out the result of the test for each template
-> **'filename-of-templates.raku' (mandatory, string)**  
-A B<Raku> compilable program that returns a C<Hash> contains all the minimum templates as keys pointing subroutines.
-If the minimum set of templates is not provided, a `MissingTemplates` exception will be thrown.
+*  **--verbosity (optional, default: 0 )**
+
+An integer that produces more information for higher values:
+
+	*  = 0 only list templates with errors
+
+	*  = 1 0 + parameters sent, sub-keys not returned
+
+	*  = 2 1 + sub-keys found in error templates
+
+	*  = 3 2 + full response for error templates
+
+	*  = 4 all templates with sub-key returns
+
+	*  = 5 5 + full response for all templates
+
+*  **'filename-of-templates.raku' (mandatory, string)**
+
+A **Raku** compilable program that returns a `Hash` contains all the minimum templates as keys pointing subroutines.
+
+If the minimum set of templates is not provided in **filename-of-templates.raku**, a `MissingTemplates` exception will be thrown.
 
 Since all the templates are provided to all the templates, it is recommended to use sub-templates within the minimum set to simplify the code.
 
@@ -91,6 +123,5 @@ Examples of a set of RakuClosureTemplates can be found in the `resources` direct
 
 
 
-
 ----
-Rendered from RakuClosureTemplates at 2021-01-17T14:06:22Z
+Rendered from RakuClosureTemplates at 2021-01-31T00:58:35Z

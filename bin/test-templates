@@ -22,7 +22,7 @@ my %struct = %(
         :internal('Bool'),
         :external('Bool'),
         :target('Str'),
-        :local('Str'),
+        :local('Bool'),
         :contents('Str')
     ),
     format-n => %(
@@ -108,7 +108,6 @@ my %struct = %(
         :toc( @( %(
             :level('Str'),
             :target('Str'),
-            :counter('Str'),
             :text('Str')
         ), ) )
     ),
@@ -120,74 +119,126 @@ my %struct = %(
     ),
 );
 
-my class Rendering does RakuClosureTemplater {
+my class Rendering does SetupTemplates {
     has $.debug is rw;
-    has $.verbose is rw;
 };
 
-sub MAIN($template-file, Str :$extra, Bool :$debug = False, Bool :$verbose = False ) {
-    my Rendering $tt .= new(:$debug, :$verbose);
+#| $template file to be tested
+#| :$extra specification file for extra templates
+#| :verbosity = 0 only list templates with errors
+#| = 1 0 + parameters sent, sub-keys not returned
+#| = 2 1 + sub-keys found in error templates
+#| = 3 2 + full response for error templates
+#| = 4 all templates with sub-key returns
+#| = 5 5 + full response for all templates
+sub MAIN($template-file, Str :$extra, :$verbosity = 0 ) {
+    my Rendering $tt .= new(:!debug);
     $tt.templates($template-file);
+    # verify %struct and ProcessedPod are still in sync
+    my $required = Set.new( $tt.required);
+    my $got = Set.new( %struct.keys );
+    die "Panic. Contact maintainer. Required templates in ProcessedPod and here are out of sync.\n"
+        ~ (($required (>) $got)
+            ??
+            ( "Template(s) required, but not in test-templates: { ($required (-) $got).keys.join(', ') }")
+            !!
+            ("Template(s) in test-templates, but not required: { ($got (-) $required).keys.join(', ') }" ))
+        unless ($required (==) $got);
     my @extra;
-    my $vc = 0;
+    with $extra {
     if $extra.IO.f {
-        my %extra = EVALFILE $extra;
-        %struct ,= %extra;
-        @extra = %extra.keys
-    }
-    else {
-        note $extra ~ q:to/MSG/ with $extra
-                was given for extra template tests, but does not exist as a file.
-                Only testing required templates.
-            MSG
+            my %extra = EVALFILE $extra;
+            %struct ,= %extra;
+            @extra = %extra.keys
+        }
+        else {
+            note $extra ~ q:to/MSG/
+                    was given for extra template tests, but does not exist as a file.
+                    Only testing required templates.
+                MSG
+        }
     }
     my $rv;
     my %warn;
+    my %report;
+    my %verbose;
     my %test;
     for %struct.sort -> (:key($key), :value($defn)) {
         if $defn ~~ Str and $defn eq 'Str' {
             try {
                 $rv = $tt.rendition($key, %())
             }
-            %warn{$key} = $!.message if $!;
-            %warn{$key} ~= 'Str expected, got ' ~ $rv.raku
-                unless $rv ~~ Str
+            if $! { %warn{$key} = $!.message.subst(/\v+/,"\n\t\t" ) }
+            elsif $rv ~~ Str {
+                %report{$key}.append: 'Expected response'
+            }
+            else {
+                %warn{$key}.append: 'Str expected, got ' ~ $rv.raku
+            }
         }
         elsif $defn !~~ Associative {
             note "The definition for $key must be either Str or Associative, skipping";
-            %warn{$key} = 'Test definition invalid';
+            %warn{$key}.append: 'Test definition invalid';
         }
         else { # either Str or Hash at this level
             %test = make-test( $defn );
             my @expected = (%test<_EXPECTED>:delete).flat;
             $rv = $tt.rendition($key, %test);
-            %warn{$key} ~= "Expected: {%test<_EXPECTED>}\nGot: $rv"
-                unless $rv ~~ / @expected /
+            %report{$key}.append: "parameters sent: ｢{%test.raku}｣";
+            %verbose{$key} = $rv;
+            for @expected -> $sub-key {
+                if $rv ~~ / $sub-key / {
+                    %report{$key}.append: "ok ｢$sub-key｣ present"
+                }
+                else {
+                    %warn{$key}.append: "NOT ok ｢$sub-key｣ absent"
+                }
+            }
         }
         CATCH {
-            default { %warn{$key} ~= .message ~ "\n\t\t\tTested with: { %test.raku }" }
+            default { %warn{$key} ~= .message.subst(/\v+/,"\n\t\t   ", :g) ~ "\n\t\t\tTested with: { %test.raku }" }
         }
         CONTROL {
-            default { %warn{$key} ~= .message ~ "\n\t\t\tTested with: { %test.raku }" }
-        }
-        LEAVE {
-            if $verbose {
-                $vc++;
-                say "ok $vc - ｢$key｣ passed test" unless %warn{$key}:exists;
-                say "nok $vc - ｢$key｣ failed test: ", %warn{$key} if %warn{$key}:exists;
-            }
+            default { %warn{$key} ~= .message.subst(/\v+/,"\n\t\t   ", :g) ~ "\n\t\t\tTested with: { %test.raku }" }
         }
     }
     my $extra-keys = $tt.tmpl.keys (-) $tt.required;
     say "Template test. Aggregate results:";
     say "\tNo of templates required: { +$tt.required }";
-    say "\tNo of extra templates provided: { +@extra }",
+    say "\tNo of templates specified externally: { +@extra }",
             +@extra ?? ", viz.\n\t\t<{ @extra.sort.join('>, <') }>" !! '';
-    say "\tNo of templates supplied, not required: { $extra-keys.elems }",
+    say "\tNo of templates without specifications: { $extra-keys.elems }",
             $extra-keys.elems ?? ", viz.\n\t\t<{ $extra-keys.keys.sort.join('>, <')}>"
             !! '';
-    say "\tKeys with warnings: {+%warn.keys}",
-            +%warn.keys ?? ", viz.\n{ %warn.fmt("\t\t%s: %s")}" !! '';
+    #  :verbosity = 0 only list templates with errors
+    #  = 1 0 + parameters sent, sub-keys not returned
+    #  = 2 1 + sub-keys found in error templates
+    #  = 3 2 + full response for error templates
+    #  = 4 all templates with sub-key returns
+    #  = 5 5 + full response for all templates
+    say "\tKeys with warnings: {+%warn.keys}"
+            ~ ((+%warn.keys and ! $verbosity) ?? ", viz.\n\t\t<{%warn.keys.join('>, <')}>" !! "\n");
+    for %warn.keys.sort -> $key {
+        if $verbosity {
+            say "For ｢$key｣";
+            say %report{$key}[0];
+            say("\t$_") for %warn{$key}.list;
+            if $verbosity > 1 { say "\t{ %report{$key}[1 .. *-1].join("\n\t")}\n" }
+            if $verbosity > 2 { say "Full response for ｢$key｣ was: \n %verbose{$key}" }
+        }
+    }
+    if $verbosity > 3 {
+        say "\nPassing templates\n";
+        for %report.keys.sort.grep( { $_ ~~ none( %warn.keys ) } ) -> $key {
+            next unless $key;
+            say "For ｢$key｣";
+            say %report{$key}[0];
+            say "\t{ %report{$key}[1 .. *-1].join("\n\t")}\n";
+            if $verbosity > 4 {
+                say "Full response for ｢$key｣ was: \n %verbose{$key}"
+            }
+        }
+    }
 }
 
 multi sub make-test( %tmps --> Associative ) {
@@ -216,7 +267,6 @@ multi sub make-test( %tmps --> Associative ) {
 
 multi sub make-test( @tmps --> Associative ) {
     my %test;
-    my @expected;
     if @tmps[0] eq 'Str' {
         %test<_ARRAY> = [ ( %test<_EXPECTED> =  [~] ('a'..'z').roll(5) ), ];
     }

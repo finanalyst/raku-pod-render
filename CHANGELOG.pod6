@@ -55,4 +55,11 @@ files.
 =item fix default Markdown of =defn blocks
 =item change Perl 6 => Raku in tests, except non-breaking space
 
+=head1 2021-01-31
+=item fixed test-templates, which had suffered bit-rot
+=item improved test-templates, so that it now gives more feedback on template contents that are not returned
+=item fixed html templates that new test-template feed-back showed were erroneous.
+=item fixed and updated RakuClosureTemplates.pod6
+=item bump version
+
 =end pod

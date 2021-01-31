@@ -1,7 +1,6 @@
 # Raku::Pod::Render
->Change log
 
-
+----
 
 ----
 # Prior to 2021-01-17
@@ -72,18 +71,28 @@
 *  extend to other named & header Pod::Blocks the ability to use another template if given as a config variable.
 
 # 2021-01-25
-
-
 *  fix default Markdown template of metadata
 
 *  fix default Markdown of =defn blocks
 
 *  change Perl 6 => Raku in tests, except non-breaking space
 
+# 2021-01-31
+
+
+*  fixed test-templates, which had suffered bit-rot
+
+*  improved test-templates, so that it now gives more feedback on template contents that are not returned
+
+*  fixed html templates that new test-template feed-back showed were erroneous.
+
+*  fixed and updated RakuClosureTemplates.pod6
+
+*  bump version
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-01-25T22:09:21Z
+Rendered from CHANGELOG at 2021-01-31T00:54:56Z

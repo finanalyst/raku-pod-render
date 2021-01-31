@@ -43,7 +43,7 @@ grammar FC {
 
 #| The templates are sub (%prm, %tml) that act on the keys of %prm and return a Str
 #| keys 'escaped' and 'raw' take a Str as the only argument
-role RakuClosureTemplater {
+role RakuClosureTemplater is export {
     #| maps the key to template and emits the result of the closure
     method rakuclosure-rendition(Str $key, %params --> Str) {
         X::ProcessedPod::MissingTemplates.new.throw unless $.templates-loaded;

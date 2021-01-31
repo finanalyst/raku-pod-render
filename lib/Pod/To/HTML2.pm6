@@ -372,15 +372,19 @@ class Pod::To::HTML2 is ProcessedPod {
                         ~ "\n\t</body>\n</html>\n"
             },
             'footnotes' => sub ( %prm, %tml ) {
-                if %prm<notes>.defined and %prm<notes>.keys {
-                    "<div id=\"_Footnotes\" class=\"footnotes\">\n<ol>"
+                with %prm<notes> {
+                    if %prm<notes>.elems {
+                    "<div id=\"_Footnotes\" class=\"footnotes\">\n<ul>"
                             ~ [~] .map({ '<li id="' ~ %tml<escaped>($_<fnTarget>) ~ '">'
+                            ~ ('<span class="footnote-number">' ~ ( $_<fnNumber> // '' ) ~ '</span>')
                             ~ ($_<text> // '')
                             ~ '<a class="footnote" href="#'
                             ~ %tml<escaped>($_<retTarget>)
                             ~ "\"> « Back »</a></li>\n"
                     })
-                            ~ "\n</ol>\n</div>\n"
+                            ~ "\n</ul>\n</div>\n"
+                    }
+                    else { '' }
                 }
                 else { '' }
             },
@@ -449,6 +453,7 @@ class Pod::To::HTML2 is ProcessedPod {
             'footer' => sub ( %prm, %tml ) {
                 '<footer><div>Rendered from <span class="path">'
                         ~ (( %prm<path>.defined && %prm<path> ne '') ?? %tml<escaped>(%prm<path>) !! 'Unknown')
+                        ~ '<!-- filename = ' ~ %prm<name> ~ ' -->'
                         ~ '</span></div>'
                         ~ '<div>at <span class="time">'
                         ~ (( %prm<renderedtime>.defined && %prm<path> ne '') ?? %tml<escaped>(%prm<renderedtime>) !! 'a moment before time began!?')
