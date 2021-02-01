@@ -62,4 +62,7 @@ files.
 =item fixed and updated RakuClosureTemplates.pod6
 =item bump version
 
+=head1 2021-02-01
+=item refactoring in emit-... function.
+
 =end pod

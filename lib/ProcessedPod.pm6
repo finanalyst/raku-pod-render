@@ -411,23 +411,12 @@ class GenericPod {
             :templates-used( $.templs-used.clone )
         ;
         #clean out the variables, whilst keeping the Templating engine cache.
-        $!name = Nil;
-        $!title = Nil;
-        $!title-target = Nil;
-        $!subtitle = Nil;
-        $!metadata = Nil;
-        $!toc = Nil;
-        $!glossary = Nil;
-        $!footnotes = Nil;
-        $!body = Nil;
-        $!path = Nil;
-        $!renderedtime = Nil;
+        $!name = $!title = $!title-target = $!subtitle = $!metadata = $!toc = $!glossary
+            = $!footnotes = $!body = $!path = $!renderedtime = Nil;
         @!raw-metadata = @!raw-toc = @!raw-footnotes = ();
-        %!raw-glossary = Empty;
-        %!links = Empty;
-        %!pod-config-data = Empty;
+        for %!raw-glossary, %!links, %!pod-config-data -> %tmph { %tmph = Empty };
         $!pod-block-processed = False;
-        $!targets = Nil;
+        $!targets = Nil; # defaults to a SetHash, so cant be in line about
         $.templs-used = Nil; # provided by Role
         %h
     }

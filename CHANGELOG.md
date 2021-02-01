@@ -78,8 +78,6 @@
 *  change Perl 6 => Raku in tests, except non-breaking space
 
 # 2021-01-31
-
-
 *  fixed test-templates, which had suffered bit-rot
 
 *  improved test-templates, so that it now gives more feedback on template contents that are not returned
@@ -90,9 +88,14 @@
 
 *  bump version
 
+# 2021-02-01
+
+
+*  refactoring in emit-... function.
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-01-31T00:54:56Z
+Rendered from CHANGELOG at 2021-02-01T16:59:34Z
