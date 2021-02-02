@@ -370,6 +370,7 @@ class GenericPod {
         return Nil unless %!plugin-data{$name-space}:exists;
         %!plugin-data{$name-space}
     }
+    method plugin-datakeys { %!plugin-data.keys }
 
     #| process the pod block or tree passed to it, and concatenates it to previous pod tree
     #| returns a string representation of the tree in the required format

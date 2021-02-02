@@ -74,8 +74,8 @@ $rv = $processor.render-block( $=pod[$pc++] );
 
 throws-like { $processor.add-plugin('plugin',:path($dir) ) },
         X::ProcessedPod::NamespaceConflict,
-        'tried to add plugin again',
-        message => / 'overwrite plugin' /;
+        message => / 'overwrite plugin' /,
+        'tried to add plugin again';
 
 like $rv, /
     '<div class="myplugin">'
