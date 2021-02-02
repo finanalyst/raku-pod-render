@@ -1,7 +1,6 @@
 # Rendering Pod Distribution
->A generic distribution to render Pod in a file (program or module) or in a cache (eg. the Raku documentation collection). The module allows for user defined pod-blocks, user defined rendering templates, and user defined plugins that provide custom pod blocks, templates, and external data.
 
-
+----
 ----
 ## Table of Contents
 [Creating a Renderer](#creating-a-renderer)  
@@ -22,6 +21,7 @@
 [Para](#para)  
 [Custom Format Code](#custom-format-code)  
 [Plugins](#plugins)  
+[External Data](#external-data)  
 [Rendering Strategy](#rendering-strategy)  
 [Rendering many Pod Sources](#rendering-many-pod-sources)  
 [Methods Provided by ProcessedPod](#methods-provided-by-processedpod)  
@@ -29,6 +29,9 @@
 [rewrite-target](#rewrite-target)  
 [add-plugin](#add-plugin)  
 [add-custom( $block )](#add-custom-block-)  
+[add-templates( $template )](#add-templates-template-)  
+[add-data( $name-space, $object )](#add-data-name-space-object-)  
+[get-data( $name-space )](#get-data-name-space-)  
 [process-pod](#process-pod)  
 [render-block](#render-block)  
 [render-tree](#render-tree)  
@@ -299,9 +302,7 @@ Would yield
 Naturally, the developer would need to set up significantly more HMTL/JS/CSS boilerplate in the header for this to have any action.
 
 # Plugins
-A plugin contains Custom Pod Blocks and Custom Templates, and it may contain other data that cannot be inferred from the POD6 content files.
-
-Data is provided by setting a key in the %.plugin attribute of a ProcessedPod object.
+A plugin contains Custom Pod Blocks and Custom Templates, and it may contain other data that cannot be inferred from the POD6 content files, such as css, scss, HTML scripts, JQuery plugins, etc.
 
 Templates can be added using the `.modify-templates` method.
 
@@ -312,58 +313,60 @@ It is better to use the convenience method `.add-plugin`
 ```
 my $p = ProcessedPod.new;
 # some time later in the program
-$p.add-plugin( 'font-awesome' );
+$p.add-plugin( 'my-plugin' );
 
 ```
-This means that the current working directory contains a sub-directory `font-awesome` with the following structure
+This means that the current working directory contains a sub-directory `my-plugin` with the following structure
 
 ```
-font-awesome/
+my-plugin/
 -- templates.raku
 -- blocks.raku
--- data.raku
 
 ```
 `templates.raku` must be a valid Raku program that evaluates to a `Hash` whose keys are added as described in `.modify-templates`.
-
-`blocks.raku` evaluates to an array of strings that are the names of custom blocks.
-
-`data-raku` evaluated to an object that is made the value of %.plugin-data<font-awesome> (as in the example). If no data is to be added, then it is best to set data-path to an empty string, eg
-
-```
-$p.add-plugin('font-awesome', :data-path( '' ) );
-```
-It should be noted that the data added to `%.plugin-data<name-space> ` could be a closure that can be called within the template.
 
 `add-plugin` is defined as
 
 ```
 add-plugin(Str $plugin-name,
-      :$path = $plugin-name,
-      :$name-space = $plugin-name,
-      :$template-path = "templates.raku",
-      :$custom-path = "blocks.raku",
-      :$data-path = "data.raku"
+  :$path = $plugin-name,
+  :$template-raku = "templates.raku",
+  :$custom-raku = "blocks.raku",
+  :%config is copy
 )
 ```
-so each of the paths can be individually set.
+so a different path can be set, such as a subdirectory of the CWD, and different file names for `template.raku` and `custom.raku`.
+
+A plugin can provide its own config data, eg., css, script, strings. These may then be used by other plugins to affect templates for the output files. The strings will be interpreted by those plugins.
+
+A plugin can only be added once to an object, as a precaution against over-writing. Adding the same name again will cause the method to throw an <X::ProcessedPod::NamespaceConflict> exception.
 
 Each of the raku programs are evaluated with the working directory path set to `:path`. For example, given
 
 ```
-font-awesome/
+my-plugin/
 -- some-dir/
 ------ templates.raku
 -- blocks.raku
--- data.raku
 -- file-containing-data
 
 ```
-`ProcessedPod::add-plugin` will change directory to `font-awesome` and run `some-dir/templates.raku` from there. If `templates.raku` needs to access `file-containing-data` it should do so like:
+`ProcessedPod::add-plugin` will change directory to `my-plugin` and run `some-dir/templates.raku` from there. If `templates.raku` needs to access `file-containing-data` it should do so like:
 
 ```
 'file-containing-data'.IO.slurp
 ```
+# External Data
+When rendering multiple files (see [Rendering Strategy](Rendering Strategy.md)), it is useful to be able to add data to the `ProcessedPod` object (eg. `$pp`), which can then be used by a custom Pod::Block and accompanying template. The custom block and the template can be introduced by the `.add-plugin` method, but the extra data can be added separately, eg., after other files have been rendered.
+
+This is done with the `.add-data` method, eg.
+
+```
+$pp.add-data('name-space', $data-object)
+```
+It is only permitted to write to a name-space once. An attempt to overwrite the data will throw an <X::ProcessedPod::NamespaceConflict> exception.
+
 # Rendering Strategy
 A rendering strategy is required for a complex task consisting of many Pod sources. A rendering strategy has to consider:
 
@@ -416,7 +419,7 @@ The the `ProcessedPob` object expects a compiled Pod object. One way to do this 
             # change output name from $nm if necessary
             .file-wrap( "{ $counter++ }_$nm" );
             # get the pod structure, delete the information to continue with a new pod tree, retain the cached templates
-            @processed.append: $p.emit-and-renew-processed-state; # beware, pod-structure also deletes body, toc, glossary, etc contents
+            @processed.append: $p.emit-and-renew-processed-state;
         }
     }
     # each instance of @processed will have TOC, Glossary and Footnote arrays that can be combined in some way
@@ -483,10 +486,9 @@ This is documented above. It is defined as:
 ```
 method add-plugin(Str $plugin-name,
       :$path = $plugin-name,
-      :$name-space = $plugin-name,
       :$template-path = "$path/templates.raku",
       :$custom-path = "$path/blocks.raku",
-      :$data-path = "$path/data.raku"
+      :%config
       )
 ```
 ## add-custom( $block )
@@ -495,6 +497,15 @@ A method for adding strings to the @.custom array.
 If $block is a Str then it is a path to a Raku program that evaluates to an Array, whose elements are appended to @.custom.
 
 If $block is an Array, then the elemsnts are added to @.custom.
+
+## add-templates( $template )
+Like `add-custom`, if $template is a hash, it will be given to modify templates, otherwise it will be consiered a program that evaluates to a hash.
+
+# add-data( $name-space, $object )
+Adds the object to the data area of the `ProcessedPod` object with the key <name-space>.
+
+# get-data( $name-space )
+Returns the data object.
 
 ## process-pod
 ```
@@ -518,7 +529,9 @@ Tenders the whole pod tree Is actually an alias to process-pod
 ```
 method emit-and-renew-processed-state
 ```
-Deletes any previously processed pod, keeping the template engine cache Returns the pod-structure deleted as a Hash, for storage in an array when multiple files are processed.
+Returns the PodFile object (see below) containing the data collected from a processed file. The rendered text is not kept, and should be handled before using this method.
+
+A new PodFile object is instantiatedd, which deletes any previously processed pod, keeping the template engine cache
 
 ## file-wrap
 ```
@@ -564,11 +577,9 @@ Within the templating Role
     has BagHash $.templs-used .= new;
 
 ```
-Within GenericPod class
+Within the PodFile class
 
 ```
-    #| the name of the anchor at the top of a source file
-    constant DEFAULT_TOP = '___top';
     #| Text between =TITLE and first header, this is used to refer for textual placenames
     has $.front-matter is rw = 'preface';
     #| Name to be used in titles and files.
@@ -582,18 +593,41 @@ Within GenericPod class
     has Str $.path is rw is default('UNNAMED') = 'UNNAMED';
     #| defaults to top, then becomes target for TITLE
     has Str $.top is rw is default(DEFAULT_TOP) = DEFAULT_TOP;
-    #| defaults to not escaping characters when in a code block
-    has Bool $.no-code-escape is rw is default(False) = False;
 
     # document level information
 
     #| language of pod file
     has $.lang is rw is default('en') = 'en';
-    #| default extension for saving to file
-    #| should be set by subclasses
-    has $.def-ext is rw is default('') = '';
+    #| information to be included in eg html header
+    has @.raw-metadata;
+    #| toc structure , collected and rendered separately to body
+    has @.raw-toc;
+    #| glossary structure
+    has %.raw-glossary;
+    #| footnotes structure
+    has @.raw-footnotes;
+    #| when source wrap is called
+    has Str $.renderedtime is rw is default('') = '';
+    #| the set of targets used in a rendering process
+    has SetHash $.targets .= new;
+    #| config data given to the first =begin pod line encountered
+    #| there may be multiple pod blocks in a file, and they may be
+    #| sequentially rendered.
+    #| Can contain information about rendering footnotes/toc/glossary/meta
+    #| Template used can be changed on a per file basis
+    has %.pod-config-data is rw;
+    #| Structure to collect links, eg. to test whether they all work
+    has %.links;
+    #| the templates used to render this file
+    has BagHash $.templates-used is rw;
 
-    # Output rendering information
+```
+Within the GenericPod class
+
+```
+    has PodFile $.pod-file .= new;
+
+    # Output rendering information set by environment
     #| set to True eliminates meta data rendering
     has Bool $.no-meta is rw = False;
     #| set to True eliminates rendering of footnotes
@@ -603,51 +637,43 @@ Within GenericPod class
     #| set to True to exclude Glossary even if there are internal anchors
     has Bool $.no-glossary is rw = False;
 
+    # Output set by subclasses or collection
+
+    #| default extension for saving to file
+    #| should be set by subclasses
+    has $.def-ext is rw is default('') = '';
+
+    # Data relating to the processing of a Pod file
+
     # debugging
     #| outputs to STDERR information on processing
     has Bool $.debug is rw = False;
     #| outputs to STDERR more detail about errors.
     has Bool $.verbose is rw = False;
 
+    #| defaults to not escaping characters when in a code block
+    has Bool $.no-code-escape is rw is default(False) = False;
+
     # populated by process-pod method
     #| single process call
     has Str $.pod-body is rw;
     #| concatenation of multiple process calls
     has Str $.body is rw = '';
-    #| information to be included in eg html header
-    has @.raw-metadata;
     #| metadata when rendered
     has Str $.metadata;
-    #| toc structure , collected and rendered separately to body
-    has @.raw-toc;
     #| rendered toc
     has Str $.toc;
-    #| glossary structure
-    has %.raw-glossary;
     #| rendered glossary
     has Str $.glossary;
-    #| footnotes structure
-    has @.raw-footnotes;
     #| rendered footnotes
     has Str $.footnotes;
-    #| when source wrap is called
-    has Str $.renderedtime is rw is default('') = '';
-    #| the set of targets used in a rendering process
-    has SetHash $.targets .= new;
-    #| config data given to the first =begin pod line encountered
-    #| there may be multiple pod blocks in a file, and they may be
-    #| sequentially rendered.
-    has %.pod-config-data is rw;
     #| A pod line may have no config data, so flag if pod block processed
     has Bool $.pod-block-processed is rw = False;
 
-    #| Structure to collect links, eg. to test whether they all work
-    has %.links;
-
     #| custom blocks
     has @.custom = ();
-    #| plugin data
-    has %.plugin-data = {};
+    #| plugin data, accessible via add/get plugin-data
+    has %!plugin-data = {};
 
 ```
 # ExtractPod
@@ -672,6 +698,5 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 
-
 ----
-Rendered from RenderPod at 2021-01-23T19:00:32Z
+Rendered from RenderPod at 2021-02-02T22:06:56Z

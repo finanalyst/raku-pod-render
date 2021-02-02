@@ -55,7 +55,8 @@ class Pod::To::HTML2 is ProcessedPod {
         return $rv with $rv;
         # Some implementations of raku/perl6 called the classes render method twice,
         # so it's necessary to prevent the same work being done repeatedly
-        my $pp = self.new(:name($*PROGRAM-NAME));
+        my $pp = self.new;
+        $pp.pod-file.name = $*PROGRAM-NAME;
         # takes the pod tree and wraps it in HTML.
         $pp.process-pod($pod-tree);
         # Outputs a string that describes a html page
@@ -172,18 +173,18 @@ class Pod::To::HTML2 is ProcessedPod {
         self.rendition('source-wrap', {
             :$.css,
             :$.head,
-            :$.name,
-            :$.title,
-            :$.title-target,
-            :$.subtitle,
+            :name($.pod-file.name),
+            :title($.pod-file.title),
+            :title-target($.pod-file.title-target),
+            :subtitle($.pod-file.subtitle),
             :$.metadata,
-            :$.lang,
+            :lang($.pod-file.lang),
             :$.toc,
             :$.glossary,
             :$.footnotes,
             :$.body,
-            :$.path,
-            :$.renderedtime
+            :path($.pod-file.path),
+            :renderedtime($.pod-file.renderedtime),
         })
     }
 
@@ -662,7 +663,7 @@ sub pod2html($pod, *%options) is export {
     $proc.no-glossary = True;
     # old HTML did not provide a glossary
     #    $proc.debug = $proc.verbose = True;
-    $proc.lang = $_ with %options<lang>;
+    $proc.pod-file.lang = $_ with %options<lang>;
     $proc.css = $_ with %options<css-url>;
     $proc.head = $_ with %options<head>;
     $proc.render-tree($pod);

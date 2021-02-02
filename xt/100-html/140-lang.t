@@ -16,5 +16,5 @@ $processor.no-meta = $processor.no-footnotes = $processor.no-glossary = $process
 $processor.process-pod( $=pod[$pn++] );
 
 like $processor.source-wrap, /'<html lang="en">'/, 'default lang is English';
-$processor.lang = 'fr';
+$processor.pod-file.lang = 'fr';
 like $processor.source-wrap, /'<html lang="fr">'/, 'custom lang';

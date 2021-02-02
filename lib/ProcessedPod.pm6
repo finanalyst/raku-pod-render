@@ -189,10 +189,12 @@ role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
     }
 }
 
-class GenericPod {
+#| the name of the anchor at the top of a source file
+constant DEFAULT_TOP = '___top';
 
-    #| the name of the anchor at the top of a source file
-    constant DEFAULT_TOP = '___top';
+class PodFile {
+    # Variable relating to a specific pod file
+
     #| Text between =TITLE and first header, this is used to refer for textual placenames
     has $.front-matter is rw = 'preface';
     #| Name to be used in titles and files.
@@ -206,18 +208,40 @@ class GenericPod {
     has Str $.path is rw is default('UNNAMED') = 'UNNAMED';
     #| defaults to top, then becomes target for TITLE
     has Str $.top is rw is default(DEFAULT_TOP) = DEFAULT_TOP;
-    #| defaults to not escaping characters when in a code block
-    has Bool $.no-code-escape is rw is default(False) = False;
 
     # document level information
 
     #| language of pod file
     has $.lang is rw is default('en') = 'en';
-    #| default extension for saving to file
-    #| should be set by subclasses
-    has $.def-ext is rw is default('') = '';
+    #| information to be included in eg html header
+    has @.raw-metadata;
+    #| toc structure , collected and rendered separately to body
+    has @.raw-toc;
+    #| glossary structure
+    has %.raw-glossary;
+    #| footnotes structure
+    has @.raw-footnotes;
+    #| when source wrap is called
+    has Str $.renderedtime is rw is default('') = '';
+    #| the set of targets used in a rendering process
+    has SetHash $.targets .= new;
+    #| config data given to the first =begin pod line encountered
+    #| there may be multiple pod blocks in a file, and they may be
+    #| sequentially rendered.
+    #| Can contain information about rendering footnotes/toc/glossary/meta
+    #| Template used can be changed on a per file basis
+    has %.pod-config-data is rw;
+    #| Structure to collect links, eg. to test whether they all work
+    has %.links;
+    #| the templates used to render this file
+    has BagHash $.templates-used is rw;
+}
 
-    # Output rendering information
+class GenericPod {
+    # information on file
+    has PodFile $.pod-file .= new;
+
+    # Output rendering information set by environment
     #| set to True eliminates meta data rendering
     has Bool $.no-meta is rw = False;
     #| set to True eliminates rendering of footnotes
@@ -227,51 +251,43 @@ class GenericPod {
     #| set to True to exclude Glossary even if there are internal anchors
     has Bool $.no-glossary is rw = False;
 
+    # Output set by subclasses or collection
+
+    #| default extension for saving to file
+    #| should be set by subclasses
+    has $.def-ext is rw is default('') = '';
+
+    # Data relating to the processing of a Pod file
+
     # debugging
     #| outputs to STDERR information on processing
     has Bool $.debug is rw = False;
     #| outputs to STDERR more detail about errors.
     has Bool $.verbose is rw = False;
 
+    #| defaults to not escaping characters when in a code block
+    has Bool $.no-code-escape is rw is default(False) = False;
+
     # populated by process-pod method
     #| single process call
     has Str $.pod-body is rw;
     #| concatenation of multiple process calls
     has Str $.body is rw = '';
-    #| information to be included in eg html header
-    has @.raw-metadata;
     #| metadata when rendered
     has Str $.metadata;
-    #| toc structure , collected and rendered separately to body
-    has @.raw-toc;
     #| rendered toc
     has Str $.toc;
-    #| glossary structure
-    has %.raw-glossary;
     #| rendered glossary
     has Str $.glossary;
-    #| footnotes structure
-    has @.raw-footnotes;
     #| rendered footnotes
     has Str $.footnotes;
-    #| when source wrap is called
-    has Str $.renderedtime is rw is default('') = '';
-    #| the set of targets used in a rendering process
-    has SetHash $.targets .= new;
-    #| config data given to the first =begin pod line encountered
-    #| there may be multiple pod blocks in a file, and they may be
-    #| sequentially rendered.
-    has %.pod-config-data is rw;
     #| A pod line may have no config data, so flag if pod block processed
     has Bool $.pod-block-processed is rw = False;
 
-    #| Structure to collect links, eg. to test whether they all work
-    has %.links;
-
     #| custom blocks
     has @.custom = ();
-    #| plugin data
-    has %.plugin-data = {};
+    #| plugin data, accessible via add/get plugin-data
+    has %!plugin-data = {};
 
     # variables to manage Pod state, where rendering is dependent on local context
     #| for multilevel lists
@@ -304,28 +320,16 @@ class GenericPod {
         # This method uses the default algorithm for HTML and POD
         # It may need to be over-ridden, eg., for MarkDown which uses a different targeting function.
 
-        # when indexing a unique target is needed even when same entry is repeated
-        # when a Heading is a target, the reference must come from the name
-        # the algorithm for target names comes from github markup
-        # https://gist.github.com/asabaylus/3071099#gistcomment-2563127
-        # because it matters for MarkDown but not for html
-        #        function GithubId(val) {
-        #	return val.toLowerCase().replace(/ /g,'-')
-        #		// single chars that are removed
-        #		.replace(/[`~!@#$%^&*()+=<>?,./:;"'|{}\[\]\\–—]/g, '')
-        #		// CJK punctuations that are removed
-        #		.replace(/[　。？！，、；：“”【】（）〔〕［］﹃﹄“”‘’﹁﹂—…－～《》〈〉「」]/g, '')
-        #}
         return DEFAULT_TOP if $candidate-name eq DEFAULT_TOP;
         # don't rewrite the top
 
         $candidate-name = $candidate-name.subst(/\s+/, '_', :g);
         if $unique {
-            $candidate-name ~= '_0' if $candidate-name (<) $!targets;
-            ++$candidate-name while $!targets{$candidate-name};
+            $candidate-name ~= '_0' if $candidate-name (<) $!pod-file.targets;
+            ++$candidate-name while $!pod-file.targets{$candidate-name};
             # will continue to loop until a unique name is found
         }
-        $!targets{$candidate-name}++;
+        $!pod-file.targets{$candidate-name}++;
         # now add to targets, no effect if not unique
         $candidate-name
     }
@@ -333,14 +337,18 @@ class GenericPod {
     # Methods relating to customisation
     method add-plugin(Str $plugin-name,
                       :$path = $plugin-name,
-                      :$name-space = $plugin-name,
                       :$template-raku = "templates.raku",
                       :$custom-raku = "blocks.raku",
-                      :$data-raku = "data.raku"
+                      :%config is copy
                       ) {
+        X::ProcessedPod::NamespaceConflict.new(:name-space($plugin-name)).throw
+            if %!plugin-data{$plugin-name}:exists;
+        without %config {
+            %config = %( :$path )
+        }
         self.modify-templates( $template-raku, :$path ) if $template-raku;
         self.add-custom( $custom-raku, :$path ) if $custom-raku;
-        self.add-data( $name-space, $data-raku, :$path ) if $data-raku;
+        self.add-data( $plugin-name, %config )
     }
     multi method add-custom( Str $filename, :$path = $filename ) {
         return unless "$path/$filename".IO.f;
@@ -352,10 +360,11 @@ class GenericPod {
     multi method add-custom( @blocks ) {
         for @blocks { @!custom.append( $_ ) if $_ ~~ Str:D };
     }
-
-    method add-data($name-space, $data-raku, :$path = $data-raku ) {
-        return unless $data-raku;
-        %!plugin-data{$name-space} = indir($path, { EVALFILE $data-raku })
+    method add-data($name-space, $data-object ) {
+        return unless $data-object;
+        X::ProcessedPod::NamespaceConflict.new(:$name-space).throw
+                if %!plugin-data{$name-space}:exists;
+    %!plugin-data{$name-space} = $data-object
     }
     method get-data($name-space) {
         return Nil unless %!plugin-data{$name-space}:exists;
@@ -366,8 +375,9 @@ class GenericPod {
     #| returns a string representation of the tree in the required format
     method process-pod($pod --> Str) {
         $!pod-body = [~] gather for $pod.list { take self.handle($_, 0 , Context::None ) };
-        $!body ~= $!pod-body
+        $!pod-file.renderedtime = now.DateTime.utc.truncated-to('seconds').Str;
         # returns accumulated pod-bodies
+        $!body ~= $!pod-body;
     }
 
     #| renders a pod tree, but probably a block
@@ -387,38 +397,16 @@ class GenericPod {
 
     #| deletes any previously processed pod, keeping the template engine cache
     #| does not change flags relating to highlighting
-    method emit-and-renew-processed-state(--> Hash) {
-        self.render-structures;
-        my %h =
-            :$!name,
-            :$!title,
-            :$!title-target,
-            :$!subtitle,
-            :$!metadata,
-            :$!toc,
-            :$!glossary,
-            :$!footnotes,
-            :$!body,
-            :$!path,
-            :$!renderedtime,
-            :$!targets,
-            :links(%!links.clone),
-            :pod-data(%!pod-config-data.clone),
-            :raw-metadata(@!raw-metadata.clone),
-            :raw-toc(@!raw-toc.clone),
-            :raw-glossary(%!raw-glossary.clone),
-            :raw-footnotes(@!raw-footnotes.clone),
-            :templates-used( $.templs-used.clone )
-        ;
+    method emit-and-renew-processed-state( --> PodFile ) {
+        my PodFile $old = $!pod-file;
+        $old.templates-used = $.templs-used.clone;
+        $!pod-file .=new;
+
         #clean out the variables, whilst keeping the Templating engine cache.
-        $!name = $!title = $!title-target = $!subtitle = $!metadata = $!toc = $!glossary
-            = $!footnotes = $!body = $!path = $!renderedtime = Nil;
-        @!raw-metadata = @!raw-toc = @!raw-footnotes = ();
-        for %!raw-glossary, %!links, %!pod-config-data -> %tmph { %tmph = Empty };
+        $!metadata = $!toc = $!glossary = $!footnotes = $!body = Nil;
         $!pod-block-processed = False;
-        $!targets = Nil; # defaults to a SetHash, so cant be in line about
         $.templs-used = Nil; # provided by Role
-        %h
+        $old
     }
 
     # These are the rendering functions for the file and the file structures.
@@ -427,7 +415,7 @@ class GenericPod {
 
     #| saves the rendered pod tree as a file, and its document structures, uses source wrap
     #| filename defaults to the name of the pod tree, and ext defaults to html
-    method file-wrap(:$filename = $.name, :$ext = $.def-ext, :$dir = '') {
+    method file-wrap(:$filename = $.pod-file.name, :$ext = $.def-ext, :$dir = '') {
         ($dir ~ ('/' if $dir) ~ $filename ~ ('.' if $ext ne '') ~ $ext).IO.spurt: self.source-wrap
     }
 
@@ -436,18 +424,18 @@ class GenericPod {
     method source-wrap(--> Str) {
         self.render-structures;
         self.rendition('source-wrap', {
-            :$!name,
-            :$!title,
-            :$!title-target,
-            :$!subtitle,
+            :name($!pod-file.name),
+            :title($!pod-file.title),
+            :title-target($!pod-file.title-target),
+            :subtitle($!pod-file.subtitle),
             :$!metadata,
-            :$!lang,
+            :lang($!pod-file.lang),
             :$!toc,
             :$!glossary,
             :$!footnotes,
             :$!body,
-            :$!path,
-            :$!renderedtime
+            :path($!pod-file.path),
+            :renderedtime($!pod-file.renderedtime),
         })
     }
 
@@ -456,36 +444,36 @@ class GenericPod {
         $!toc = self.render-toc;
         $!glossary = self.render-glossary;
         $!footnotes = self.render-footnotes;
-        $!renderedtime = now.DateTime.utc.truncated-to('seconds').Str;
+        $!pod-file.renderedtime = now.DateTime.utc.truncated-to('seconds').Str;
     }
 
     #| renders only the toc
     method render-toc(--> Str) {
         # if no headers in pod, then no need to include a TOC
-        return '' if (!?@!raw-toc or $.no-toc or %.pod-config-data<no-toc>);
-        my @filtered = @!raw-toc.grep({ !(.<is-title>) });
+        return '' if (!?$!pod-file.raw-toc or $.no-toc or $.pod-file.pod-config-data<no-toc>);
+        my @filtered = $!pod-file.raw-toc.grep({ !(.<is-title>) });
         self.rendition('toc', %( :toc([@filtered])));
     }
 
     #| renders only the glossary
     method render-glossary(-->Str) {
-        return '' if (!?%!raw-glossary.keys or $.no-glossary or %.pod-config-data<no-glossary>);
+        return '' if (!?$!pod-file.raw-glossary.keys or $.no-glossary or $.pod-file.pod-config-data<no-glossary>);
         #No render without any keys
-        my @filtered = [gather for %!raw-glossary.sort { take %(:text(.key), :refs([.value.sort])) }];
+        my @filtered = [gather for $!pod-file.raw-glossary.sort { take %(:text(.key), :refs([.value.sort])) }];
         self.rendition('glossary', %( :glossary(@filtered)))
     }
 
     #| renders only the footnotes
     method render-footnotes(--> Str) {
-        return '' if (!?@!raw-footnotes or $!no-footnotes or %.pod-config-data<no-footnotes>);
+        return '' if (!?$!pod-file.raw-footnotes or $!no-footnotes or $.pod-file.pod-config-data<no-footnotes>);
         # no rendering of code if no footnotes
-        self.rendition('footnotes', %( :notes(@!raw-footnotes)))
+        self.rendition('footnotes', %( :notes($!pod-file.raw-footnotes)))
     }
 
     #| renders on the meta data
     method render-meta(--> Str) {
-        return '' if (!?@!raw-metadata or $!no-meta or %.pod-config-data<no-meta>);
-        self.rendition('meta', %( :meta(@!raw-metadata)))
+        return '' if (!?$!pod-file.raw-metadata or $!no-meta or $.pod-file.pod-config-data<no-meta>);
+        self.rendition('meta', %( :meta($!pod-file.raw-metadata)))
     }
 
     # methods to collect page component data
@@ -495,7 +483,7 @@ class GenericPod {
     method register-toc(:$level!, :$text!, Bool :$is-title = False --> Str) {
         my $target = self.rewrite-target($text, :unique($is-title));
         # if a title (TITLE) then it must be unique
-        @!raw-toc.push: %( :$level, :$text, :$target, :$is-title );
+        $!pod-file.raw-toc.push: %( :$level, :$text, :$target, :$is-title );
         $target
     }
 
@@ -506,14 +494,14 @@ class GenericPod {
         # So checking the TOC is not needed.
         #        if $is-header
         #        {
-        #            if +@.raw-toc
+        #            if +@.pod-file.raw-toc
         #            {
-        #                $target = @.raw-toc[*- 1]<target>
+        #                $target = @.pod-file.raw-toc[*- 1]<target>
         #                # the last header to be added to the toc will have the url we want
         #            }
         #            else
         #            {
-        #                $target = $!front-matter
+        #                $target = $!pod-file.front-matter
         #                # if toc not initiated, then before 1st header
         #            }
         #        }
@@ -530,18 +518,18 @@ class GenericPod {
         #        } #from else
         # Place information is needed when a glossary is constructed without a return anchor reference,
         # so the most recent header is used
-        my $place = +@.raw-toc ?? @.raw-toc[*- 1]<text> !! $!front-matter;
+        my $place = +$.pod-file.raw-toc ?? $.pod-file.raw-toc[*- 1]<text> !! $!pod-file.front-matter;
         if @entries {
             for @entries {
-                %.raw-glossary{.[0]} = Array unless %.raw-glossary{.[0]}:exists;
-                if .elems > 1 { %.raw-glossary{.[0]}.push: %(:$target, :place(.[1])) }
-                else { %.raw-glossary{.[0]}.push: %(:$target, :$place) }
+                $.pod-file.raw-glossary{.[0]} = Array unless $.pod-file.raw-glossary{.[0]}:exists;
+                if .elems > 1 { $.pod-file.raw-glossary{.[0]}.push: %(:$target, :place(.[1])) }
+                else { $.pod-file.raw-glossary{.[0]}.push: %(:$target, :$place) }
             }
         }
         else {
             # if no entries, then there must be $text to get here
-            %.raw-glossary{$text} = Array unless %.raw-glossary{$text}:exists;
-            %.raw-glossary{$text}.push: %(:$target, :$place);
+            $.pod-file.raw-glossary{$text} = Array unless $.pod-file.raw-glossary{$text}:exists;
+            $.pod-file.raw-glossary{$text}.push: %(:$target, :$place);
         }
         $target
     }
@@ -549,23 +537,23 @@ class GenericPod {
     # This method could be over-ridden in order to collect the links inside a pod, eg., for error checking
 
     method register-link(Str $entry --> List) {
-        return %.links{$entry}<target location> if %.links{$entry}:exists;
+        return $.pod-file.links{$entry}<target location> if $.pod-file.links{$entry}:exists;
         # just return target if it exists
         # A link may be
         # - internal to the document so cannonise
         # - to a group of documents with the same format (do not write, template engine to handle extension)
         # - to an external source to be left unchanged, http, or internal #
         given $entry {
-            when / ^ 'http://' | ^ 'https://' | ^ .+ '#' / { %.links{$entry} = %( :target($entry), :location<external>  ) }
+            when / ^ 'http://' | ^ 'https://' | ^ .+ '#' / { $.pod-file.links{$entry} = %( :target($entry), :location<external>  ) }
             when / ^ '#' $<tgt> = (.+) / {
-                %.links{$entry} = %(
+                $.pod-file.links{$entry} = %(
                     :target( $.rewrite-target( ~$<tgt>, :!unique) ),
                     :location<internal>
                 )
             }
-            default  { %.links{$entry} = %(:target($entry), :location<local>) }
+            default  { $.pod-file.links{$entry} = %(:target($entry), :location<local>) }
         }
-        %.links{$entry}<target location>
+        $.pod-file.links{$entry}<target location>
     }
 
     # A footnote structure is created storing both the target anchor (with the footnote text)
@@ -573,10 +561,10 @@ class GenericPod {
     # to return the cursor if desired).
 
     method register-footnote(:$text! --> Hash) {
-        my $fnNumber = +@!raw-footnotes + 1;
+        my $fnNumber = +$!pod-file.raw-footnotes + 1;
         my $fnTarget = self.rewrite-target("fn$fnNumber", :unique);
         my $retTarget = self.rewrite-target("fnret$fnNumber", :unique);
-        @!raw-footnotes.push: %( :$text, :$retTarget, :$fnNumber, :$fnTarget);
+        $!pod-file.raw-footnotes.push: %( :$text, :$retTarget, :$fnNumber, :$fnTarget);
         (:$fnTarget, :$fnNumber, :$retTarget).hash
     }
 
@@ -584,7 +572,7 @@ class GenericPod {
     # contexts, such as epub or pdf for the author, version, etc.
 
     method register-meta(:$name, :$value) {
-        @!raw-metadata.push: %( :$name, :$value)
+        $!pod-file.raw-metadata.push: %( :$name, :$value)
     }
 
     # This is the routine called at the end of a Pod block and is used to determine whether the cursor
@@ -701,7 +689,7 @@ class GenericPod {
                 :$target,
                 :1level,
                 :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn ) }),
-                :top($.top),
+                :top($.pod-file.top),
                 $node.config
             ), :$defn
         )
@@ -710,10 +698,10 @@ class GenericPod {
     multi method handle(Pod::Block::Named $node where $node.name.lc eq 'pod', Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
-        my $name = $.top eq DEFAULT_TOP ?? DEFAULT_TOP !! 'pod';
+        my $name = $.pod-file.top eq DEFAULT_TOP ?? DEFAULT_TOP !! 'pod';
         # DEFAULT_TOP, until TITLE changes it. Will fail if multiple pod without TITLE
         unless $.pod-block-processed {
-            %.pod-config-data = $node.config;
+            $.pod-file.pod-config-data = $node.config;
             $.pod-block-processed = True;
         }
         my $template = $node.config<template> // 'pod';
@@ -728,8 +716,8 @@ class GenericPod {
     multi method handle(Pod::Block::Named $node where $node.name eq 'TITLE', Int $in-level,
                         Context $context, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
-        $.title = recurse-until-str($node);
-        $.title-target = $.top = $.register-toc(:1level, :text($.title), :is-title);
+        $.pod-file.title = recurse-until-str($node);
+        $.pod-file.title-target = $.pod-file.top = $.register-toc(:1level, :text($.pod-file.title), :is-title);
         $.completion($in-level, 'zero', %($node.config), :$defn )
         # if a list before TITLE this will be needed
     }
@@ -737,7 +725,7 @@ class GenericPod {
     multi method handle(Pod::Block::Named $node where $node.name eq 'SUBTITLE', Int $in-level,
                         Context $context, Bool :$defn = False, --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
-        $.subtitle = [~] gather for $node.contents { take self.handle($_, 0, None, :$defn) };
+        $.pod-file.subtitle = [~] gather for $node.contents { take self.handle($_, 0, None, :$defn) };
         $.completion(0, 'zero', %($node.config), :$defn )
         # we can't guarantee SUBTITLE will be after TITLE
     }
@@ -793,7 +781,7 @@ class GenericPod {
             ~ $.completion($in-level, $template,
             %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
             $node.config,
-            "$name-space\-data" => $data
+            "$name-space" => $data
             ), :$defn
         )
     }
@@ -856,7 +844,7 @@ class GenericPod {
             :$level,
             :$text,
             :$target,
-            :top($.top),
+            :top($.pod-file.top),
             $node.config
             }, :$defn
         )

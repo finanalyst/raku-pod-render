@@ -2,7 +2,7 @@ use Test;
 use Test::Deeply::Relaxed;
 use ProcessedPod;
 
-plan 18;
+plan 13;
 
 my ProcessedPod $pro .= new;
 
@@ -52,23 +52,21 @@ $pro.templates(%templates);
 
 lives-ok { $pro.render-block( $=pod[0] ) }, 'main processing methods work, not interested in return values yet';
 
-my %pod-structure;
-lives-ok { %pod-structure = $pro.emit-and-renew-processed-state}, 'renew method lives';
+my $pod-structure;
+lives-ok { $pod-structure = $pro.emit-and-renew-processed-state}, 'renew method lives';
 
-for <name title subtitle metadata toc glossary footnotes body path renderedtime >
-{
-    ok %pod-structure{$_} ne '', "$_ has content";
-}
+for $pod-structure.^methods.grep({
+    .name ~~ any(<name title path renderedtime subtitle >)
+}) { ok $_($pod-structure) ne '', $_.name ~' has content' };
 
-for <metadata toc footnotes glossary>
-{
-    ok +%pod-structure{"raw-$_"}, "raw-$_ has content"
-}
+for $pod-structure.^methods.grep({
+    .name ~~ any(< raw-metadata raw-toc raw-glossary raw-footnotes >)
+}) { ok $_($pod-structure).elems, $_.name ~' has elements' };
 
-is-deeply-relaxed %pod-structure<templates-used>,
-        ("pod"=>1,"glossary"=>1,"heading"=>5,"zero"=>22,"para"=>7,"format-x"=>4,"footnotes"=>1,"meta"=>1,"format-n"=>1,"raw"=>5,"toc"=>1,"escaped"=>22).BagHash,
+is-deeply-relaxed $pod-structure.templates-used,
+        ("pod"=>1,"heading"=>5,"zero"=>22,"para"=>7,"format-x"=>4,"format-n"=>1,"raw"=>5,"escaped"=>22).BagHash,
         'used the expected templates';
 
-nok $pro.renderedtime, 'time should be blank after a emit-and-renew-processed-state';
+nok $pro.pod-file.renderedtime, 'time should be blank after a emit-and-renew-processed-state';
 
 done-testing;

@@ -7,7 +7,7 @@ my $rv;
 my $processor = ProcessedPod.new;
 my $pc = 0;
 
-plan 5;
+plan 6;
 
 my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
@@ -53,20 +53,29 @@ mktree $dir;
 "$dir/templates.raku".IO.spurt( q:to/END/ );
     %( plugin => sub ( %a, %b ) {
         '<div class="myplugin">'
-        ~ %a<contents>.subst(/ '%%' ~ '%%' .+ /, %a<plugin-data> )
+        ~ %a<contents>.subst(/ '%%' ~ '%%' .+ /, %a<plugin><data> )
+        ~ </div>
+        },
+        myplugin => sub ( %a, %b ) {
+        '<div class="myplugin">'
+        ~ %a<contents>.subst(/ '%%' ~ '%%' .+ /, %a<newspace><stuff> )
         ~ </div>
         },
     )
     END
 "$dir/blocks.raku".IO.spurt( q:to/END/ );
-    < plugin >
-    END
-"$dir/data.raku".IO.spurt( q:to/END/ );
-    'NEW WORDS'
+    < plugin testing >
     END
 
-$processor.add-plugin('plugin');
+$processor.add-plugin('plugin', :config(%(
+    :data('NEW WORDS')
+)));
 $rv = $processor.render-block( $=pod[$pc++] );
+
+throws-like { $processor.add-plugin('plugin',:path($dir) ) },
+        X::ProcessedPod::NamespaceConflict,
+        'tried to add plugin again',
+        message => / 'overwrite plugin' /;
 
 like $rv, /
     '<div class="myplugin">'
@@ -85,21 +94,8 @@ and %%interpolation%% is changed by the custom template
 
 =end pod
 
-"$dir/templates.raku".IO.spurt( q:to/END/ );
-    %( myplugin => sub ( %a, %b ) {
-        '<div class="myplugin">'
-        ~ %a<contents>.subst(/ '%%' ~ '%%' .+ /, %a<newspace-data> )
-        ~ </div>
-        },
-    )
-    END
-"$dir/blocks.raku".IO.spurt( q:to/END/ );
-    < testing >
-    END
-"$dir/data.raku".IO.spurt( q:to/END/ );
-    'VERY NEWX WORDS'
-    END
-$processor.add-plugin('plugin', :name-space<newspace> );
+$processor.add-data( 'newspace', %( :stuff('VERY NEWX WORDS'),  )  );
+
 $rv = $processor.render-block( $=pod[$pc++] );
 
 like $rv, /
@@ -113,7 +109,7 @@ like $rv, /
 rmtree($dir);
 
 # now in another directory
-$dir = 'xt/plugin';
+$dir = 'xt/xplugin';
 rmtree($dir) if $dir.IO.e;
 mktree($dir);
 
@@ -138,7 +134,7 @@ with no data
     < testing >
     END
 
-$processor.add-plugin('plugin',:path($dir), :data-raku('') );
+$processor.add-plugin('xplugin',:path($dir) );
 $rv = $processor.render-block( $=pod[$pc++] );
 
 like $rv, /

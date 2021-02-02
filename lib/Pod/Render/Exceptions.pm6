@@ -39,3 +39,9 @@ class X::ProcessedPod::NoBlocksAdded is Exception {
         "No blocks were added from ｢$!path｣/｢$!filename｣. Set filename to '' in add-custom or add-plugin if no blocks needed."
     }
 }
+class X::ProcessedPod::NamespaceConflict is Exception {
+    has $.name-space;
+    method message {
+        "An attempt has been made to overwrite {$.name-space}, which is an existing name-space"
+    }
+}

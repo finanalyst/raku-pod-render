@@ -89,13 +89,22 @@
 *  bump version
 
 # 2021-02-01
-
-
 *  refactoring in emit-... function.
+
+# 2021-02-02
+
+
+*  refactored to move all pod-file related variables out to a class that is reinstantiated
+
+*  changed tests because an object not a hash is returned.
+
+*  refactored to change rules for plugin and namespaces. Plugins can add their configs to their namespace
+
+*  namespaces cannot be written to more than once.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-02-01T16:59:34Z
+Rendered from CHANGELOG at 2021-02-02T22:06:51Z

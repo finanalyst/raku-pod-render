@@ -8,7 +8,6 @@ submethod TWEAK {
     else { self.templates( self.md-templates) }
 }
 method rewrite-target(Str $candidate-name is copy, :$unique --> Str ) {
-    state SetHash $targets .= new;
     # when indexing a unique target is needed even when same entry is repeated
     # when a Heading is a target, the reference must come from the name
     # the following algorithm for target names comes from github markup
@@ -25,10 +24,10 @@ method rewrite-target(Str $candidate-name is copy, :$unique --> Str ) {
             .subst(/<[`~!@#$%^&*()+=<>,./:;"'|{}\[\]\\–—]>/,'',:g)
             .subst( /<[。！，、；：“【】（）〔〕［］﹃﹄”’﹁﹂—…－～《》〈〉「」]> /, '' , :g);
     if $unique {
-        $candidate-name ~= '-0' if $candidate-name (<) $targets;
-        ++$candidate-name while $targets{$candidate-name}; # will continue to loop until a unique name is found
+        $candidate-name ~= '-0' if $candidate-name (<) $.pod-file.targets;
+        ++$candidate-name while $.pod-file.targets{$candidate-name}; # will continue to loop until a unique name is found
     }
-    $targets{ $candidate-name }++; # now add to targets, no effect if not unique
+    $.pod-file.targets{ $candidate-name }++; # now add to targets, no effect if not unique
     $candidate-name
 }
 

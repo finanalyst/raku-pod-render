@@ -65,4 +65,10 @@ files.
 =head1 2021-02-01
 =item refactoring in emit-... function.
 
+=head1 2021-02-02
+=item refactored to move all pod-file related variables out to a class that is reinstantiated
+=item changed tests because an object not a hash is returned.
+=item refactored to change rules for plugin and namespaces. Plugins can add their configs to their namespace
+=item namespaces cannot be written to more than once.
+
 =end pod

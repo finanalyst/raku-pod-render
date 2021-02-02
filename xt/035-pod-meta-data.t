@@ -35,7 +35,7 @@ Stuff
 
 $pro.render-block( $=pod[$pv++] );
 
-is-deeply-relaxed $pro.pod-config-data, %( :kind<Language>, :subkind<Language>, :category<fundamental>), 'got pod config data';
+is-deeply-relaxed $pro.pod-file.pod-config-data, %( :kind<Language>, :subkind<Language>, :category<fundamental>), 'got pod config data';
 
 =begin pod  :different<This is different> :difficult<shouldnt be>
 
@@ -48,12 +48,12 @@ Stuff and Nonsense
 =end pod
 
 $pro.render-block( $=pod[$pv]) ;
-isnt-deeply-relaxed $pro.pod-config-data, %( :different<This is different>, :difficult<shouldnt be> ), 'only first config data allowed';
+isnt-deeply-relaxed $pro.pod-file.pod-config-data, %( :different<This is different>, :difficult<shouldnt be> ), 'only first config data allowed';
 
 $pro.emit-and-renew-processed-state;
 
 $pro.render-block( $=pod[$pv]) ;
-is-deeply-relaxed $pro.pod-config-data, %( :different("This is different"), :difficult("shouldnt be") ), 'second block config data accepted';
+is-deeply-relaxed $pro.pod-file.pod-config-data, %( :different("This is different"), :difficult("shouldnt be") ), 'second block config data accepted';
 
 =begin pod
 =AUTHOR A.N. Writer
