@@ -204,8 +204,8 @@ class PodFile {
     #| A target associated with the Title Line
     has Str $.title-target is rw is default(DEFAULT_TOP) = DEFAULT_TOP;
     has Str $.subtitle is rw is default('') = '';
-    #| should be path of original document, defaults to $.name
-    has Str $.path is rw is default('UNNAMED') = 'UNNAMED';
+    #| should be path of original document, if supplied
+    has Str $.path is rw is default('') = '';
     #| defaults to top, then becomes target for TITLE
     has Str $.top is rw is default(DEFAULT_TOP) = DEFAULT_TOP;
 
@@ -343,7 +343,10 @@ class GenericPod {
                       ) {
         X::ProcessedPod::NamespaceConflict.new(:name-space($plugin-name)).throw
             if %!plugin-data{$plugin-name}:exists;
-        without %config {
+        with %config {
+            %config<path> = $path
+        }
+        else {
             %config = %( :$path )
         }
         self.modify-templates( $template-raku, :$path ) if $template-raku;

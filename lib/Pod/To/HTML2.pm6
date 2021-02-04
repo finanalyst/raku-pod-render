@@ -453,8 +453,11 @@ class Pod::To::HTML2 is ProcessedPod {
             },
             'footer' => sub ( %prm, %tml ) {
                 '<footer><div>Rendered from <span class="path">'
-                        ~ (( %prm<path>.defined && %prm<path> ne '') ?? %tml<escaped>(%prm<path>) !! 'Unknown')
-                        ~ '<!-- filename = ' ~ %prm<name> ~ ' -->'
+                        ~ ( ( %prm<path>.defined && %prm<path> ne '')
+                            ??
+                            %tml<escaped>(%prm<path>)
+                            !!
+                            %tml<escaped>(%prm<name>) )
                         ~ '</span></div>'
                         ~ '<div>at <span class="time">'
                         ~ (( %prm<renderedtime>.defined && %prm<path> ne '') ?? %tml<escaped>(%prm<renderedtime>) !! 'a moment before time began!?')
