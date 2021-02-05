@@ -71,4 +71,9 @@ files.
 =item refactored to change rules for plugin and namespaces. Plugins can add their configs to their namespace
 =item namespaces cannot be written to more than once.
 
+=head1 2021-02-5
+=item bump version
+=item PodFile  gist written, started on ProcessedPod gist
+=item fixed failing tests due to renderedtime and path changes
+
 =end pod

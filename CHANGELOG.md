@@ -92,8 +92,6 @@
 *  refactoring in emit-... function.
 
 # 2021-02-02
-
-
 *  refactored to move all pod-file related variables out to a class that is reinstantiated
 
 *  changed tests because an object not a hash is returned.
@@ -102,9 +100,18 @@
 
 *  namespaces cannot be written to more than once.
 
+# 2021-02-5
+
+
+*  bump version
+
+*  PodFile gist written, started on ProcessedPod gist
+
+*  fixed failing tests due to renderedtime and path changes
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-02-02T22:06:51Z
+Rendered from CHANGELOG at 2021-02-05T14:57:46Z

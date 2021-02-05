@@ -2,6 +2,7 @@ use v6.d;
 use URI;
 use LibCurl::Easy;
 use Pod::Render::Exceptions;
+use PrettyDump;
 
 grammar FC {
     # head is what is left of vertical bar, any non-vertical bar char, or empty
@@ -196,7 +197,7 @@ class PodFile {
     # Variable relating to a specific pod file
 
     #| Text between =TITLE and first header, this is used to refer for textual placenames
-    has $.front-matter is rw = 'preface';
+    has Str $.front-matter is rw = 'preface';
     #| Name to be used in titles and files.
     has Str $.name is rw is default('UNNAMED') = 'UNNAMED';
     #| The string part of a Title.
@@ -212,7 +213,7 @@ class PodFile {
     # document level information
 
     #| language of pod file
-    has $.lang is rw is default('en') = 'en';
+    has Str $.lang is rw is default('en') = 'en';
     #| information to be included in eg html header
     has @.raw-metadata;
     #| toc structure , collected and rendered separately to body
@@ -222,7 +223,7 @@ class PodFile {
     #| footnotes structure
     has @.raw-footnotes;
     #| when source wrap is called
-    has Str $.renderedtime is rw is default('') = '';
+    has Str $.renderedtime is rw = '';
     #| the set of targets used in a rendering process
     has SetHash $.targets .= new;
     #| config data given to the first =begin pod line encountered
@@ -235,6 +236,34 @@ class PodFile {
     has %.links;
     #| the templates used to render this file
     has BagHash $.templates-used is rw;
+    multi method gist(PodFile:U: ) { 'Undefined PodFile' }
+    multi method gist(PodFile:D: ) { qq:to/GIST/
+        PodFile contains:
+            front-matter => Str=｢{ $.front-matter }｣
+            name => Str=｢{ $.name }｣
+            title => Str=｢{ $.title }｣
+            title-target => Str=｢{ $.title-target }｣
+            subtitle => Str=｢{ $.subtitle }｣
+            path => Str=｢{ $.path }｣
+            top => Str=｢{ $.top }｣
+            renderedtime => Str=｢{ $.renderedtime }｣
+            lang => Str=｢{ $.lang }｣
+            raw-metadata => { pretty-dump( $.raw-metadata, :pre-item-spacing("\n   "),:post-item-spacing("\n    "),
+            :indent('  '), :post-separator-spacing("\n  ") )  }
+            raw-toc => { pretty-dump($.raw-toc, :pre-item-spacing("\n   "),:post-item-spacing("\n    "),
+               :indent('  '), :post-separator-spacing("\n  ")) }
+            raw-glossary => { pretty-dump( $.raw-glossary, :pre-item-spacing("\n   "),:post-item-spacing("\n    "),
+               :indent('  '), :post-separator-spacing("\n  ") )  }
+            raw-footnotes => { pretty-dump( $.raw-footnotes, :pre-item-spacing("\n   "),:post-item-spacing("\n    "),
+                :indent('  '), :post-separator-spacing("\n  ") )  }
+            pod-config-data => { pretty-dump( $.pod-config-data, :pre-item-spacing("\n   "),:post-item-spacing("\n    "),
+                :indent('  '), :post-separator-spacing("\n  ") )  }
+            links => { pretty-dump( $.links, :pre-item-spacing("\n   "),:post-item-spacing("\n    "),
+                :indent('  '), :post-separator-spacing("\n  ") )  }
+            targets => <｢{ $.targets.keys.join('｣, ｢') }｣>
+            templates-used => BagHash=<{ $.templates-used.sort( *.value ).reverse.map( {.key ~ ': ' ~ .value } ).join(', ') }>
+        GIST
+    }
 }
 
 class GenericPod {
@@ -379,7 +408,6 @@ class GenericPod {
     #| returns a string representation of the tree in the required format
     method process-pod($pod --> Str) {
         $!pod-body = [~] gather for $pod.list { take self.handle($_, 0 , Context::None ) };
-        $!pod-file.renderedtime = now.DateTime.utc.truncated-to('seconds').Str;
         # returns accumulated pod-bodies
         $!body ~= $!pod-body;
     }
@@ -426,6 +454,7 @@ class GenericPod {
     #| renders all of the document structures, and wraps them and the body
     #| uses the source-wrap template
     method source-wrap(--> Str) {
+        $!pod-file.renderedtime = now.DateTime.utc.truncated-to('seconds').Str;
         self.render-structures;
         self.rendition('source-wrap', {
             :name($!pod-file.name),
@@ -448,7 +477,6 @@ class GenericPod {
         $!toc = self.render-toc;
         $!glossary = self.render-glossary;
         $!footnotes = self.render-footnotes;
-        $!pod-file.renderedtime = now.DateTime.utc.truncated-to('seconds').Str;
     }
 
     #| renders only the toc
@@ -1035,4 +1063,31 @@ class GenericPod {
     }
 }
 
-class ProcessedPod is GenericPod does SetupTemplates { }
+class ProcessedPod is GenericPod does SetupTemplates {
+#    multi method gist(ProcessedPod:U:) { 'Undefined ProcessedPod' }
+#    multi method gist(ProcessedPod:D:) {
+#        qq:to/GIST/
+#        ProcessedPod contains:
+#        pod-file => PodFile={ $.pod-file.gist }
+#        no-meta => Bool={ $.no-meta.Str }
+#        no-footnotes => Bool={ $.no-footnotes.Str }
+#        no-toc => Bool={ $.no-toc.Str }
+#        no-glossary => Bool={ $.no-glossary.Str }
+#        debug => Bool={ $.debug.Str }
+#        verbose => Bool={ $.verbose.Str }
+#        no-code-escape => Bool={ $.no-code-escape.Str }
+#        pod-block-processed => Bool={ $.pod-block-processed.Str }
+#        def-ext => Str=｢{ $.def-ext }｣
+#        pod-body => Str=｢{ $.pod-body }｣
+#        body => Str=｢{ $.body }｣
+#        metadata => Str=｢{ $.metadata }｣
+#        toc => Str=｢{ $.toc }｣
+#        glossary => Str=｢{ $.glossary }｣
+#        footnotes => Str=｢{ $.footnotes }｣
+#        custom => { pretty-dump($.custom, :pre-item-spacing("\n   "),:post-item-spacing("\n    "),
+#                        :indent('  '), :post-separator-spacing("\n  ") ) }
+#        templates-defined => { pretty-dump($.tmpl, :pre-item-spacing("\n   "),:post-item-spacing("\n    "),
+#                        :indent('  '), :post-separator-spacing("\n  ") ) }
+#    GIST
+#    }
+}

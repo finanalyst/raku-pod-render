@@ -132,6 +132,6 @@ method md-templates {
             {{/ toc }}
             TEMPL
         'header' => '',
-        'footer' => '{{# path }}Rendered from {{ path }}{{/ path }}{{# renderedtime }} at {{ renderedtime }}{{/ renderedtime }}{{# path }}{{/ path }}'
+        'footer' => '{{# name }}Rendered from {{ name }}{{/ name }}{{# renderedtime }} at {{ renderedtime }}{{/ renderedtime }}{{# path }}{{/ path }}'
     )
 }

@@ -169,6 +169,7 @@ class Pod::To::HTML2 is ProcessedPod {
     #| renders all of the document structures, and wraps them and the body
     #| uses the source-wrap template
     method source-wrap(--> Str) {
+        $.pod-file.renderedtime = now.DateTime.utc.truncated-to('seconds').Str;
         self.render-structures;
         self.rendition('source-wrap', {
             :$.css,

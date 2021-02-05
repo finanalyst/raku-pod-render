@@ -2,7 +2,7 @@ use Test;
 use Test::Deeply::Relaxed;
 use ProcessedPod;
 
-plan 13;
+plan 12;
 
 my ProcessedPod $pro .= new;
 
@@ -50,13 +50,13 @@ my %templates  = @templates Z=> ( "\<$_>\{\{\{ contents }}}\</$_>" for @template
 
 $pro.templates(%templates);
 
-lives-ok { $pro.render-block( $=pod[0] ) }, 'main processing methods work, not interested in return values yet';
+lives-ok { $pro.render-block( $=pod[0] ); $pro.source-wrap; }, 'main processing methods work, not interested in return values yet';
 
 my $pod-structure;
 lives-ok { $pod-structure = $pro.emit-and-renew-processed-state}, 'renew method lives';
 
 for $pod-structure.^methods.grep({
-    .name ~~ any(<name title path renderedtime subtitle >)
+    .name ~~ any(<name title renderedtime subtitle >)
 }) { ok $_($pod-structure) ne '', $_.name ~' has content' };
 
 for $pod-structure.^methods.grep({
@@ -64,9 +64,10 @@ for $pod-structure.^methods.grep({
 }) { ok $_($pod-structure).elems, $_.name ~' has elements' };
 
 is-deeply-relaxed $pod-structure.templates-used,
-        ("pod"=>1,"heading"=>5,"zero"=>22,"para"=>7,"format-x"=>4,"format-n"=>1,"raw"=>5,"escaped"=>22).BagHash,
+        ("pod"=>1,"heading"=>5,"zero"=>22,"para"=>7,"format-x"=>4,"format-n"=>1,"raw"=>5,"escaped"=>22,
+        :1footnotes, :1glossary, :1source-wrap, :1meta, :1toc).BagHash,
         'used the expected templates';
 
-nok $pro.pod-file.renderedtime, 'time should be blank after a emit-and-renew-processed-state';
+is $pro.pod-file.renderedtime, '', 'time should be blank after a emit-and-renew-processed-state';
 
 done-testing;
