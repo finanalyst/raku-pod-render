@@ -46,8 +46,8 @@ class Pod::To::HTML2 is ProcessedPod {
     has &.highlight is rw = -> $frag { $frag }; # default is to return $frag unchanged
 
     # Only needed for legacy P2HTML
-    has $.head is rw;
-    has $.css is rw;
+    has $.head is rw = '';
+    has $.css is rw = '';
 
     #| render is a class method that is called by the raku compiler
     method render($pod-tree) {
@@ -165,30 +165,6 @@ class Pod::To::HTML2 is ProcessedPod {
         $!highlight-code
     }
 
-    #| The Pod::To::HTML2 version, which uses css
-    #| renders all of the document structures, and wraps them and the body
-    #| uses the source-wrap template
-    method source-wrap(--> Str) {
-        $.pod-file.renderedtime = now.DateTime.utc.truncated-to('seconds').Str;
-        self.render-structures;
-        self.rendition('source-wrap', {
-            :$.css,
-            :$.head,
-            :name($.pod-file.name),
-            :title($.pod-file.title),
-            :title-target($.pod-file.title-target),
-            :subtitle($.pod-file.subtitle),
-            :$.metadata,
-            :lang($.pod-file.lang),
-            :$.toc,
-            :$.glossary,
-            :$.footnotes,
-            :$.body,
-            :path($.pod-file.path),
-            :renderedtime($.pod-file.renderedtime),
-        })
-    }
-
     #| returns a hash of keys and Raku closure templates
     method html-templates(:$css-text = $default-css-text, :$favicon-bin = $camelia-ico) {
         %(
@@ -208,6 +184,7 @@ class Pod::To::HTML2 is ProcessedPod {
                 if $.min-top { '<style>debug</style>' }
                 else { $css-text }
             },
+            'css' => sub ( %prm, %tml ) { $.css },
             'favicon' => sub ( %prm, %tml ) {
                 if $.min-top { '<meta>NoIcon</meta>' }
                 else { '<link href="data:image/x-icon;base64,' ~ $favicon-bin ~ '" rel="icon" type="image/x-icon" />' }
@@ -440,13 +417,13 @@ class Pod::To::HTML2 is ProcessedPod {
                 "\<head>\n"
                         ~ '<title>' ~ %tml<escaped>(%prm<title>) ~ "\</title>\n"
                         ~ '<meta charset="UTF-8" />' ~ "\n"
-                        ~ %tml<favicon>(%prm, %tml)
+                        ~ %tml<favicon>({}, {})
                         ~ (%prm<metadata> // '')
-                        ~ (  ( %prm<css>.defined and %prm<css> ne '' )
-                            ?? ('<link rel="stylesheet" href="' ~ %prm<css> ~ '">')
-                            !! %tml<css-text>(%prm, %tml)
+                        ~ (  ( %tml<css>( {}, {} ) ne '' )
+                            ?? ('<link rel="stylesheet" href="' ~ %tml<css>({}, {}) ~ '">')
+                            !! %tml<css-text>({}, {})
                         )
-                        ~ (%prm<head> // '')
+                        ~ %tml<head>( {}, {} )
                         ~ "\</head>\n"
             },
             'header' => sub ( %prm,%tml) {
@@ -489,6 +466,8 @@ class Pod::To::HTML2::Mustache is Pod::To::HTML2 {
         # in the source-wrap template.
             'camelia-img' => $camelia-svg,
             'css-text' => $css-text,
+            'css' => $.css,
+            'head' => $.head,
             'favicon' => '<link href="data:image/x-icon;base64,' ~ $favicon-bin ~ '" rel="icon" type="image/x-icon" />',
             # note that verbatim V<> does not have its own format because it affects what is inside it (see POD documentation)
             :escaped('{{ contents }}'),

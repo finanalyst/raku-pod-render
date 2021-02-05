@@ -75,5 +75,6 @@ files.
 =item bump version
 =item PodFile  gist written, started on ProcessedPod gist
 =item fixed failing tests due to renderedtime and path changes
+=item HTML2 templates improved and removed need for separate wrap-source function.
 
 =end pod

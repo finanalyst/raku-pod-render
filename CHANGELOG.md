@@ -109,9 +109,11 @@
 
 *  fixed failing tests due to renderedtime and path changes
 
+*  HTML2 templates improved and removed need for separate wrap-source function.
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-02-05T14:57:46Z
+Rendered from CHANGELOG at 2021-02-05T16:21:51Z
