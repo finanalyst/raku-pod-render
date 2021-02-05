@@ -19,7 +19,7 @@ lives-ok { $rv = Pod::To::HTML2.render($=pod[$pc]) }, 'captures Pod into HTML';
 
 like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'got consistent HTML';
 
-lives-ok { $processor = Pod::To::HTML2.new }, 'returns new object';
+lives-ok { $processor = Pod::To::HTML2.new(:min-top) }, 'returns new object';
 like $processor.^name, /'Pod::To::HTML2'/, 'correct return type';
 
 $processor.process-pod($=pod[$pc++]);
