@@ -1,7 +1,6 @@
 # Generic Pod Renderer
->Transforms POD in a Raku module/pod to other format such as HTML or MarkDown.
 
-
+----
 ----
 ## Table of Contents
 [Installation](#installation)  
@@ -45,7 +44,7 @@ Since it is intended that `Raku::Pod::Render` can be used as a dependency for ot
 ```
 zef install Raku::Pod::Render
 ```
-will install the module without checking or installing a highlighter. If, after default installation, the highlighter is needed, then it can be installed without re-running `zef` by running the following in a terminal:
+will install the module without checking or installing a highlighter. If, **after default installation**, the highlighter is needed and _node & npm are installed_, then it can be installed by running the following in a terminal:
 
 ```
 raku-render-install-highlighter
@@ -53,6 +52,13 @@ raku-render-install-highlighter
 ## Dependencies
 The default highlighter at present is a Node based toolstack called **atom-perl-highlighter**. In order to install it automatically, `Raku::Pod::Render` requires an uptodate version of npm. The builder is known not to work with `node.js` > ****v13.0> and `npm` > **v14.15**.
 
+For someone who has not installed `node` or `npm` before, or for whom they are only needed for the highlighter, the installation is ... confusing. It would seem at the time of writing that the easiest method is:
+
+```
+# Using Ubuntu
+curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
 # Page Components
 A Pod6 source will generate body text and generate information for TOC, Footnotes, Glossaries, Links and Metadata
 
@@ -122,6 +128,5 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 
-
 ----
-Rendered from README at 2021-01-19T15:07:55Z
+Rendered from README at 2021-02-09T22:28:05Z

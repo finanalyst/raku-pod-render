@@ -77,4 +77,9 @@ files.
 =item fixed failing tests due to renderedtime and path changes
 =item HTML2 templates improved and removed need for separate wrap-source function.
 
+=head1 2021-02-09
+=item bump v
+=item to get Cro, require rakudo-star:2020.01, but that doesn't like set op (==), so use different test in test-templates
+
+
 =end pod

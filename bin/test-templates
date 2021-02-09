@@ -138,12 +138,8 @@ sub MAIN($template-file, Str :$extra, :$verbosity = 0 ) {
     my $required = Set.new( $tt.required);
     my $got = Set.new( %struct.keys );
     die "Panic. Contact maintainer. Required templates in ProcessedPod and here are out of sync.\n"
-        ~ (($required (>) $got)
-            ??
-            ( "Template(s) required, but not in test-templates: { ($required (-) $got).keys.join(', ') }")
-            !!
-            ("Template(s) in test-templates, but not required: { ($got (-) $required).keys.join(', ') }" ))
-        unless ($required (==) $got);
+        ~( "Template(s) required, but not in test-templates: { ($required (-) $got).keys.join(', ') }")
+        if ($required (>) $got);
     my @extra;
     with $extra {
     if $extra.IO.f {

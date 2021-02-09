@@ -27,8 +27,8 @@ being installed. If this is desired then,
 
     zef install Raku::Pod::Render
 
-will install the module without checking or installing a highlighter. If, after default installation, the
-highlighter is needed, then it can be installed without re-running C<zef> by running the following in a terminal:
+will install the module without checking or installing a highlighter. If, B<after default installation>, the
+highlighter is needed and I<node & npm are installed>, then it can be installed by running the following in a terminal:
 
     raku-render-install-highlighter
 
@@ -37,6 +37,13 @@ highlighter is needed, then it can be installed without re-running C<zef> by run
 The default highlighter at present is a Node based toolstack called B<atom-perl-highlighter>.
 In order to install it automatically, C<Raku::Pod::Render> requires an uptodate version of npm.
 The builder is known not to work with C<node.js> > B<>v13.0> and C<npm> > B<v14.15>.
+
+For someone who has not installed C<node> or C<npm> before, or for whom they are only needed for the highlighter,
+the installation is ... confusing. It would seem at the time of writing that the easiest method is:
+
+    # Using Ubuntu
+    curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+    sudo apt-get install -y nodejs
 
 =head1 Page Components
 

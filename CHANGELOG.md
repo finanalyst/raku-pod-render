@@ -101,8 +101,6 @@
 *  namespaces cannot be written to more than once.
 
 # 2021-02-5
-
-
 *  bump version
 
 *  PodFile gist written, started on ProcessedPod gist
@@ -111,9 +109,16 @@
 
 *  HTML2 templates improved and removed need for separate wrap-source function.
 
+# 2021-02-09
+
+
+*  bump v
+
+*  to get Cro, require rakudo-star:2020.01, but that doesn't like set op (==), so use different test in test-templates
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-02-05T16:21:51Z
+Rendered from CHANGELOG at 2021-02-09T22:28:06Z
