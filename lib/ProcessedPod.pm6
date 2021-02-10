@@ -735,6 +735,7 @@ class GenericPod {
         unless $.pod-block-processed {
             $.pod-file.pod-config-data = $node.config;
             $.pod-block-processed = True;
+            note "Processing first pod declaration in file { $.pod-file.path }" if $.debug;
         }
         my $template = $node.config<template> // 'pod';
         $.completion($in-level, $template, %(
