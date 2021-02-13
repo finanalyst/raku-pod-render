@@ -303,6 +303,38 @@ The ability to specify another template for rendering applies to most C<Pod::Blo
 C<TITLE>, C<SUBTILE> etc. Care needs to be taken to ensure the template specified can handle the parameters it is
 given.
 
+Pod Blocks that have been added as custom provide some extra functionality in order to aid plugin development.
+=head3 Plugin config data
+
+When a L<plugin is added|Plugins> the configuration data of the plugin is added to the C<ProcessedPod>
+object, and that data is provided to the template when a custom block is rendered.
+
+The data is added as a key to the parameters passed to the Template with the name of the customised block
+in lower-case, or as a key with the name set by the C<name-space> configuration.
+
+=head3 Table of Contents
+
+The Customised block's contents are added to the Table of Contents, by default at level 1. This equates
+a customised plugin block to a C<=head1> pod block.
+
+If the block's config parameters include the key C<headlevel>, then that level is used instead of 1.
+For example,
+=begin code
+    =for ListFiles :headlevel<2>
+    Some caption text
+
+=end code
+
+would include C<Some caption text> in the TOC as if it were the contents of a C<=head2> block.
+
+Setting C<:headlevel<0> > will not register the block at all.
+
+The parameters passed to the template will also contain a C<:target> key, which can be used to
+provide an anchor, so that when the item in the TOC is clicked (assuming HTML output), the window is
+moved to the start of the relevant content.
+
+It is for the template to use the target appropriately.
+
 =head2 Custom Format Code
 
 This is even easier to handle as all that is needed is to supply a template in the form C<format-ß> where B<ß> is a

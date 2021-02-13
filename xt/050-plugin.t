@@ -7,7 +7,7 @@ my $rv;
 my $processor = ProcessedPod.new;
 my $pc = 0;
 
-plan 6;
+plan 8;
 
 my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
@@ -17,6 +17,7 @@ my %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
 # this creates a set of pseudo templates
 $processor.templates( %templates );
 $processor.modify-templates( { escaped => sub ( $str ) { "<escp>$str\</escp>" } } );
+
 =begin pod
 
 =newblocktype Here are some words
@@ -36,6 +37,23 @@ like $rv, /
     '<newblocktype>'
     .+ '</newblocktype>'
     /, 'new block gets template';
+
+$rv = $processor.pod-file.raw-toc.raku;
+like $rv, /
+    'Here are some words'
+    /, 'Block\'s content has been added to TOC';
+
+=begin pod
+
+=for newblocktype :headlevel<0>
+This one is different
+
+=end pod
+$processor.render-block($=pod[$pc++]);
+$rv = $processor.pod-file.raw-toc.raku;
+unlike $rv, /
+    'This one is different'
+    /, 'Block\'s content has not been added to TOC';
 
 =begin pod
 

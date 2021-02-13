@@ -804,6 +804,10 @@ class GenericPod {
     multi method handle(Pod::Block::Named $node where .name ~~ any(@.custom), Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
+        my $level = abs($node.config<headlevel> // 1); # no negative levels
+        my $target = '';
+        $target = $.register-toc(:$level, :text(recurse-until-str($node).tclc))
+            if +$level;
         my $template = $node.config<template> // $node.name.lc;
         my $data;
         my $name-space = $node.config<name-space> // $template // $node.name.lc;
@@ -814,6 +818,7 @@ class GenericPod {
             ~ $.completion($in-level, $template,
             %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
             $node.config,
+            :$target,
             "$name-space" => $data
             ), :$defn
         )

@@ -77,9 +77,11 @@ files.
 =item fixed failing tests due to renderedtime and path changes
 =item HTML2 templates improved and removed need for separate wrap-source function.
 
-=head1 2021-02-09
-=item bump v
+=head1 2021-02-09 v10
 =item to get Cro, require rakudo-star:2020.01, but that doesn't like set op (==), so use different test in test-templates
 
+=head1 2021-02-13 v11
+=item added TOC functionality to Custom defined blocks
+=item added documentation about TOC and also provision of plugin config data to ProcessedPod
 
 =end pod
