@@ -109,16 +109,19 @@
 
 *  HTML2 templates improved and removed need for separate wrap-source function.
 
-# 2021-02-09
-
-
-*  bump v
-
+# 2021-02-09 v10
 *  to get Cro, require rakudo-star:2020.01, but that doesn't like set op (==), so use different test in test-templates
+
+# 2021-02-13 v11
+
+
+*  added TOC functionality to Custom defined blocks
+
+*  added documentation about TOC and also provision of plugin config data to ProcessedPod
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-02-09T22:28:06Z
+Rendered from CHANGELOG at 2021-02-13T14:46:55Z

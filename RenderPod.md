@@ -19,6 +19,8 @@
 [Customised Pod and Templates](#customised-pod-and-templates)  
 [Custom Pod Block](#custom-pod-block)  
 [Para](#para)  
+[Plugin config data](#plugin-config-data)  
+[Table of Contents](#table-of-contents)  
 [Custom Format Code](#custom-format-code)  
 [Plugins](#plugins)  
 [External Data](#external-data)  
@@ -264,6 +266,32 @@ It is possible to cause a Custom block to use another template by using the temp
 In this case the first `object` is rendered with the template `diagram-float-left`, which must exist in the templates Hash, and the second time `object` is rendered with the default template `object`, which also must exist.
 
 The ability to specify another template for rendering applies to most `Pod::Block::Named`, except for the reserved `TITLE`, `SUBTILE` etc. Care needs to be taken to ensure the template specified can handle the parameters it is given.
+
+Pod Blocks that have been added as custom provide some extra functionality in order to aid plugin development.
+
+### Plugin config data
+When a [plugin is added](Plugins.md) the configuration data of the plugin is added to the `ProcessedPod` object, and that data is provided to the template when a custom block is rendered.
+
+The data is added as a key to the parameters passed to the Template with the name of the customised block in lower-case, or as a key with the name set by the `name-space` configuration.
+
+### Table of Contents
+The Customised block's contents are added to the Table of Contents, by default at level 1. This equates a customised plugin block to a `=head1` pod block.
+
+If the block's config parameters include the key `headlevel`, then that level is used instead of 1. For example,
+
+```
+    =for ListFiles :headlevel<2>
+    Some caption text
+
+
+```
+would include `Some caption text` in the TOC as if it were the contents of a `=head2` block.
+
+Setting `:headlevel<0> ` will not register the block at all.
+
+The parameters passed to the template will also contain a `:target` key, which can be used to provide an anchor, so that when the item in the TOC is clicked (assuming HTML output), the window is moved to the start of the relevant content.
+
+It is for the template to use the target appropriately.
 
 ## Custom Format Code
 This is even easier to handle as all that is needed is to supply a template in the form `format-ß` where **ß** is a unicode character other than the standard codes, viz., **B C E I K L N P T U V X Z**, which are defined in the Pod6 specification. Several of the standard codes, such as **L** and **X**, parse the contents, placing all data after `|` in the meta container, and if separated by `;`, meta contains a list of data itmes.
@@ -699,4 +727,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2021-02-02T22:06:56Z
+Rendered from RenderPod at 2021-02-13T14:47:00Z
