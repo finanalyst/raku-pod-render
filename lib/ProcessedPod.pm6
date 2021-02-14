@@ -937,7 +937,7 @@ class GenericPod {
         my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) };
         my $meta = @($node.meta) // []; # by default an empty array
         unless $node.type ~~ any(<B C I K T U>) {
-            my $rv = FC.parse($contents);
+            my $rv = FC.parse( $contents );
             $contents = ~ $rv<head>;
             $meta.append($rv<metas><meta>».Str) if $rv<metas><meta>
         }
@@ -949,10 +949,10 @@ class GenericPod {
         else {
             $.completion($in-level, 'escaped',
                 %( :contents($node.type ~ '<'
-                    ~ $contents
+                    ~ $contents.Str
                     ~ '>')
-                )
-            ), :$defn
+                ), :$defn
+            )
         }
     }
 

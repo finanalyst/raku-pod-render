@@ -113,15 +113,18 @@
 *  to get Cro, require rakudo-star:2020.01, but that doesn't like set op (==), so use different test in test-templates
 
 # 2021-02-13 v11
-
-
 *  added TOC functionality to Custom defined blocks
 
 *  added documentation about TOC and also provision of plugin config data to ProcessedPod
+
+# 2021-02-02-14 v12
+
+
+*  fixed non-standard FC error when not specially templated, added test.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-02-13T14:46:55Z
+Rendered from CHANGELOG at 2021-02-14T23:24:16Z

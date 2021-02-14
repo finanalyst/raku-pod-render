@@ -84,4 +84,7 @@ files.
 =item added TOC functionality to Custom defined blocks
 =item added documentation about TOC and also provision of plugin config data to ProcessedPod
 
+=head1 2021-02-02-14 v12
+=item fixed non-standard FC error when not specially templated, added test.
+
 =end pod
