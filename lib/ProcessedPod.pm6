@@ -437,7 +437,7 @@ class GenericPod {
         #clean out the variables, whilst keeping the Templating engine cache.
         $!metadata = $!toc = $!glossary = $!footnotes = $!body = Nil;
         $!pod-block-processed = False;
-        $.templs-used = Nil; # provided by Role
+        $.templs-used.default; # provided by Role
         $old
     }
 
