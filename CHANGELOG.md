@@ -118,13 +118,16 @@
 *  added documentation about TOC and also provision of plugin config data to ProcessedPod
 
 # 2021-02-02-14 v12
-
-
 *  fixed non-standard FC error when not specially templated, added test.
+
+# 2021-02-20 v3-6-12
+
+
+*  empty BagHash of templates-used correctly with default, not Nil.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-02-14T23:24:16Z
+Rendered from CHANGELOG at 2021-02-20T22:31:26Z
