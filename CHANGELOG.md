@@ -120,14 +120,19 @@
 # 2021-02-02-14 v12
 *  fixed non-standard FC error when not specially templated, added test.
 
-# 2021-02-20 v3-6-12
-
-
+# 2021-02-20 v3-6-13
 *  empty BagHash of templates-used correctly with default, not Nil.
+
+# 2021-02-26 v3-6-14
+
+
+*  Pod-File gist improved when templates-used is undefined.
+
+*  test 060 improved.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-02-20T22:31:26Z
+Rendered from CHANGELOG at 2021-02-26T11:58:47Z

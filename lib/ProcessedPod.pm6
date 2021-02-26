@@ -237,7 +237,12 @@ class PodFile {
     #| the templates used to render this file
     has BagHash $.templates-used is rw;
     multi method gist(PodFile:U: ) { 'Undefined PodFile' }
-    multi method gist(PodFile:D: ) { qq:to/GIST/
+    multi method gist(PodFile:D: ) {
+        my $temps-u = 'No templates used, has a render method been invoked?';
+        with $.templates-used {
+            $temps-u = "BagHash=<{ $.templates-used.sort( *.value ).reverse.map( {.key ~ ': ' ~ .value } ).join(', ') }>"
+        }
+        qq:to/GIST/
         PodFile contains:
             front-matter => Str=｢{ $.front-matter }｣
             name => Str=｢{ $.name }｣
@@ -261,7 +266,7 @@ class PodFile {
             links => { pretty-dump( $.links, :pre-item-spacing("\n   "),:post-item-spacing("\n    "),
                 :indent('  '), :post-separator-spacing("\n  ") )  }
             targets => <｢{ $.targets.keys.join('｣, ｢') }｣>
-            templates-used => BagHash=<{ $.templates-used.sort( *.value ).reverse.map( {.key ~ ': ' ~ .value } ).join(', ') }>
+            templates-used => { $temps-u }
         GIST
     }
 }

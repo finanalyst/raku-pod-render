@@ -1,4 +1,14 @@
 use Test;
+
+use ProcessedPod;
+my ProcessedPod $pp .= new;
+
+like $pp.pod-file.gist,
+        /
+        'renderedtime => Str=｢｣'
+        .+ 'templates-used => No templates used'
+        /, 'blank PodFile gist';
+
 use Pod::To::HTML2; # to incorporate consistent templates
 
 my Pod::To::HTML2 $p .= new;
@@ -17,7 +27,6 @@ $p.process-pod($=pod[0]);
 $p.source-wrap;
 
 my $pf = $p.emit-and-renew-processed-state;
-
 like $pf.gist,
     /
         ':target("A_title"),'

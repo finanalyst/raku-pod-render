@@ -87,7 +87,11 @@ files.
 =head1 2021-02-02-14 v12
 =item fixed non-standard FC error when not specially templated, added test.
 
-=head1 2021-02-20 v3-6-12
+=head1 2021-02-20 v3-6-13
 =item empty BagHash of templates-used correctly with default, not Nil.
+
+=head1 2021-02-26 v3-6-14
+=item Pod-File gist improved when templates-used is undefined.
+=item test 060 improved.
 
 =end pod
