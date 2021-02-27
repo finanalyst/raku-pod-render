@@ -166,7 +166,7 @@ ok 1, 'creating html templates to match original hard coded html of original P2H
                     ~ (%prm<glossary> // '')
                     ~ (( %prm<toc>.defined or %prm<glossary>.defined ) ?? '</div>' !! '')
                     ~ %tml<subtitle>(%prm, %tml)
-                    ~ '<div class="pod-body' ~ (( %prm<toc>.defined and %prm<toc> ne '' ) ?? '' !! ' no-toc') ~ '">'
+                    ~ '<div class="pod-body' ~ (( %prm<toc>.defined and %prm<toc>.keys ) ?? '' !! ' no-toc' ) ~ '">'
                     ~ (%prm<body> // '')
                     ~ "\t\t</div>\n"
                     ~ (%prm<footnotes> // '')

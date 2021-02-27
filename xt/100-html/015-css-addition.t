@@ -3,7 +3,7 @@ use Pod::To::HTML2;
 my $rv;
 my $processor;
 
-plan 12;
+plan 13;
 
 =begin pod
 Some pod
@@ -67,5 +67,12 @@ like $rv, /
     /, 'New favicon inserted';
 
 'favicon-new'.IO.unlink; # clear up
+$processor = Pod::To::HTML2.new;
+$processor.css = 'some-other.css';
+$rv = $processor.source-wrap;
+like $rv, /
+    '<head' .+ '<link rel="stylesheet"' .+ 'href="'
+    'some-other.css'
+/, 'New link rendered';
 
 done-testing;

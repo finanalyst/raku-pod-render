@@ -105,7 +105,26 @@ class Pod::To::HTML2 is ProcessedPod {
         }
         self.templates(self.html-templates(:$css-text, :$favicon-bin)) if $templates-needed;
     }
-
+    method source-wrap(--> Str) { # subclass whole method just to pass css and head!!!!
+        $.pod-file.renderedtime = now.DateTime.utc.truncated-to('seconds').Str;
+        self.render-structures;
+        self.rendition('source-wrap', {
+            :name($.pod-file.name),
+            :title($.pod-file.title),
+            :title-target($.pod-file.title-target),
+            :subtitle($.pod-file.subtitle),
+            :$.metadata,
+            :lang($.pod-file.lang),
+            :$.toc,
+            :$.glossary,
+            :$.footnotes,
+            :$.body,
+            :path($.pod-file.path),
+            :renderedtime($.pod-file.renderedtime),
+            :$!head,
+            :$!css,
+        })
+    }
     #| custom getter for atom-highlight
     multi method highlight-code( --> Bool ) {
         $!highlight-code
@@ -635,8 +654,12 @@ sub node2html($pod) is export {
 sub pod2html($pod, *%options) is export {
     my $proc = get-processor;
     with %options<templates> {
-        if  "$_/main.mustache".IO ~~ :f {
-            $proc.templates(Pod::To::HTML2::Mustache.html-templates);
+        if  "$_/main.mustache".IO.f {
+            # this indirect method is needed to pass tests as HTML2 looks for
+            # a template file in the root, which is in rakuclosure format, so
+            # this over-rides the internal mustache templates.
+            my $proc-m = Pod::To::HTML2::Mustache.new;
+            $proc.templates( $proc-m.html-templates );
             $proc.modify-templates(%( source-wrap => "$_/main.mustache".IO.slurp))
         }
         else {

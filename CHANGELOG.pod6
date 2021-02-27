@@ -94,4 +94,7 @@ files.
 =item Pod-File gist improved when templates-used is undefined.
 =item test 060 improved.
 
+=head1 2021-02-27 v3-6-15
+=item resolved issue with passing legacy css tests
+
 =end pod

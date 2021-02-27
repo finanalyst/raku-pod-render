@@ -144,7 +144,7 @@ role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
     #| accepts a string filename that must evaluate to a hash
     #| or a hash of templates
     #| the keys must be a superset of the required templates
-    method templates($templates, :$path = '.' ) {
+    multi method templates($templates, :$path = '.' ) {
         given $templates {
             when Hash { %!tmpl = $templates }
             when Str {
@@ -181,7 +181,7 @@ role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
         self.rakuclosure-rendition( $key, %params )
     }
     method set-engine {
-        if %!tmpl<format-b> ~~ Str and %!tmpl<format-b> ~~ / '{{' / {
+        if %!tmpl<format-b> ~~ Str {
             $.templater-is = 'mustache'
         }
         else {
@@ -201,7 +201,7 @@ class PodFile {
     #| Name to be used in titles and files.
     has Str $.name is rw is default('UNNAMED') = 'UNNAMED';
     #| The string part of a Title.
-    has Str $.title is rw is default('UNNAMED') = 'UNNAMED';
+    has Str $.title is rw is default('NO_TITLE') = 'NO_TITLE';
     #| A target associated with the Title Line
     has Str $.title-target is rw is default(DEFAULT_TOP) = DEFAULT_TOP;
     has Str $.subtitle is rw is default('') = '';
