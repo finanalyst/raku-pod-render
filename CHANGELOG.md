@@ -124,15 +124,25 @@
 *  empty BagHash of templates-used correctly with default, not Nil.
 
 # 2021-02-26 v3-6-14
-
-
 *  Pod-File gist improved when templates-used is undefined.
 
 *  test 060 improved.
+
+# 2021-02-27 v3-6-15
+*  resolved issue with passing legacy css tests
+
+# 2021-02-27 v3-6-16
+
+
+*  moved functionality of test-templates to pm6
+
+*  added test functions templates-present, templates-match, extra-templates-match
+
+*  rewrite / refactor Documentation files
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-02-26T11:58:47Z
+Rendered from CHANGELOG at 2021-02-27T20:13:09Z

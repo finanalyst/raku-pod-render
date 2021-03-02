@@ -57,9 +57,8 @@ the table:
 
 =head1 The C<%tml> Hash
 
-This is the hash of the subroutines.
-
-There should be no reason to call C<raw> since it is anticipated it will be the same as the characters themselves.
+This is the hash of all the templates, except C<raw> since it is anticipated C<raw> will only be the same as
+the characters in the string themselves. C<raw> is there to be an alternative to C<escaped>.
 
 The C<escaped> template should be called as
 
@@ -71,60 +70,9 @@ Another template typically will be called as
 
 However, since a template is a normal B<Raku> subroutine, C<%prm> could be substituted with any C<Hash>, eg.,
 
-    %tml<title>( { :title(｢Some arbitrary string｣) }, %tml )
+    %tml<title>( { :title(｢Some arbitrary string｣) }, %tml ).
 
-=head1 Utility program test-templates
-
-This testing tool has the structure of the minimum template set coded into it. It is called as
-
-    test-templates --extra='filename-of-custom-template-structure.raku' --verbosity=2 'filename-of-templates.raku'
-
-=begin item
-B<--extra (optional, default: C<Any> )>
-
-This is a B<Raku> compilable program that returns a C<Hash> with the structure of the key, more below.
-=end item
-=begin item
-B<--verbosity (optional, default: 0 )>
-
-An integer that produces more information for higher values:
-=item2 = 0 only list templates with errors
-=item2 = 1 0 + parameters sent, sub-keys not returned
-=item2 = 2 1 + sub-keys found in error templates
-=item2  = 3 2 + full response for error templates
-=item2 = 4 all templates with sub-key returns
-=item2 = 5 5 + full response for all templates
-=end item
-
-=begin item
-B<'filename-of-templates.raku' (mandatory, string)>
-
-A B<Raku> compilable program that returns a C<Hash> contains all the minimum templates as keys pointing subroutines.
-=end item
-
-If the minimum set of templates is not provided in B<filename-of-templates.raku>, a C<MissingTemplates> exception will be thrown.
-
-Since all the templates are provided to all the templates, it is recommended to use sub-templates within the minimum
-set to simplify the code.
-
-=head2 Structure syntax
-
-As can be seen from the table above, two scalars may be elements of a Hash, namely 'Bool' and 'Str'. These are given as
-C<Str> values, eg.
-    'title' => 'Str',
-    'heading' => { :text('Str'), :level('Str'), :is-header('Bool') }
-
-A C<Hash> element is specified as a C<Hash>, as shown above and a C<Array> as an C<Array>, eg.
-    'table' => { :rows( [ 'Str', ] ) }
-
-=head1 Examples
-
-Examples of a set of RakuClosureTemplates can be found in the C<resources> directory of the distribution, as
-
-=item C<closure-temp.raku> is an array of templates, including a custom C<image> template. The templates are designed
-for C<Pod::To::HTML2>.
-
-=item C<extra-test.raku> is a hash with the template structure for the C<image> template.
+The presence of %tml is to allow for templates to call other templates.
 
 =end pod
 

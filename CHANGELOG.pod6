@@ -97,4 +97,9 @@ files.
 =head1 2021-02-27 v3-6-15
 =item resolved issue with passing legacy css tests
 
+=head1 2021-02-27 v3-6-16
+=item moved functionality of test-templates to pm6
+=item added test functions templates-present, templates-match, extra-templates-match
+=item rewrite / refactor Documentation files
+
 =end pod
