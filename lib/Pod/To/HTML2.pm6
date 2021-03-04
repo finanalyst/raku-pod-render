@@ -244,10 +244,21 @@ class Pod::To::HTML2 is ProcessedPod {
             'format-u' => gen-closure-template('u'),
             'para' => gen-closure-template('p'),
             'format-l' => sub ( %prm, %tml ) {
+                # transform a local file with an internal target
+                my $trg = %prm<target>;
+                if %prm<local> {
+                    if $trg ~~ / (<-[#]>+) '#' (.+) $ / {
+                        $trg = "$0\.html\#$1";
+                    }
+                    else {
+                        $trg ~= '.html'
+                    }
+                }
+                elsif %prm<internal> {
+                    $trg = "#$trg"
+                }
                 '<a href="'
-                        ~ (%prm<internal> ?? '#' !! '')
-                        ~ %prm<target>
-                        ~ (%prm<local> ?? '.html'!! '')
+                        ~ $trg
                         ~ '">'
                         ~ (%prm<contents> // '')
                         ~ '</a>'

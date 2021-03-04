@@ -132,17 +132,24 @@
 *  resolved issue with passing legacy css tests
 
 # 2021-02-27 v3-6-16
-
-
 *  moved functionality of test-templates to pm6
 
 *  added test functions templates-present, templates-match, extra-templates-match
 
 *  rewrite / refactor Documentation files
 
+# 2021-03-4 v3-6-17
+
+
+*  correct HTML rendering of targets in local files. eg href="filen.html#internal-link"
+
+*  change test accordingly
+
+*  change type of templates-used in PodFile from BagHash to %, and adjust gist.
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-02-27T20:13:09Z
+Rendered from CHANGELOG at 2021-03-04T23:03:55Z

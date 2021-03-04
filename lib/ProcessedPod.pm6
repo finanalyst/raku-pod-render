@@ -234,13 +234,13 @@ class PodFile {
     has %.pod-config-data is rw;
     #| Structure to collect links, eg. to test whether they all work
     has %.links;
-    #| the templates used to render this file
-    has BagHash $.templates-used is rw;
+    #| the templates used to render this file, copied from Templates role
+    has %.templates-used is rw;
     multi method gist(PodFile:U: ) { 'Undefined PodFile' }
     multi method gist(PodFile:D: ) {
         my $temps-u = 'No templates used, has a render method been invoked?';
-        with $.templates-used {
-            $temps-u = "BagHash=<{ $.templates-used.sort( *.value ).reverse.map( {.key ~ ': ' ~ .value } ).join(', ') }>"
+        if +%.templates-used.keys {
+            $temps-u = "Hash=<{ %.templates-used.sort( *.value ).reverse.map( {.key ~ ': ' ~ .value } ).join(', ') }>"
         }
         qq:to/GIST/
         PodFile contains:
@@ -436,7 +436,7 @@ class GenericPod {
     #| does not change flags relating to highlighting
     method emit-and-renew-processed-state( --> PodFile ) {
         my PodFile $old = $!pod-file;
-        $old.templates-used = $.templs-used.clone;
+        $old.templates-used = %($.templs-used);
         $!pod-file .=new;
 
         #clean out the variables, whilst keeping the Templating engine cache.
@@ -577,11 +577,11 @@ class GenericPod {
         return $.pod-file.links{$entry}<target location> if $.pod-file.links{$entry}:exists;
         # just return target if it exists
         # A link may be
-        # - internal to the document so cannonise
-        # - to a group of documents with the same format (do not write, template engine to handle extension)
-        # - to an external source to be left unchanged, http, or internal #
+        # - internal to the document so rewrite, no filename only #
+        # - to a group of documents with the same format (do not rewrite, template engine to handle extension), target has filename, maybe #
+        # - to an external source no rewrite, has http(s) schema
         given $entry {
-            when / ^ 'http://' | ^ 'https://' | ^ .+ '#' / { $.pod-file.links{$entry} = %( :target($entry), :location<external>  ) }
+            when / ^ 'http://' | ^ 'https://' / { $.pod-file.links{$entry} = %( :target($entry), :location<external>  ) }
             when / ^ '#' $<tgt> = (.+) / {
                 $.pod-file.links{$entry} = %(
                     :target( $.rewrite-target( ~$<tgt>, :!unique) ),

@@ -102,4 +102,9 @@ files.
 =item added test functions templates-present, templates-match, extra-templates-match
 =item rewrite / refactor Documentation files
 
+=head1 2021-03-4 v3-6-17
+=item correct HTML rendering of targets in local files. eg href="filen.html#internal-link"
+=item change test accordingly
+=item change type of templates-used in PodFile from BagHash to %, and adjust gist.
+
 =end pod

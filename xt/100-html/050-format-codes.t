@@ -204,7 +204,7 @@ like $rv, /
     \s* 'We can'
     \s* '<a href="https://docs.raku.org">Link to a place</a>'
     \s* 'with no problem.'
-    .+ '<a href="format-code-index-test-pod-file_2#an item">link to an index test code</a>'
+    .+ '<a href="format-code-index-test-pod-file_2.html#an item">link to an index test code</a>'
     .+ '<a href="#Here_is_a_header">like this</a>'
     .+ '<h1' .+ 'id="Here_is_a_header"'
     /, 'L format creates links';
