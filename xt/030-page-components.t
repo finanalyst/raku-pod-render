@@ -63,7 +63,7 @@ for $pod-structure.^methods.grep({
     .name ~~ any(< raw-metadata raw-toc raw-glossary raw-footnotes >)
 }) { ok $_($pod-structure).elems, $_.name ~' has elements' };
 
-is-deeply-relaxed $pod-structure.templates-used,
+is-deeply-relaxed $pod-structure.templates-used.BagHash,
         ("pod"=>1,"heading"=>5,"zero"=>22,"para"=>7,"format-x"=>4,"format-n"=>1,"raw"=>5,"escaped"=>22,
         :1footnotes, :1glossary, :1source-wrap, :1meta, :1toc).BagHash,
         'used the expected templates';
