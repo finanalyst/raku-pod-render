@@ -106,5 +106,6 @@ files.
 =item correct HTML rendering of targets in local files. eg href="filen.html#internal-link"
 =item change test accordingly
 =item change type of templates-used in PodFile from BagHash to %, and adjust gist.
+=item fixed persistent Templates-used error, not emptying.
 
 =end pod

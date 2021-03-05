@@ -120,7 +120,7 @@ role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
     #| storage of loaded templates
     has %.tmpl;
     #| a variable to collect which templates have been used for trace and debugging
-    has BagHash $.templs-used .= new;
+    has BagHash $.templs-used is rw .= new;
     #| allows for templates to be replaced during pod processing
     #| repeatedly generating the template engine is expensive
     #| $templates may be either a Hash of templates, or
@@ -442,7 +442,7 @@ class GenericPod {
         #clean out the variables, whilst keeping the Templating engine cache.
         $!metadata = $!toc = $!glossary = $!footnotes = $!body = Nil;
         $!pod-block-processed = False;
-        $.templs-used.default; # provided by Role
+        $.templs-used .= new; # provided by Role
         $old
     }
 

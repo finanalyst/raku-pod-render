@@ -2,7 +2,7 @@ use Test;
 use Test::Deeply::Relaxed;
 use ProcessedPod;
 
-plan 12;
+plan 13;
 
 my ProcessedPod $pro .= new;
 
@@ -69,5 +69,26 @@ is-deeply-relaxed $pod-structure.templates-used.BagHash,
         'used the expected templates';
 
 is $pro.pod-file.renderedtime, '', 'time should be blank after a emit-and-renew-processed-state';
+
+=begin pod  :different<This is different> :difficult<shouldnt be>
+
+=TITLE testing again
+
+=SUBTITLE more tests
+
+Stuff and Nonsense
+
+=end pod
+
+$pro.render-block( $=pod[1] );
+$pro.source-wrap;
+my $podf2 = $pro.emit-and-renew-processed-state;
+$pro .= new;
+$pro.templates(%templates);
+$pro.render-block( $=pod[1] );
+$pro.source-wrap;
+my $podf3 = $pro.emit-and-renew-processed-state;
+
+is-deeply-relaxed $podf2.templates-used.BagHash, $podf3.templates-used.BagHash, 'two pod-files are the same';
 
 done-testing;

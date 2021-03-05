@@ -147,9 +147,11 @@
 
 *  change type of templates-used in PodFile from BagHash to %, and adjust gist.
 
+*  fixed persistent Templates-used error, not emptying.
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-03-04T23:03:55Z
+Rendered from CHANGELOG at 2021-03-05T22:36:36Z
