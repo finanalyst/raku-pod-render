@@ -139,8 +139,6 @@
 *  rewrite / refactor Documentation files
 
 # 2021-03-4 v3-6-17
-
-
 *  correct HTML rendering of targets in local files. eg href="filen.html#internal-link"
 
 *  change test accordingly
@@ -149,9 +147,14 @@
 
 *  fixed persistent Templates-used error, not emptying.
 
+# 2021-03-25 v3-6-18
+
+
+*  add change of '::' token to '/' in links. This is (previously) undocumented behaviour of [](.md)
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-03-05T22:36:36Z
+Rendered from CHANGELOG at 2021-03-25T22:12:37Z

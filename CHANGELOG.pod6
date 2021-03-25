@@ -108,4 +108,7 @@ files.
 =item change type of templates-used in PodFile from BagHash to %, and adjust gist.
 =item fixed persistent Templates-used error, not emptying.
 
+=head1 2021-03-25 v3-6-18
+=item add change of '::' token to '/' in links. This is (previously) undocumented behaviour of L<>
+
 =end pod

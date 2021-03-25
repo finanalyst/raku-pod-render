@@ -582,6 +582,7 @@ class GenericPod {
         # - to an external source no rewrite, has http(s) schema
         given $entry {
             when / ^ 'http://' | ^ 'https://' / { $.pod-file.links{$entry} = %( :target($entry), :location<external>  ) }
+            when / '::' / { $.pod-file.link{$entry} = %( :target( $entry.subst(/'::'/,'/',:g )), :location<local> ) }
             when / ^ '#' $<tgt> = (.+) / {
                 $.pod-file.links{$entry} = %(
                     :target( $.rewrite-target( ~$<tgt>, :!unique) ),
@@ -1074,31 +1075,4 @@ class GenericPod {
     }
 }
 
-class ProcessedPod is GenericPod does SetupTemplates {
-#    multi method gist(ProcessedPod:U:) { 'Undefined ProcessedPod' }
-#    multi method gist(ProcessedPod:D:) {
-#        qq:to/GIST/
-#        ProcessedPod contains:
-#        pod-file => PodFile={ $.pod-file.gist }
-#        no-meta => Bool={ $.no-meta.Str }
-#        no-footnotes => Bool={ $.no-footnotes.Str }
-#        no-toc => Bool={ $.no-toc.Str }
-#        no-glossary => Bool={ $.no-glossary.Str }
-#        debug => Bool={ $.debug.Str }
-#        verbose => Bool={ $.verbose.Str }
-#        no-code-escape => Bool={ $.no-code-escape.Str }
-#        pod-block-processed => Bool={ $.pod-block-processed.Str }
-#        def-ext => Str=｢{ $.def-ext }｣
-#        pod-body => Str=｢{ $.pod-body }｣
-#        body => Str=｢{ $.body }｣
-#        metadata => Str=｢{ $.metadata }｣
-#        toc => Str=｢{ $.toc }｣
-#        glossary => Str=｢{ $.glossary }｣
-#        footnotes => Str=｢{ $.footnotes }｣
-#        custom => { pretty-dump($.custom, :pre-item-spacing("\n   "),:post-item-spacing("\n    "),
-#                        :indent('  '), :post-separator-spacing("\n  ") ) }
-#        templates-defined => { pretty-dump($.tmpl, :pre-item-spacing("\n   "),:post-item-spacing("\n    "),
-#                        :indent('  '), :post-separator-spacing("\n  ") ) }
-#    GIST
-#    }
-}
+class ProcessedPod is GenericPod does SetupTemplates { }
