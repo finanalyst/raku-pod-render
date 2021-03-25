@@ -582,7 +582,7 @@ class GenericPod {
         # - to an external source no rewrite, has http(s) schema
         given $entry {
             when / ^ 'http://' | ^ 'https://' / { $.pod-file.links{$entry} = %( :target($entry), :location<external>  ) }
-            when / '::' / { $.pod-file.link{$entry} = %( :target( $entry.subst(/'::'/,'/',:g )), :location<local> ) }
+            when / '::' / { $.pod-file.links{$entry} = %( :target( $entry.subst(/'::'/,'/',:g )), :location<local> ) }
             when / ^ '#' $<tgt> = (.+) / {
                 $.pod-file.links{$entry} = %(
                     :target( $.rewrite-target( ~$<tgt>, :!unique) ),
