@@ -581,15 +581,35 @@ class GenericPod {
         # - to a group of documents with the same format (do not rewrite, template engine to handle extension), target has filename, maybe #
         # - to an external source no rewrite, has http(s) schema
         given $entry {
+            # remote links first
             when / ^ 'http://' | ^ 'https://' / { $.pod-file.links{$entry} = %( :target($entry), :location<external>  ) }
-            when / '::' / { $.pod-file.links{$entry} = %( :target( $entry.subst(/'::'/,'/',:g )), :location<local> ) }
+            # next deal with internal links
             when / ^ '#' $<tgt> = (.+) / {
+                say "At $?LINE with $entry";
                 $.pod-file.links{$entry} = %(
                     :target( $.rewrite-target( ~$<tgt>, :!unique) ),
                     :location<internal>
-                )
+                );
+                say "At $?LINE target ", ~$<tgt>;
             }
-            default  { $.pod-file.links{$entry} = %(:target($entry), :location<local>) }
+            when / (.+?) '#' (.+) $/ {
+                say "At $?LINE with $entry";
+                my $int-t = ~$1;
+                my $target = ~$0.subst(/'::'/, '/', :g); # only subst :: in file part
+                $target ~= "\#$int-t";
+                $.pod-file.links{$entry} = %( :$target, :location<local> );
+                say "At $?LINE target ", $target;
+            }
+            when / '::' / {  # so no target inside file
+                say "At $?LINE with $entry";
+                my $target = $entry.subst(/'::'/,'/',:g );
+                $.pod-file.links{$entry} = %( :$target, :location<local> );
+                say "At $?LINE target ", $target;
+            }
+            default  {
+                say "At $?LINE with $entry  ==> target";
+                $.pod-file.links{$entry} = %(:target($entry), :location<local>)
+            }
         }
         $.pod-file.links{$entry}<target location>
     }

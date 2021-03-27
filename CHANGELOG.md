@@ -148,13 +148,18 @@
 *  fixed persistent Templates-used error, not emptying.
 
 # 2021-03-25 v3-6-18
-
-
 *  add change of '::' token to '/' in links. This is (previously) undocumented behaviour of [](.md)
+
+# 2021-03-27 v3-6-19
+
+
+*  improve [](.md) handling of '::' in file part only.
+
+*  improve test to cover new variations.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-03-25T22:12:37Z
+Rendered from CHANGELOG at 2021-03-27T15:26:19Z

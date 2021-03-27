@@ -111,4 +111,8 @@ files.
 =head1 2021-03-25 v3-6-18
 =item add change of '::' token to '/' in links. This is (previously) undocumented behaviour of L<>
 
+=head1 2021-03-27 v3-6-19
+=item improve L<> handling of '::' in file part only.
+=item improve test to cover new variations.
+
 =end pod

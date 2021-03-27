@@ -6,7 +6,7 @@ my $processor = Pod::To::HTML2.new;
 my $rv;
 my $pn = 0;
 
-plan 17;
+plan 19;
 
 =begin pod
 
@@ -190,6 +190,12 @@ We also can L<link to an index test code|format-code-index-test-pod-file_2#an it
 
 Linking inside the file is L<like this|#Here is a header>.
 
+Hold over from Perl5 L<module ref|path::to::file>.
+
+And with internal L<module int|path::to::file#this::keeps>.
+
+Also L<keep double colon|local/file#double::colon::ok>.
+
 Some stuff
 
 =head1 Here is a header
@@ -206,10 +212,22 @@ like $rv, /
     \s* 'with no problem.'
     .+ '<a href="format-code-index-test-pod-file_2.html#an item">link to an index test code</a>'
     .+ '<a href="#Here_is_a_header">like this</a>'
-    .+ '<h1' .+ 'id="Here_is_a_header"'
-    /, 'L format creates links';
+    /, 'L format standard links ok';
 
-# todo a test about links not mangling.
+like $rv, /
+    'Hold over from Perl5 '
+    '<a href="path/to/file.html">module ref</a>.'
+    .+ 'And with internal '
+    '<a href="path/to/file.html#this::keeps">module int</a>.'
+    .+ 'Also '
+    '<a href="local/file.html#double::colon::ok">keep double colon</a>.'
+    /, 'L handles old Perl5 behaviour';
+
+like $rv, /
+    .+ '<h1' .+ 'id="Here_is_a_header"'
+    /, 'Header link';
+
+
 
 =begin pod
 
