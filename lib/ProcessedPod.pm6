@@ -585,29 +585,22 @@ class GenericPod {
             when / ^ 'http://' | ^ 'https://' / { $.pod-file.links{$entry} = %( :target($entry), :location<external>  ) }
             # next deal with internal links
             when / ^ '#' $<tgt> = (.+) / {
-                say "At $?LINE with $entry";
                 $.pod-file.links{$entry} = %(
                     :target( $.rewrite-target( ~$<tgt>, :!unique) ),
                     :location<internal>
                 );
-                say "At $?LINE target ", ~$<tgt>;
             }
             when / (.+?) '#' (.+) $/ {
-                say "At $?LINE with $entry";
                 my $int-t = ~$1;
                 my $target = ~$0.subst(/'::'/, '/', :g); # only subst :: in file part
                 $target ~= "\#$int-t";
                 $.pod-file.links{$entry} = %( :$target, :location<local> );
-                say "At $?LINE target ", $target;
             }
             when / '::' / {  # so no target inside file
-                say "At $?LINE with $entry";
                 my $target = $entry.subst(/'::'/,'/',:g );
-                $.pod-file.links{$entry} = %( :$target, :location<local> );
-                say "At $?LINE target ", $target;
+                $.pod-file.links{$entry} = %( :$target, :location<local> )
             }
             default  {
-                say "At $?LINE with $entry  ==> target";
                 $.pod-file.links{$entry} = %(:target($entry), :location<local>)
             }
         }
