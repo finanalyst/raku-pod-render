@@ -571,9 +571,7 @@ class GenericPod {
         $target
     }
 
-    # This method could be over-ridden in order to collect the links inside a pod, eg., for error checking
-
-    method register-link(Str $entry --> List) {
+    method register-link(Str $entry, Str $link --> List) {
         return $.pod-file.links{$entry}<target location> if $.pod-file.links{$entry}:exists;
         # just return target if it exists
         # A link may be
@@ -582,26 +580,27 @@ class GenericPod {
         # - to an external source no rewrite, has http(s) schema
         given $entry {
             # remote links first
-            when / ^ 'http://' | ^ 'https://' / { $.pod-file.links{$entry} = %( :target($entry), :location<external>  ) }
+            when / ^ 'http://' | ^ 'https://' / { $.pod-file.links{$entry} = %( :target($entry), :location<external>, :$link  ) }
             # next deal with internal links
             when / ^ '#' $<tgt> = (.+) / {
                 $.pod-file.links{$entry} = %(
                     :target( $.rewrite-target( ~$<tgt>, :!unique) ),
-                    :location<internal>
+                    :location<internal>,
+                    :$link
                 );
             }
             when / (.+?) '#' (.+) $/ {
                 my $int-t = ~$1;
                 my $target = ~$0.subst(/'::'/, '/', :g); # only subst :: in file part
                 $target ~= "\#$int-t";
-                $.pod-file.links{$entry} = %( :$target, :location<local> );
+                $.pod-file.links{$entry} = %( :$target, :location<local>, :$link );
             }
             when / '::' / {  # so no target inside file
                 my $target = $entry.subst(/'::'/,'/',:g );
-                $.pod-file.links{$entry} = %( :$target, :location<local> )
+                $.pod-file.links{$entry} = %( :$target, :location<local>, :$link )
             }
             default  {
-                $.pod-file.links{$entry} = %(:target($entry), :location<local>)
+                $.pod-file.links{$entry} = %(:target($entry), :location<local>, :$link)
             }
         }
         $.pod-file.links{$entry}<target location>
@@ -1014,14 +1013,14 @@ class GenericPod {
                         Context $context = None, Bool :$defn = False,  --> Str) {
         note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         my $contents = [~] gather for $node.contents { take $.handle($_, $in-level, $context) };
-        my ($target, $location) = $.register-link($node.meta eqv [] | [""] ?? $contents !! $node.meta[0]);
+        my ($target, $location) = $.register-link($node.meta eqv [] | [""] ?? $contents !! $node.meta[0], $contents);
         # link handling needed here to deal with local links in global-link context
         $.completion($in-level, 'format-l',
             %( :$target,
                :local( $location eq 'local' ),
                :internal( $location eq 'internal' ),
                :external( $location eq 'external' ),
-               :contents([~] gather for $node.contents { take $.handle($_, $in-level, $context, :$defn) })
+               :$contents,
             ), :$defn
         )
     }

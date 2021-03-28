@@ -115,4 +115,7 @@ files.
 =item improve L<> handling of '::' in file part only.
 =item improve test to cover new variations.
 
+=head1 2021-03-28 v3-6-20
+=item add link text to link registration for improved error tracing
+
 =end pod

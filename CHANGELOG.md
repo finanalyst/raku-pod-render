@@ -151,15 +151,18 @@
 *  add change of '::' token to '/' in links. This is (previously) undocumented behaviour of [](.md)
 
 # 2021-03-27 v3-6-19
-
-
 *  improve [](.md) handling of '::' in file part only.
 
 *  improve test to cover new variations.
+
+# 2021-03-28 v3-6-20
+
+
+*  add link text to link registration for improved error tracing
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-03-27T15:26:19Z
+Rendered from CHANGELOG at 2021-03-28T13:28:36Z
