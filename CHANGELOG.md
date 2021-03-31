@@ -156,13 +156,16 @@
 *  improve test to cover new variations.
 
 # 2021-03-28 v3-6-20
-
-
 *  add link text to link registration for improved error tracing
+
+# 2021-03-31 v3-6-21
+
+
+*  add page-data key to be passed to template 'file-wrap'. This is config in first `=pod` line.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-03-28T13:28:36Z
+Rendered from CHANGELOG at 2021-03-31T15:57:38Z

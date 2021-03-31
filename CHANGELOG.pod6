@@ -118,4 +118,7 @@ files.
 =head1 2021-03-28 v3-6-20
 =item add link text to link registration for improved error tracing
 
+=head1 2021-03-31 v3-6-21
+=item add page-data key to be passed to template 'file-wrap'. This is config in first C<=pod> line.
+
 =end pod

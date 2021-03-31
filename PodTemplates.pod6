@@ -45,7 +45,7 @@ template. The verification tool will flag this with a warning.
 
 If the minimum set of templates is not provided, the renderer will throw an error.
 
-=head2 Useage
+=head2 Usage
 
 This testing tool has the structure of the minimum template set coded into it. It is called as
 
@@ -229,8 +229,9 @@ source-wrap |            |            |          | Turns all content to a string
            | body |            | String | rendered body string     
            | footnotes |            | String | rendered footnotes string     
            | renderedtime |            | String | rendered time     
-           | path  |            | String | path to source file     
-footnotes |            |            |          | renders the notes structure to a string     
+           | path  |            | String | path to source file
+           | page-config  |            | Hash | user data given in first pod statement
+footnotes |            |            |          | renders the notes structure to a string
            | notes |            | Array | Of hash with the following keys
            |            | fnTarget | String | target in the footnote area     
            |            | text | String | text for the footnote     

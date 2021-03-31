@@ -6,7 +6,7 @@
 [Minimum Set](#minimum-set)  
 [Test-Templates](#test-templates)  
 [Verification utility](#verification-utility)  
-[Useage](#useage)  
+[Usage](#usage)  
 [Data structures accepted by templates](#data-structures-accepted-by-templates)  
 [Structure specification syntax](#structure-specification-syntax)  
 [Examples](#examples)  
@@ -46,7 +46,7 @@ A template developer may decide not to render a parameter provided by ProcessedP
 
 If the minimum set of templates is not provided, the renderer will throw an error.
 
-## Useage
+## Usage
 This testing tool has the structure of the minimum template set coded into it. It is called as
 
 ```
@@ -220,6 +220,7 @@ These are the parameters for the required templates for `ProcessedPod`, and help
  |  | footnotes |  | String | rendered footnotes string |
  |  | renderedtime |  | String | rendered time |
  |  | path |  | String | path to source file |
+ |  | page-config |  | Hash | user data given in first pod statement |
  | footnotes |  |  |  | renders the notes structure to a string |
  |  | notes |  | Array | Of hash with the following keys |
  |  |  | fnTarget | String | target in the footnote area |
@@ -287,4 +288,4 @@ These are the parameters for the required templates for `ProcessedPod`, and help
 
 
 ----
-Rendered from PodTemplates at 2021-02-27T20:13:18Z
+Rendered from PodTemplates at 2021-03-31T15:57:47Z

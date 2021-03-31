@@ -466,6 +466,7 @@ class GenericPod {
             :title($!pod-file.title),
             :title-target($!pod-file.title-target),
             :subtitle($!pod-file.subtitle),
+            :page-config($!pod-file.pod-config-data),
             :$!metadata,
             :lang($!pod-file.lang),
             :$!toc,
