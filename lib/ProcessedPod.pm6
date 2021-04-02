@@ -896,7 +896,7 @@ class GenericPod {
         my $template = $node.config<template> // 'heading';
         my $target = $.register-toc(:$level, :text(recurse-until-str($node).join));
         # must register toc before processing content!!
-        my $text = [~] gather for $node.contents { take $.handle($_, $in-level, Heading, :$defn) };
+        my $text = trim([~] gather for $node.contents { take $.handle($_, $in-level, Heading, :$defn) });
         $retained-list ~ $.completion($in-level, $template, {
             :$level,
             :$text,

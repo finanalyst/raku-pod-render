@@ -159,13 +159,16 @@
 *  add link text to link registration for improved error tracing
 
 # 2021-03-31 v3-6-21
-
-
 *  add page-data key to be passed to template 'file-wrap'. This is config in first `=pod` line.
+
+# 2021-04-02 v3-6-22
+
+
+*  trim white space in head texts (occurs if head text is also indexed)
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-03-31T15:57:38Z
+Rendered from CHANGELOG at 2021-04-02T11:23:55Z
