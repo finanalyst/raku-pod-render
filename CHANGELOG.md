@@ -162,13 +162,28 @@
 *  add page-data key to be passed to template 'file-wrap'. This is config in first `=pod` line.
 
 # 2021-04-02 v3-6-22
-
-
 *  trim white space in head texts (occurs if head text is also indexed)
+
+# 2021-12-31 v3-7-0
+
+
+*  refactored the templating system
+
+	*  moved templating out of ProcessedPod
+
+	*  created an array of tests to identify the templating engine
+
+	*  made templating engines into classes, rather than roles
+
+*  new error occurred where role supplied a BagHash and a new did not initialise it
+
+	*  added a method to the role to reinitialise it.
+
+*  begun to add Cro Web templates as possible option
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-04-02T11:23:55Z
+Rendered from CHANGELOG at 2021-12-31T16:17:23Z

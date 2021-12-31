@@ -1,4 +1,4 @@
-use ProcessedPod;
+use Pod::Render::Templating;
 my $camelia-svg = 'camelia-svg';
 my $css-text = 'css-text';
 my $favicon-bin = 'favicon-bin';

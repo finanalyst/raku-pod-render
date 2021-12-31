@@ -2,6 +2,7 @@ use v6.d;
 use URI;
 use LibCurl::Easy;
 use Pod::Render::Exceptions;
+use Pod::Render::Templating;
 use PrettyDump;
 
 grammar FC {
@@ -38,157 +39,7 @@ grammar FC {
     # TODO: use "make" to pull inside-quotes value to meta
 }
 
-#class GenericPod { ... }
-# class ProcessedPod is GenericPod does RakuClosureTemplater { ... };
-# class ProcessedPod::Mustache is GenericPod does MustacheTemplater { ... };
-
-#| The templates are sub (%prm, %tml) that act on the keys of %prm and return a Str
-#| keys 'escaped' and 'raw' take a Str as the only argument
-role RakuClosureTemplater is export {
-    #| maps the key to template and emits the result of the closure
-    method rakuclosure-rendition(Str $key, %params --> Str) {
-        X::ProcessedPod::MissingTemplates.new.throw unless $.templates-loaded;
-        note "At $?LINE rendering with \<$key>" if $.debug;
-        # special case some keys.
-        # 'zero' is only used to trigger the completion method
-        return '' if $key eq 'zero';
-        # 'raw' typically does not need any extra processing. If it does, the following line can be commented out.
-        return %params<contents> if $key eq 'raw';
-        X::ProcessedPod::Non-Existent-Template.new(:$key, :%params).throw
-        unless %.tmpl{$key}:exists;
-        #special case escape key. The template only expects a String scalar.
-        #other templates expect two %
-        if $key eq 'escaped' {
-            %.tmpl<escaped>(%params<contents>)
-        }
-        else
-        {
-            %.tmpl{$key}(%params, %.tmpl)
-        }
-    }
-}
-
-sub gen-closure-template ( Str $tag ) is export {
-    my $start = '<' ~ $tag ~ '>';
-    my $end = '</' ~ $tag ~ '>';
-    return sub ( %prm, %tml? --> Str ) {
-        $start ~ (%prm<contents> // '') ~ $end;
-    }
-}
-
-role MustacheTemplater {
-    use Template::Mustache;
-    # templating parameters.
-    has $!engine;
-    method mustache-restart-engine {
-        $!engine = Nil;
-    }
-    #| maps the key to template and renders the bloc
-    method mustache-rendition(Str $key, %params --> Str) {
-        $!engine = Template::Mustache.new without $!engine;
-        X::ProcessedPod::MissingTemplates.new.throw unless $.templates-loaded;
-        return '' if $key eq 'zero';
-        # special case this as there must be no EOL.
-        X::ProcessedPod::Non-Existent-Template.new(:$key, :%params).throw
-        unless %.tmpl{$key}:exists;
-        # templating engines like mustache do not handle logic or loops, which some Pod formats require.
-        # hence we pass a Subroutine instead of a string in the template
-        # the subroutine takes the same parameters as rendition and produces a mustache string
-        # eg P format template escapes containers
-
-        note "At $?LINE rendering with \<$key>" if $.debug;
-        my $interpolate = %.tmpl{$key} ~~ Block
-                ?? %.tmpl{$key}(%params)
-                # if the template is a block, then run as sub and pass in the params
-                !! %.tmpl{$key};
-        $!engine.render(
-                $interpolate,
-                %params, :from(%.tmpl)
-                )
-    }
-}
-
-#| SetupTemplates detects which Templater to use depending on the template for format-b
-role SetupTemplates does RakuClosureTemplater does MustacheTemplater {
-    #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
-    has @.required = < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
-        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
-        item list meta named output para pod raw source-wrap table toc >;
-    #| must have templates. Generically, no templates loaded.
-    has Bool $.templates-loaded is rw = False;
-    has $.templater-is is rw = 'rakuclosure';
-    #| storage of loaded templates
-    has %.tmpl;
-    #| a variable to collect which templates have been used for trace and debugging
-    has BagHash $.templs-used is rw .= new;
-    #| allows for templates to be replaced during pod processing
-    #| repeatedly generating the template engine is expensive
-    #| $templates may be either a Hash of templates, or
-    #| a Str path to a Raku program that evaluates to a Hash
-    #| Keys of the hash are added to the Templates, silently over-riding
-    #| previous keys.
-    method modify-templates($templates, :$path = '.' )
-    {
-        return unless $templates; # no action for blank string or empty Hash
-        my %new-templates;
-        given $templates {
-            when Hash { %new-templates = $templates }
-            when Str {
-                #use SEE_NO_EVAL;
-                %new-templates = indir( $path, { EVALFILE $templates } );
-            }
-        }
-        { %!tmpl{$^a} = $^b } for %new-templates.kv;
-        self.restart-engine
-    }
-    #| accepts a string filename that must evaluate to a hash
-    #| or a hash of templates
-    #| the keys must be a superset of the required templates
-    multi method templates($templates, :$path = '.' ) {
-        given $templates {
-            when Hash { %!tmpl = $templates }
-            when Str {
-                #use SEE_NO_EVAL;
-                %!tmpl = indir( $path, { EVALFILE $templates } );
-            }
-        }
-        # a string is a filename with a compilable file
-        CATCH {
-            when !X::ProcessedPod::MissingTemplates { .throw }
-            default {
-                X::ProcessedPod::TemplateFailure.new(:error(.message)).throw
-            }
-        }
-
-        X::ProcessedPod::MissingTemplates.new(:missing((@.required (-) %!tmpl.keys).keys.flat)).throw
-            unless %!tmpl.keys (>=) @.required;
-        # the keys on the RHS above are required in %.tmpl. To throw here, the templates supplied are not
-        # a superset of the required keys.
-        $.templates-loaded = True;
-        self.set-engine
-    }
-    #| Some template engines need to be restarted when templates are changed in order to
-    #| recompile the templates
-    method restart-engine {
-        return self.mustache-restart-engine if $.templater-is eq 'mustache';
-        # rakuclosure does not restart engine because templates are compiled by Raku
-    }
-    #| rendition takes a key and parameters and calls the template for the key
-    method rendition(Str $key, %params --> Str) {
-        $.templs-used{ $key }++; # add name to Set
-        # different engines will handle this differentiy. There is surely a more Raku way of doing this.
-        return self.mustache-rendition( $key, %params ) if $.templater-is eq 'mustache';
-        self.rakuclosure-rendition( $key, %params )
-    }
-    method set-engine {
-        if %!tmpl<format-b> ~~ Str {
-            $.templater-is = 'mustache'
-        }
-        else {
-            $.templater-is = 'rakuclosure'
-        }
-    }
-}
+# class ProcessedPod is GenericPod does SetupTemplater { ... };
 
 #| the name of the anchor at the top of a source file
 constant DEFAULT_TOP = '___top';
@@ -437,12 +288,12 @@ class GenericPod {
     method emit-and-renew-processed-state( --> PodFile ) {
         my PodFile $old = $!pod-file;
         $old.templates-used = %($.templs-used);
-        $!pod-file .=new;
+        $!pod-file .= new;
 
         #clean out the variables, whilst keeping the Templating engine cache.
         $!metadata = $!toc = $!glossary = $!footnotes = $!body = Nil;
         $!pod-block-processed = False;
-        $.templs-used .= new; # provided by Role
+        $.reset-used; # provided by Role
         $old
     }
 

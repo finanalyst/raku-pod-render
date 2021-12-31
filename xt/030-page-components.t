@@ -64,7 +64,7 @@ for $pod-structure.^methods.grep({
 }) { ok $_($pod-structure).elems, $_.name ~' has elements' };
 
 is-deeply-relaxed $pod-structure.templates-used.BagHash,
-        ("pod"=>1,"heading"=>5,"zero"=>22,"para"=>7,"format-x"=>4,"format-n"=>1,"raw"=>5,"escaped"=>22,
+        ("pod"=>1,"heading"=>5,"para"=>7,"format-x"=>4,"format-n"=>1,"raw"=>5,"escaped"=>22,
         :1footnotes, :1glossary, :1source-wrap, :1meta, :1toc).BagHash,
         'used the expected templates';
 
@@ -82,13 +82,11 @@ Stuff and Nonsense
 
 $pro.render-block( $=pod[1] );
 $pro.source-wrap;
+
 my $podf2 = $pro.emit-and-renew-processed-state;
-$pro .= new;
-$pro.templates(%templates);
 $pro.render-block( $=pod[1] );
 $pro.source-wrap;
 my $podf3 = $pro.emit-and-renew-processed-state;
 
 is-deeply-relaxed $podf2.templates-used.BagHash, $podf3.templates-used.BagHash, 'two pod-files are the same';
-
 done-testing;

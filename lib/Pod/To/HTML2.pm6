@@ -1,5 +1,6 @@
 use v6.d;
 use ProcessedPod;
+use Pod::Render::Templating;
 use JSON::Fast;
 use File::Temp;
 

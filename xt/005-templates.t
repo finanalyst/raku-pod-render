@@ -2,6 +2,8 @@ use v6.*;
 use Test;
 
 use ProcessedPod;
+use Pod::Render::Templating;
+use Test::Output;
 
 plan 7;
 
@@ -35,8 +37,8 @@ throws-like { $pro.templates(%templates) }, X::ProcessedPod::MissingTemplates,
 # testing with the default RakuClosureTemplates.
 
 %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
-
-lives-ok { $pro.templates(%templates) }, 'full set of templates is ok';
+$pro.verbose = True;
+stderr-like { $pro.templates(%templates) }, / 'Raku Closure template' /, 'full set of RakuClosure templates';
 
 like $pro.rendition('format-b', %(:contents('Hello world'))),
         / '<format-b>' 'Hello world' '</format-b>' /, 'basic interpolation correct';

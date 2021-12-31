@@ -124,4 +124,13 @@ files.
 =head1 2021-04-02 v3-6-22
 =item trim white space in head texts (occurs if head text is also indexed)
 
+=head1 2021-12-31 v3-7-0
+=item refactored the templating system
+=item2 moved templating out of ProcessedPod
+=item2 created an array of tests to identify the templating engine
+=item2 made templating engines into classes, rather than roles
+=item new error occurred where role supplied a BagHash and a new did not initialise it
+=item2 added a method to the role to reinitialise it.
+=item begun to add Cro Web templates as possible option
+
 =end pod

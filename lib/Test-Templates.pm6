@@ -1,6 +1,7 @@
 module Test-Templates {
     use Test;
     use ProcessedPod;
+    use Pod::Render::Templating;
 
     our %struct = %(
         escaped => %( :contents('Str') ),
@@ -122,6 +123,7 @@ module Test-Templates {
 
     my class Rendering does SetupTemplates {
         has $.debug is rw;
+        has $.verbose is rw;
     };
 
     #|Short for 'are all minimum templates present in the hash'. Takes a hash, whose keys are template names.

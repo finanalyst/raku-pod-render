@@ -3,6 +3,7 @@ use Test;
 use File::Directory::Tree;
 
 use ProcessedPod;
+use Pod::Render::Templating;
 my $rv;
 my $processor = ProcessedPod.new;
 my $pc = 0;

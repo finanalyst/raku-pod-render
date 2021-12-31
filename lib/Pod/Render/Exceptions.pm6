@@ -32,6 +32,11 @@ class X::ProcessedPod::TemplateFailure is Exception {
         "Problems getting templates: $!error"
     }
 }
+class X::ProcessedPod::NoTemplateEngine is Exception {
+    multi method message() {
+        "No Template engine was loaded. Is the template verification check working? Is the correct class instantiated?"
+    }
+}
 class X::ProcessedPod::NoBlocksAdded is Exception {
     has $!filename;
     has $!path;
