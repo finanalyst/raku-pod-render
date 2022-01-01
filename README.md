@@ -1,4 +1,5 @@
-# Generic Pod Renderer ![example workflow](https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yml/badge.svg)
+![example workflow](https://github.com/finanalyst/raku-pod-render/actions/workflows/main.yml/badge.svg)
+# Generic Pod Renderer
 
 
 ----
