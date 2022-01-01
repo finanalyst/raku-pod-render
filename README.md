@@ -1,6 +1,4 @@
-![example workflow](https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yaml/badge.svg)
 # Generic Pod Renderer
-
 
 ----
 ----
@@ -19,6 +17,8 @@
 [More Information](#more-information)  
 
 ----
+[Badge](https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yaml/badge.svg)
+
 Intended
 
 *  to provide a plugin replacement for the original (legacy) Pod::To::HTML and to pass all its tests.
@@ -131,4 +131,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2021-02-09T22:28:05Z
+Rendered from README at 2022-01-01T17:40:39Z
