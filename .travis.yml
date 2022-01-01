@@ -1,9 +1,0 @@
-language: minimal
-
-services:
-  - docker
-
-install:
-  - docker pull jjmerelo/raku-test
-
-script: docker run -t --user root -v  $TRAVIS_BUILD_DIR:/test jjmerelo/raku-test
