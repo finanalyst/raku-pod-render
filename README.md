@@ -17,7 +17,7 @@
 [More Information](#more-information)  
 
 ----
-[Badge](https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yaml/badge.svg)
+![Badge](https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yaml/badge.svg)
 
 Intended
 
