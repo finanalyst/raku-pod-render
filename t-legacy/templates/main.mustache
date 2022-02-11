@@ -14,9 +14,9 @@
         aside, u { opacity: 0.7 }
         a[id^="fn-"]:target { background: #ff0 }
         </style>
-        {{# css }}<link rel="stylesheet" href="{{ css }}">{{/ css }}
+        {{> css }}
         {{# metadata }}{{{ metadata }}}{{/ metadata }}
-        {{{ head }}}
+        {{> head }}
     </head>
     <body class="pod">
     <div id="___top"></div>

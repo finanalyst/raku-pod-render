@@ -38,5 +38,5 @@ ok $r ~~ ms[[ "<h1 class='title'>The usual suspects</h1>" ]], 'Fills template co
 
 my $head='<meta name=viewport content="width=device-width, initial-scale=1">';
 $r = pod2html $=pod[0], :templates("t/templates"), :$head ;
-ok $r ~~ ms[[ $head ]], 'headers are redered as is';
+ok $r ~~ ms[[ $head ]], 'headers are rendered as is';
 

@@ -1,7 +1,7 @@
 use Test;
 use Test::Deeply::Relaxed;
 use ProcessedPod;
-use Pod::Render::Templating;
+use RenderPod::Templating;
 
 plan 4;
 

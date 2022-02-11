@@ -7,7 +7,7 @@ my $rv;
 my $processor;
 my $pc = 0;
 
-plan 10;
+plan 12;
 
 =begin pod
 
@@ -19,14 +19,18 @@ lives-ok { $rv = Pod::To::HTML2.render($=pod[$pc]) }, 'captures Pod into HTML';
 
 like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'got consistent HTML';
 
-lives-ok { $processor = Pod::To::HTML2.new(:min-top) }, 'returns new object';
+lives-ok { $processor = Pod::To::HTML2.new }, 'returns new object';
 like $processor.^name, /'Pod::To::HTML2'/, 'correct return type';
-
 $processor.process-pod($=pod[$pc++]);
 $rv = $processor.source-wrap;
 like $rv,
         / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'works like render';
-like $rv, / '<head' .+? '<style>' .+? '</style>' /, 'a style link is in place';
+like $rv, / '<head' .+? '<style>' .+? '</style>' /, 'style information is in place';
+
+like $rv,
+        / 'href="data:image/x-icon;base64,AAABAA' /, 'correct icon content start';
+like $rv,
+        / '<svg version="1.1" id="Camelia_bug"' /, 'correct camelia svg start';
 $rv = $processor.pod-body;
 like $rv,
         / '<section' .*? '>' .*? 'Some pod' .*? '</section>' /, 'html but no file wrapping';

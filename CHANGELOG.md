@@ -164,12 +164,12 @@
 # 2021-04-02 v3-6-22
 *  trim white space in head texts (occurs if head text is also indexed)
 
-# 2021-12-31 v3-7-0
+# 2022-02-11 v3-7-0
 
 
 *  refactored the templating system
 
-	*  moved templating out of ProcessedPod
+	*  move-templating out of ProcessedPod
 
 	*  created an array of tests to identify the templating engine
 
@@ -181,9 +181,25 @@
 
 *  begun to add Cro Web templates as possible option
 
+*  refactored the highlighting system
+
+	*  moved highlighting from templates
+
+	*  created possibility for alternate highlighting engine
+
+	*  made autodetection of template engine into a role
+
+*  refactored Exceptions, putting all exceptions associated with ProcessedPod into one file
+
+*  refactored path names, creating `RenderPod` folder, moved files to more intuitive places
+
+*  renamed pm6 to rakumod
+
+*  renamed sanity tests to make order more logical, testing base roles/classes first
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2021-12-31T16:17:23Z
+Rendered from CHANGELOG at 2022-02-11T12:36:49Z

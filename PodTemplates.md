@@ -26,7 +26,7 @@ These subs are intended for use in a TAP context. They can be applied as follows
 
 ```
 use Test;
-use Test-Templates;
+use RenderPod::Test-Templates;
 %templates = EVALFILE "templates/basic-templates.raku";
 templates-present %templates, 'basic file contains minimum set of templates';
 ```
@@ -288,4 +288,4 @@ These are the parameters for the required templates for `ProcessedPod`, and help
 
 
 ----
-Rendered from PodTemplates at 2021-03-31T15:57:47Z
+Rendered from PodTemplates at 2022-02-11T12:36:56Z

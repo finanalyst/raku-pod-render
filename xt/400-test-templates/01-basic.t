@@ -1,5 +1,5 @@
 use Test;
-use Test-Templates;
+use RenderPod::Test-Templates;
 plan 3;
 
 diag "Two failures are planned, test 2 - errors in return values, test 4 - incomplete list";

@@ -1,5 +1,11 @@
 use v6.*;
 
+class X::ProcessedPod::TemplateEngineMissing is Exception {
+    method message {
+        'A templating engine could not be detected from the templates given'
+    }
+}
+
 class X::ProcessedPod::MissingTemplates is Exception {
     has @.missing;
     method message() {
@@ -49,4 +55,16 @@ class X::ProcessedPod::NamespaceConflict is Exception {
     method message {
         "An attempt has been made to overwrite {$.name-space}, which is an existing name-space"
     }
+}
+
+class X::RenderPod::NoHighlightPath is Exception {
+    method message { q:to/MESSAGE/ }
+        No highlight path is available. Have you set up highlighter,
+        eg. the atom highlighter? See Pod::To::HTML2 Installation documentation.
+        MESSAGE
+}
+class X::RenderPod::NoAtomHighlighter is Exception {
+    method message { q:to/MSG/ }
+        Atom highlighter as been selected, but requisite packages not found in defined path
+        MSG
 }

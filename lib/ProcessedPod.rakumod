@@ -1,8 +1,8 @@
 use v6.d;
 use URI;
 use LibCurl::Easy;
-use Pod::Render::Exceptions;
-use Pod::Render::Templating;
+use RenderPod::Exceptions;
+use RenderPod::Templating;
 use PrettyDump;
 
 grammar FC {
@@ -38,8 +38,6 @@ grammar FC {
     }
     # TODO: use "make" to pull inside-quotes value to meta
 }
-
-# class ProcessedPod is GenericPod does SetupTemplater { ... };
 
 #| the name of the anchor at the top of a source file
 constant DEFAULT_TOP = '___top';
@@ -122,7 +120,7 @@ class PodFile {
     }
 }
 
-class GenericPod {
+class ProcessedPod does SetupTemplates {
     # information on file
     has PodFile $.pod-file .= new;
 
@@ -149,9 +147,6 @@ class GenericPod {
     has Bool $.debug is rw = False;
     #| outputs to STDERR more detail about errors.
     has Bool $.verbose is rw = False;
-
-    #| defaults to not escaping characters when in a code block
-    has Bool $.no-code-escape is rw is default(False) = False;
 
     # populated by process-pod method
     #| single process call
@@ -924,8 +919,8 @@ class GenericPod {
             when X::LibCurl {
                 #$contents = "Link ｢$link｣ caused LibCurl Exception, response code ｢{$curl.response-code}｣ with error ｢{$curl.error}｣";
                 $contents = "See: $link-contents";
-                note "Link ｢$link｣ caused LibCurl Exception, response code ｢{ $curl.response-code }｣ with error ｢{ $curl.error }｣" if $
-                        .verbose or $.debug;
+                note "Link ｢$link｣ caused LibCurl Exception, response code ｢{ $curl.response-code }｣ with error ｢{ $curl.error }｣"
+                    if $.verbose or $.debug;
             }
             default {
                 $contents = "See: $link-contents";
@@ -938,5 +933,3 @@ class GenericPod {
         $.completion($in-level, 'format-p', %( :$contents, :$html), :$defn)
     }
 }
-
-class ProcessedPod is GenericPod does SetupTemplates { }

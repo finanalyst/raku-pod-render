@@ -1,7 +1,7 @@
 module Test-Templates {
     use Test;
     use ProcessedPod;
-    use Pod::Render::Templating;
+    use RenderPod::Templating;
 
     our %struct = %(
         escaped => %( :contents('Str') ),

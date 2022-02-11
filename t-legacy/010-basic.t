@@ -19,8 +19,8 @@ ok $r ~~ ms/'<section>' '<h1>' foo '</h1>' '<p>' some text '</p>' '</section>'/;
 
 =head1 Talking about Perl 6
 
-if  $*PERL.compiler.name eq 'rakudo'
-and $*PERL.compiler.version before v2018.06 {
+if  $*RAKU.compiler.name eq 'rakudo'
+and $*RAKU.compiler.version before v2018.06 {
     skip "Your rakudo is too old for this test. Need 2018.06 or newer";
 }
 else {

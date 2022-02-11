@@ -1,7 +1,6 @@
+[Badge](https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yaml/badge.svg)
 # Generic Pod Renderer
 
-----
-----
 ## Table of Contents
 [Installation](#installation)  
 [Dependencies](#dependencies)  
@@ -15,10 +14,7 @@
 [Testing tool](#testing-tool)  
 [HTML highlighting](#html-highlighting)  
 [More Information](#more-information)  
-
 ----
-[Badge](https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yaml/badge.svg)
-
 Intended
 
 *  to provide a plugin replacement for the original (legacy) Pod::To::HTML and to pass all its tests.
@@ -131,4 +127,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2022-01-01T17:40:39Z
+Rendered from README at 2022-02-11T12:36:57Z

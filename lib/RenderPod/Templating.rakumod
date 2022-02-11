@@ -1,5 +1,6 @@
 use v6.d;
-use Pod::Render::Exceptions;
+use RenderPod::Exceptions;
+use RenderPod::Highlighting;
 
 =begin pod
 =head1 Base class
@@ -16,15 +17,52 @@ The class of a template engine should have three methods
 
 =end pod
 
+role Auto-detect-templater {
+    #| storage of loaded templates
+    has %.tmpl is rw;
+    #| a structure to hold the tests that distinguish between templates and engines
+    #| The first element is a closure that returns True if the templates are consistent with a templating
+    #| engine.
+    #| The second element is the name of the class that encapsulates the engine.
+    #| The array is only used after the templates have been loaded.
+    #| The first true test decides the Templater, so ordering the array may be important.
+    has @!tmp-config =
+            [
+                [
+                    { %!tmpl<format-b>.isa("Sub") },
+                    "RakuClosureTemplater"
+                ],
+                [
+                    { %!tmpl<format-b>.isa("Str") },
+                    "MustacheTemplater"
+                ],
+
+            ];
+    method detect-templater {
+        for @!tmp-config {
+            # The 0-th element of the array contains the test
+            next unless .[0]();
+            # the 1-st element contains the class to be instantiated
+            return ::(.[1]).new;
+        }
+        X::ProcessedPod::TemplateEngineMissing.throw;
+    }
+}
+
 #| Use Cro Web templates
 class CroTemplater is export {
-    method render( %tmpl, Str $key, %params --> Str ) {
+    method render(%tmpl, Str $key, %params --> Str) {
 
     }
     method restart {
 
     }
-    method Str { "Cro Web template engine" }
+    method Str {
+        "Cro Web template engine"
+    }
+    method make-template-from-string(%strings --> Hash) {
+        %strings
+    }
 }
 
 #| The templates are sub (%prm, %tml) that act on the keys of %prm and return a Str
@@ -35,7 +73,7 @@ class RakuClosureTemplater is export {
         # 'raw' typically does not need any extra processing. If it does, the following line can be commented out.
         return %params<contents> if $key eq 'raw';
         X::ProcessedPod::Non-Existent-Template.new(:$key, :%params).throw
-            unless %tmpl{$key}:exists;
+        unless %tmpl{$key}:exists;
         #special case escape key. The template only expects a String scalar.
         #other templates expect two %
         if $key eq 'escaped' {
@@ -51,6 +89,15 @@ class RakuClosureTemplater is export {
     method Str {
         "Raku Closure template engine"
     }
+    method make-template-from-string(%strings --> Hash) {
+        my %templates;
+        for %strings.kv -> $key, $str {
+            %templates{$key} = sub (%prm, %tml? --> Str) {
+                $str
+            }
+        }
+        %templates
+    }
 }
 
 #| A helper class for RakuClosureTemplates
@@ -62,7 +109,7 @@ sub gen-closure-template (Str $tag) is export {
     }
 }
 
-class MustacheTemplater {
+class MustacheTemplater is export {
     require Template::Mustache;
     # templating parameters.
     has $!engine;
@@ -89,27 +136,12 @@ class MustacheTemplater {
     method Str {
         "Mustache template engine"
     }
+    method make-template-from-string(%strings --> Hash) {
+        %strings
+    }
 }
 
-role SetupTemplates {
-    #| a structure to hold the tests that distinguish between templates and engines
-    #| The first element is a closure that returns True if the templates are consistent with a templating
-    #| engine.
-    #| The second element is the name of the class that encapsulates the engine.
-    #| The array is only used after the templates have been loaded.
-    #| The first true test decides the Templater, so ordering the array may be important.
-    has @!tmp-config =
-            [
-                [
-                    { %!tmpl<format-b>.isa("Sub") },
-                    "RakuClosureTemplater"
-                ],
-                [
-                    { %!tmpl<format-b>.isa("Str") },
-                    "MustacheTemplater"
-                ],
-
-            ];
+role SetupTemplates does Auto-detect-templater does Highlighting {
     #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
     has @.required = < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
@@ -118,8 +150,6 @@ role SetupTemplates {
     has Bool $.templates-loaded is rw = False;
     #| the object containing the templater engine
     has $.templater is rw;
-    #| storage of loaded templates
-    has %.tmpl;
     #| a variable to collect which templates have been used for trace and debugging
     has BagHash $.templs-used is rw .= new;
     #| allows for templates to be replaced during pod processing
@@ -140,7 +170,7 @@ role SetupTemplates {
                 %new-templates = indir($path, { EVALFILE $templates });
             }
         }
-        { %!tmpl{$^a} = $^b } for %new-templates.kv;
+        { %.tmpl{$^a} = $^b } for %new-templates.kv;
         $!templater.restart
     }
     #| accepts a string filename that must evaluate to a hash
@@ -148,23 +178,23 @@ role SetupTemplates {
     #| the keys must be a superset of the required templates
     multi method templates($templates, :$path = '.') {
         given $templates {
-            when Hash { %!tmpl = $templates }
+            when Hash { %.tmpl = $templates }
             when Str {
                 # a string should be a filename with a compilable file
                 #use SEE_NO_EVAL;
                 try {
-                    %!tmpl = indir($path, { EVALFILE $templates });
+                    %.tmpl = indir($path, { EVALFILE $templates });
                     CATCH {
                         default {
-                         X::ProcessedPod::TemplateFailure.new(:error(.message)).throw
+                            X::ProcessedPod::TemplateFailure.new(:error(.message)).throw
                         }
                     }
                 }
             }
         }
 
-        X::ProcessedPod::MissingTemplates.new(:missing((@.required (-) %!tmpl.keys).keys.flat)).throw
-        unless %!tmpl.keys (>=) @.required;
+        X::ProcessedPod::MissingTemplates.new(:missing((@.required (-) %.tmpl.keys).keys.flat)).throw
+        unless %.tmpl.keys (>=) @.required;
         # the keys on the RHS above are required in %.tmpl. To throw here, the templates supplied are not
         # a superset of the required keys.
         $.templates-loaded = True;
@@ -177,23 +207,21 @@ role SetupTemplates {
         # special case this as there must be no EOL.
         X::ProcessedPod::Non-Existent-Template.new(:$key, :%params).throw
         unless %.tmpl{$key}:exists;
+        if $key eq 'block-code' and $.highlight-code {
+            %params<highlighted> = self.insert-highlights.(%params<contents>)
+        }
 
         note "At $?LINE rendering with \<$key>" if $.debug;
 
         $.templs-used{$key}++;
         # add name to Set
-        $!templater.render(%!tmpl, $key, %params)
+        $!templater.render(%.tmpl, $key, %params)
     }
     #| tests the loaded templates and autodetects the templater
     method set-engine {
-        for @!tmp-config {
-            next unless .[0]();
-            #calls the first element as closure
-            $!templater = ::(.[1]).new;
-            last
-        }
+        $!templater = self.detect-templater;
         X::ProcessedPod::NoTemplateEngine.new.throw
-            unless $!templater;
+        unless $!templater;
         note "Using $!templater" if $.verbose;
     }
     method reset-used {

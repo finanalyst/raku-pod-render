@@ -2,7 +2,7 @@ use v6.*;
 use Test;
 
 use ProcessedPod;
-use Pod::Render::Templating;
+use RenderPod::Templating;
 my $rv;
 my $processor = ProcessedPod.new;
 my $pc = 0;

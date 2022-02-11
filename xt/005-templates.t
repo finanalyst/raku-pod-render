@@ -2,7 +2,7 @@ use v6.*;
 use Test;
 
 use ProcessedPod;
-use Pod::Render::Templating;
+use RenderPod::Templating;
 use Test::Output;
 
 plan 7;

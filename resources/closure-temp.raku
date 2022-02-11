@@ -1,4 +1,4 @@
-use Pod::Render::Templating;
+use RenderPod::Templating;
 my $camelia-svg = 'camelia-svg';
 my $css-text = 'css-text';
 my $favicon-bin = 'favicon-bin';

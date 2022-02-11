@@ -1,8 +1,7 @@
 use v6.d;
 use ProcessedPod;
-use Pod::Render::Templating;
-use JSON::Fast;
-use File::Temp;
+use RenderPod::Templating;
+use RenderPod::Exceptions;
 
 class X::ProcessedPod::HTML::InvalidCSS::NoSpec is Exception {
     method message() {
@@ -35,20 +34,33 @@ our $camelia-ico = %?RESOURCES<camelia-ico.bin>.slurp;
 class Pod::To::HTML2 is ProcessedPod {
     # needed for HTML rendering
     has $.def-ext is rw;
-    #| When true reduces css, camelia image, favicon to minimum
-    has Bool $.min-top is rw = False;
-    #| A boolean to indicate whether Raku is highlighted when HTML is generated
-    has Bool $!highlight-code = False; # setup custom getter/setter
-    has Proc::Async $!atom-highlighter;
-    has $!highlighter-supply;
-    has Str $!atom-highlights-path;
-    #| A function that takes a Str and applies a highlight to it
-    #| If not Str, then no highlight is applied
-    has &.highlight is rw = -> $frag { $frag }; # default is to return $frag unchanged
 
     # Only needed for legacy P2HTML
-    has $.head is rw = '';
-    has $.css is rw = '';
+    has $!head = '';
+    method head () is rw {
+        Proxy.new(
+            FETCH => -> $ { $!head },
+            STORE => -> $, Str:D $head {
+                $!head = $head;
+                self.modify-templates( self.templater.make-template-from-string(
+                    %( :$head,  )
+                    )
+                );
+            }
+        )
+    }
+    has $!css = '';
+    method css () is rw {
+        Proxy.new(
+            FETCH => -> $ { $!css },
+            STORE => -> $, Str:D $css {
+                $!css = $css;
+                self.modify-templates(
+                    self.templater.make-template-from-string( %( :$css, ) )
+                )
+            }
+        )
+    }
 
     #| render is a class method that is called by the raku compiler
     method render($pod-tree) {
@@ -66,21 +78,30 @@ class Pod::To::HTML2 is ProcessedPod {
     }
 
     #| the constructor for this object
-    submethod TWEAK(:$templates, :$css-type, :$css-src, :$css-url, :$favicon-src, :$min-top, :$highlight-code ) {
+    submethod TWEAK(
+            :$templates,
+            :$css-type,
+            :$css-src,
+            :$css-url,
+            :$favicon-src,
+            :$highlight-code,
+            :$head,
+            Bool :$min-top = False) {
+        my Bool $t-loaded = False;
         $!def-ext = 'html';
-        $!css = $_ with $css-url;
         my $css-text = $default-css-text;
         my $favicon-bin = $camelia-ico;
+        my $favicon;
         self.custom = <Image>;
-        my Bool $templates-needed = True;
-        self.highlight-code($highlight-code) with $highlight-code;
+        self.highlight-code = $highlight-code with $highlight-code;
         with $templates {
             self.templates($templates);
-            $templates-needed = False
+            $t-loaded = True;
         }
-        if $templates-needed and 'html-templates.raku'.IO.f {
+        # specified templates over-ride templates in a directory file
+        if ! $t-loaded and 'html-templates.raku'.IO.f {
             self.templates('html-templates.raku');
-            $templates-needed = False
+            $t-loaded = True;
         }
         with $css-type {
             X::ProcessedPod::HTML::InvalidCSS::NoSpec.new.throw and return Nil without $css-src;
@@ -102,91 +123,24 @@ class Pod::To::HTML2 is ProcessedPod {
         with $favicon-src {
             X::ProcessedPod::HTML::BadFavicon.new(:$favicon-src).throw
             unless $favicon-src.IO.f;
-            $favicon-bin = $favicon-src.IO.slurp
+            $favicon-bin = $favicon-src.IO.slurp;
         }
-        self.templates(self.html-templates(:$css-text, :$favicon-bin)) if $templates-needed;
-    }
-    method source-wrap(--> Str) { # subclass whole method just to pass css and head!!!!
-        $.pod-file.renderedtime = now.DateTime.utc.truncated-to('seconds').Str;
-        self.render-structures;
-        self.rendition('source-wrap', {
-            :name($.pod-file.name),
-            :title($.pod-file.title),
-            :title-target($.pod-file.title-target),
-            :subtitle($.pod-file.subtitle),
-            :$.metadata,
-            :lang($.pod-file.lang),
-            :$.toc,
-            :$.glossary,
-            :$.footnotes,
-            :$.body,
-            :path($.pod-file.path),
-            :renderedtime($.pod-file.renderedtime),
-            :$!head,
-            :$!css,
-        })
-    }
-    #| custom getter for atom-highlight
-    multi method highlight-code( --> Bool ) {
-        $!highlight-code
+        $favicon = '<link href="data:image/x-icon;base64,'
+                ~ $favicon-bin
+                ~ '" rel="icon" type="image/x-icon" />';
+        self.templates(self.html-templates)
+            unless $t-loaded;
+        # modify the templates to include css, camelia, and favicon settings
+        # unless turned off by min-top
+        self.modify-templates( self.templater.make-template-from-string(
+                %( :$css-text, :$favicon, :camelia-img($camelia-svg) )  )
+            ) unless $min-top;
+        self.css = $_ with $css-url;
+        self.head = $_ with $head;
     }
 
-    #| custom setter/getter for highlight-code to use default highlighter
-    #| highlight sub will return a Str highlighted as if Str contains Raku code
-    #| Uses Samantha McVie's atom-highlighter
-    #| Raku-Pod-Render places this at <user-home>.local/share/raku-pod-render/highlights
-    #| or <user-home>.raku-pod-render/highlights
-    multi method highlight-code( Bool $new-state --> Bool ) {
-        return $new-state if $new-state == $!highlight-code;
-        if $new-state {
-            # Toggle from off to on
-            $!atom-highlights-path = set-highlight-basedir without $!atom-highlights-path;
-            if test-highlighter( $!atom-highlights-path ) {
-                $!highlight-code = True;
-                $!atom-highlighter = Proc::Async.new(
-                        "{ $!atom-highlights-path }/node_modules/coffeescript/bin/coffee",
-                        "{ $!atom-highlights-path }/highlight-filename-from-stdin.coffee", :r, :w)
-                    without $!atom-highlighter;
-                $!highlighter-supply = $!atom-highlighter.stdout.lines
-                    without $!highlighter-supply;
-                # set up the highlighter closure
-                $.no-code-escape = True;
-                &.highlight = -> $frag {
-                    return $frag unless $frag ~~ Str:D;
-                    $!atom-highlighter.start unless $!atom-highlighter.started;
-
-                    my ($tmp_fname, $tmp_io) = tempfile;
-                    # the =comment is needed to trigger the atom highlighter when the code isn't unambiguously Raku
-                    $tmp_io.spurt: "=comment\n\n" ~ $frag, :close;
-                    my $promise = Promise.new;
-                    my $tap = $!highlighter-supply.tap( -> $json {
-                        my $parsed-json = from-json($json);
-                        if $parsed-json<file> eq $tmp_fname {
-                            $promise.keep($parsed-json<html>);
-                            $tap.close();
-                        }
-                    } );
-                    $!atom-highlighter.say($tmp_fname);
-                    await $promise;
-                    # get highlighted text remove raku trigger =comment
-                    $promise.result.subst(/ '<div' ~ '</div>' .+? /,'',:x(2) )
-                }
-            }
-            else { $!highlight-code = False }
-        }
-        else {
-            #toggle from on to off
-            # restore default code
-            &.highlight = -> $frag { $frag };
-            $!highlight-code = False;
-            $.no-code-escape = False;
-        }
-        # return state
-        $!highlight-code
-    }
-
-    #| returns a hash of keys and Raku closure templates
-    method html-templates(:$css-text = $default-css-text, :$favicon-bin = $camelia-ico) {
+    #| returns a hash of keys and Raku closure template
+    method html-templates {
         %(
         # the following are extra for HTML files and are needed by the render (class) method
         # in the source-wrap template.
@@ -196,29 +150,20 @@ class Pod::To::HTML2 is ProcessedPod {
                 else { '' }
             },
             'raw' => sub ( %prm, %tml ) { (%prm<contents> // '') },
-            'camelia-img' => sub ( %prm, %tml ) {
-                if $.min-top { '<camelia />' }
-                else { $camelia-svg }
-            },
-            'css-text' => sub ( %prm, %tml ) {
-                if $.min-top { '<style>debug</style>' }
-                else { $css-text }
-            },
-            'css' => sub ( %prm, %tml ) { $.css },
-            'favicon' => sub ( %prm, %tml ) {
-                if $.min-top { '<meta>NoIcon</meta>' }
-                else { '<link href="data:image/x-icon;base64,' ~ $favicon-bin ~ '" rel="icon" type="image/x-icon" />' }
-            },
+            'camelia-img' => sub ( %prm, %tml ) { '<camelia />' },
+            'css-text' => sub ( %prm, %tml ) { '<style>debug</style>' },
+            'css' => sub ( %prm, %tml ) { '' },
+            'head' => sub ( %prm, %tml ) { '' },
+            'favicon' => sub ( %prm, %tml ) { '<meta>NoIcon</meta>' },
             'block-code' => sub ( %prm, %tml ) {
-                my $contents = %prm<contents>;
-                if $.highlight-code {
+                if %prm<highlighted>:exists {
                     # a highlighter will add its own classes to the <pre> container
-                    $.highlight.( $contents )
+                    %prm<highlighted>
                 }
                 else {
                     '<pre class="pod-block-code">'
-                            ~ ($contents // '')
-                            ~ '</pre>'
+                        ~ %prm<contents>
+                        ~ '</pre>'
                 }
             },
             'comment' => sub ( %prm, %tml ) { '<!-- ' ~ (%prm<contents> // '') ~ ' -->' },
@@ -475,46 +420,29 @@ class Pod::To::HTML2 is ProcessedPod {
             },
         )
     }
-    sub set-highlight-basedir( --> Str ) {
-        my $basedir = $*HOME;
-        my $hilite-path = "$basedir/.local/lib".IO.d
-                ?? "$basedir/.local/lib/raku-pod-render/highlights".IO.mkdir
-                !! "$basedir/.raku-pod-render/highlights".IO.mkdir;
-        exit 1 unless ~$hilite-path;
-        ~$hilite-path
-    }
-    sub test-highlighter( Str $hilite-path --> Bool ) {
-        ?("$hilite-path/package-lock.json".IO.f and "$hilite-path/atom-language-perl6".IO.d)
-    }
 }
 
 class Pod::To::HTML2::Mustache is Pod::To::HTML2 {
 
     #| returns a hash of keys and Mustache templates
-    method html-templates(:$css-text = $default-css-text, :$favicon-bin = $camelia-ico) {
+    method html-templates {
         %(
         # the following are extra for HTML files and are needed by the render (class) method
         # in the source-wrap template.
-            'camelia-img' => $camelia-svg,
-            'css-text' => $css-text,
-            'css' => $.css,
-            'head' => $.head,
-            'favicon' => '<link href="data:image/x-icon;base64,' ~ $favicon-bin ~ '" rel="icon" type="image/x-icon" />',
+            'camelia-img' => '<camelia />',
+            'css-text' => '<style>debug</style>',
+            'css' => '',
+            'head' => '',
+            'favicon' => '<meta>NoIcon</meta>',
             # note that verbatim V<> does not have its own format because it affects what is inside it (see POD documentation)
             :escaped('{{ contents }}'),
             :raw('{{{ contents }}}'),
-            'block-code' => -> %params {
-                my $contents = %params<contents>;
-                if $.highlight-code {
-                    # a highlighter will add its own classes to the <pre> container
-                    $.highlight.( $contents )
-                }
-                else {
-                    '<pre class="pod-block-code">'
-                            ~ ($contents // '')
-                            ~ '</pre>'
-                }
-            },
+            # a highlighter will add its own classes to the <pre> container
+            :block-code( q:to/BLOCK/
+                {{# highlighted }}{{ highlighted }}{{/ highlighted }}
+                {{^ highlighted }}<pre class="pod-block-code">{{ contents }}</pre>{{/ highlighted }}
+                BLOCK
+            ),
             'comment' => '<!-- {{{ contents }}} -->',
             'declarator' => '<a name="{{ target }}"></a><article><code class="pod-code-inline">{{{ code }}}</code>{{{ contents }}}</article>',
             'dlist-start' => "<dl>\n",
@@ -633,9 +561,8 @@ class Pod::To::HTML2::Mustache is Pod::To::HTML2 {
                     <meta charset="UTF-8" />
                     {{> favicon }}
                     {{{ metadata }}}
-                    {{# css }}<link rel="stylesheet" href="{{ css }}">{{/ css }}
-                    {{^ css }}{{> css-text }}{{/ css }}
-                    {{{ head }}}
+                    {{> css }}
+                    {{> head }}
                 </head>
                 TEMPL
             'header' => '<header>{{> camelia-img }}{{> title }}</header>',
