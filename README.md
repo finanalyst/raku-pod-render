@@ -1,4 +1,4 @@
-![github-tests-passing-badge](https://github/actions/workflows/test.yaml/badge.svg)
+![badge](https://github/actions/workflows/test.yaml/badge.svg)
 
 # Generic Pod Renderer
 
