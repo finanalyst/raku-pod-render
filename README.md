@@ -1,9 +1,8 @@
-![badge](https://github/actions/workflows/test.yaml/badge.svg)
-
+![github-tests-passing-badge](https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yaml/badge.svg)
 # Generic Pod Renderer
+>Transforms POD in a Raku module/pod to other format such as HTML or MarkDown.
 
-----
-----
+
 ## Table of Contents
 [Installation](#installation)  
 [Dependencies](#dependencies)  
@@ -139,4 +138,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2022-02-20T14:28:19Z
+Rendered from README at 2022-02-20T20:48:41Z

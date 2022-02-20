@@ -1,8 +1,7 @@
 # Raku::Pod::Render
+>Change log
 
-----
 
-----
 # Prior to 2021-01-17
 *  Module runs, passes all tests.
 
@@ -196,15 +195,22 @@
 *  renamed sanity tests to make order more logical, testing base roles/classes first
 
 # 2022-02-11 v3-7-1
-
-
 *  Add github badge to front of a Markdown file.
 
 *  Add TEST_OFFLINE environment flag so that tests can be run offline.
+
+# 2022-02-20 v3-7-2
+
+
+*  changes to way badge path is calculated, from META6.json & .github directory
+
+*  simplified CI setup
+
+*  modification to templates
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-02-20T14:29:00Z
+Rendered from CHANGELOG at 2022-02-20T20:49:04Z

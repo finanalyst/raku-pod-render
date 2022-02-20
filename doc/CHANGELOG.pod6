@@ -145,4 +145,9 @@ files.
 =item Add github badge to front of a Markdown file.
 =item Add TEST_OFFLINE environment flag so that tests can be run offline.
 
+=head1 2022-02-20 v3-7-2
+=item changes to way badge path is calculated, from META6.json & .github directory
+=item simplified CI setup
+=item modification to templates
+
 =end pod

@@ -7,28 +7,10 @@ jobs:
       packages: read
     container:
       image: ghcr.io/jj/raku-zef-gha
-    env:
-      COMMITS: 11
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: ${{ env.COMMITS }}
       - name: Install modules
         run: zef install .
       - name: Test
         run: zef --debug test .
-      - name: Install Text::Chart
-        run: zef install Text::Chart
-      - name: Chart files changed latest commits
-        shell: raku {0}
-        run: |
-          use Text::Chart;
-          my @changed-files = qx<git log --oneline --shortstat -$COMMITS>
-                  .lines.grep( /file/ )
-                  .map( * ~~ /$<files>=(\d+) \s+ file/ )
-                  .map: +*<files>;
-          say vertical(
-            :max( @changed-files[0..*-2].max),
-            @changed-files[0..*-2]
-          );

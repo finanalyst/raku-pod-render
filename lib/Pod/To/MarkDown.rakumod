@@ -5,24 +5,39 @@ has $.def-ext is rw;
 
 submethod TWEAK(
         :$github-badge = False,
-        :$badge-path = '/actions/workflows/test.yaml/badge.svg'
-    ) {
+        :$badge-path
+                ) {
     $!def-ext = 'md';
     if 'md-templates.raku'.IO.f { self.templates('md-templates.raku') }
-    else { self.templates( self.md-templates) };
+    else { self.templates(self.md-templates) };
     if $github-badge {
         X::ProcessedPod::MarkDown::BadgeError.new.throw
-            unless 'META6.json'.IO.f;
+        unless 'META6.json'.IO.f;
+        my $def-badge-path;
+        with $badge-path {
+            $def-badge-path = $badge-path;
+        }
+        else {
+            if '.github/workflows/'.IO.d {
+                $def-badge-path = '.github/workflows'.IO.dir[0].basename
+            }
+            else {
+                note 'there is no .github/workflows file, so badge will not work';
+                $def-badge-path = 'dummy.yaml'
+            }
+            $def-badge-path = "/actions/workflows/$def-badge-path/badge.svg"
+        }
         use JSON::Fast;
         my $path = from-json('META6.json'.IO.slurp)<source-url>
-                .subst(/ ^ .+ <?before \/\/ > / , 'https:')
-                .subst(/ '.' .+? $ /, $badge-path);
-        self.modify-templates( self.templater.make-template-from-string(
-            %(:github_badge( "![github-tests-passing-badge]($path)\{\{> nl2 }}" ),)
-        ))
+                .subst(/ ^ .+ <?before \/\/ > /, 'https:')
+                .IO.extension('');
+        $path ~= $def-badge-path;
+        self.modify-templates(self.templater.make-template-from-string(
+                %(:github_badge("![github-tests-passing-badge]($path)\{\{> nl }}"),)
+                ))
     }
 }
-method rewrite-target(Str $candidate-name is copy, :$unique --> Str ) {
+method rewrite-target(Str $candidate-name is copy, :$unique --> Str) {
     # when indexing a unique target is needed even when same entry is repeated
     # when a Heading is a target, the reference must come from the name
     # the following algorithm for target names comes from github markup
@@ -35,18 +50,20 @@ method rewrite-target(Str $candidate-name is copy, :$unique --> Str ) {
     #		.replace(/[　。？！，、；：“”【】（）〔〕［］﹃﹄“”‘’﹁﹂—…－～《》〈〉「」]/g, '')
     #}
     $candidate-name = $candidate-name.lc
-            .subst(/\s+/,'-',:g)
-            .subst(/<[`~!@#$%^&*()+=<>,./:;"'|{}\[\]\\–—]>/,'',:g)
-            .subst( /<[。！，、；：“【】（）〔〕［］﹃﹄”’﹁﹂—…－～《》〈〉「」]> /, '' , :g);
+            .subst(/\s+/, '-', :g)
+            .subst(/<[`~!@#$%^&*()+=<>,./:;"'|{}\[\]\\–—]>/, '', :g)
+            .subst(/<[。！，、；：“【】（）〔〕［］﹃﹄”’﹁﹂—…－～《》〈〉「」]> /, '', :g);
     if $unique {
         $candidate-name ~= '-0' if $candidate-name (<) $.pod-file.targets;
-        ++$candidate-name while $.pod-file.targets{$candidate-name}; # will continue to loop until a unique name is found
+        ++$candidate-name while $.pod-file.targets{$candidate-name};
+        # will continue to loop until a unique name is found
     }
-    $.pod-file.targets{ $candidate-name }++; # now add to targets, no effect if not unique
+    $.pod-file.targets{$candidate-name}++;
+    # now add to targets, no effect if not unique
     $candidate-name
 }
 
-method render( $pod-tree ) {
+method render($pod-tree) {
     state $rv;
     return $rv with $rv;
     # Some implementations of raku/perl6 called the classes render method twice,
@@ -60,14 +77,14 @@ method render( $pod-tree ) {
 
 method md-templates {
     %(
-        'nl' => ~$?NL, # OS dependent new line
-        'nl2' => ~ ($?NL x 2),
+        'nl' => ~$?NL,
+        # OS dependent new line
+        'nl2' => ~($?NL x 2),
         'sp2' => "  ",
-        :github_badge( '' ),
+        :github_badge(''),
         'escaped' => -> %params {
-            if ( %params<contents> ~~ / \`/ ) {
-                %params<contents> .= trans( [ q{`}  ] =>
-                                            [ q{``} ] )
+            if (%params<contents> ~~ / \`/) {
+                %params<contents> .= trans([q{`}] => [q{``}])
             }
             '{{{ contents }}}'
         },
@@ -97,10 +114,10 @@ method md-templates {
         'format-u' => '_{{{ contents }}}_',
         # Markdown does not provide a mechanism for inline anchors, so place is the most recent header
         'format-x' => '{{{ text }}} ',
-        'heading' => -> %params { '#' x %params<level> ~ ' {{ text }}{{> nl}}' } ,
+        'heading' => -> %params { '#' x %params<level> ~ ' {{ text }}{{> nl}}' },
         'item' => ' {{{ contents }}}',
-        'list' => -> %params {'{{# items }}' ~ "\t" x %params<nesting> ~ '* {{{ . }}}{{/ items}}'},
-        'named' =>  -> %params { '#' x %params<level> ~ ' {{ name }}{{> nl2 }}{{{ contents }}}' } ,
+        'list' => -> %params { '{{# items }}' ~ "\t" x %params<nesting> ~ '* {{{ . }}}{{/ items}}' },
+        'named' => -> %params { '#' x %params<level> ~ ' {{ name }}{{> nl2 }}{{{ contents }}}' },
         'pod' => '{{> section }}',
         'notimplemented' => '*{{{ contents }}}*',
         'output' => '> {{{ contents }}}{{> nl2 }}',
@@ -120,13 +137,16 @@ method md-templates {
         'source-wrap' => q:to/TEMPL/,
             {{> github_badge }}
             {{> title }}
+            {{> subtitle }}
             {{# metadata }}
-            {{{ metadata }}}{{/ metadata }}
+            {{{ metadata }}}
             ----
+            {{/ metadata }}
             {{# toc }}
+            ## Table of Contents
+            {{{ toc }}}
             ----
-            {{{ toc }}}{{/ toc }}
-            ----
+            {{/ toc }}
             {{{ body }}}
             {{# footnotes }}
             ----
@@ -137,13 +157,12 @@ method md-templates {
         'footnotes' => q:to/TEMPL/,
             {{# notes }}
             ###### {{ fnNumber }}
-                {{{ text }}}
+            {{{ text }}}
             {{/ notes }}
             TEMPL
         'glossary' => '',
         'meta' => '{{# meta }}> **{{ name }}** {{ value }}{{> nl2 }}{{/ meta }}',
         'toc' => q:to/TEMPL/,
-            ## Table of Contents
             {{# toc }}
             [{{ text }}](#{{ target }}){{> sp2 }}
             {{/ toc }}
