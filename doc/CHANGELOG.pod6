@@ -141,4 +141,8 @@ files.
 =item renamed pm6 to rakumod
 =item renamed sanity tests to make order more logical, testing base roles/classes first
 
+=head1 2022-02-11 v3-7-1
+=item Add github badge to front of a Markdown file.
+=item Add TEST_OFFLINE environment flag so that tests can be run offline.
+
 =end pod

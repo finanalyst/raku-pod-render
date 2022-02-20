@@ -34,26 +34,31 @@ like $rv,
 
 =end pod
 
-$rv = $pro.render-block( $=pod[$pv++] );
-like $rv, /
-        'The Artistic License 2.0'
-        .+ 'Copyright (c) 2000-2006, The Perl Foundation.'
-        /, 'Got a file from http';
 
-# deliberate errors
+        # deliberate errors
 
 =begin pod
 
-    =LICENSE
-    P<https://noplace__nowhere.como.uk/Raku/doc/blob/master/LICENSE>
+=LICENSE
+P<https://noplace__nowhere.como.uk/Raku/doc/blob/master/LICENSE>
 
 =end pod
+if %*ENV<TEST_OFFLINE> {
+    $pv +=2;
+    ok 1, 'not done link test';
+    ok 1, 'not done bad link test';
+} else {
+    $rv=$pro.render-block($=pod[$pv++]);
+    like $rv,/
+    'The Artistic License 2.0'
+    .+ 'Copyright (c) 2000-2006, The Perl Foundation.'
+    /,'Got a file from http';
 
-$rv = $pro.render-block( $=pod[$pv++] );
-like $rv, /
+    $rv=$pro.render-block($=pod[$pv++]);
+    like $rv,/
     'See: https://noplace__nowhere.como.uk'
-    /, 'Error with bad http';
-
+    /,'Error with bad http';
+}
 =begin pod
 
     =DISCLAIMER

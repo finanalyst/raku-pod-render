@@ -1,6 +1,9 @@
-![TestsPassingBadge](https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yaml/badge.svg)
+![github-tests-passing-badge](https://github/actions/workflows/test.yaml/badge.svg)
+
 # Generic Pod Renderer
 
+----
+----
 ## Table of Contents
 [Installation](#installation)  
 [Dependencies](#dependencies)  
@@ -13,8 +16,12 @@
 [RakuClosureTemplates](#rakuclosuretemplates)  
 [Testing tool](#testing-tool)  
 [HTML highlighting](#html-highlighting)  
+[Tests](#tests)  
 [More Information](#more-information)  
+
 ----
+[Badge](https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yaml/badge.svg)
+
 Intended
 
 *  to provide a plugin replacement for the original (legacy) Pod::To::HTML and to pass all its tests.
@@ -117,6 +124,11 @@ This behaviour can be over-riden by
 ```
 RAKU_POD_RENDER_FORCE_HIGHLIGHTER_REFRESH zef install Raku::Pod::Render
 ```
+# Tests
+Only sanity tests are under the `t/` directory. Extensive tests are under `xt/`.
+
+Some tests require an online connection. The tests can be run offline by setting the environment variable TEST_OFFLINE, eg. `TEST_OFFLINE=1 prove6 -I. xt/`.
+
 # More Information
 See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md) for information about the HTML specific module ``Pod::To::HTML2``. ``Pod::To::Markdown``, see [MarkDown](MarkDown.md), follows ``Pod::To::HTML2`` mostly.
 
@@ -127,4 +139,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2022-02-11T12:36:57Z
+Rendered from README at 2022-02-20T14:28:19Z

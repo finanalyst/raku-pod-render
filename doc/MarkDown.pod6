@@ -1,5 +1,4 @@
 =begin pod
-
 =head1 Usage with compiler
 
 From the terminal:
@@ -28,10 +27,20 @@ regex applied |  if Match, then Turns off
 Any or all of 'NoTOC', 'NoMeta', or 'NoFoot' may be included in any order.
 Default is to include each section.
 
+=head1 Usage from a program
+
+The class can be used from a program,
+such as L<raku-pod-extraction|https://github.com/finanalyst/raku-pod-extraction>.
+
 =head1 More detail and differences from Pod::To::HTML2
 
 See L<RenderPod> L<PodToHTML2> for more detail. C<Pod::To::MarkDown> has
 templates to produce MarkDown and not HTML. In addition:
+
+=item A boolean C<github-badge> (default: False) and an associated string C<badge-path>
+(default: C<'/actions/workflows/test.yaml/badge.svg'>) are provided. These will generate
+a badge at the start of a Pod6 file converted to Markdown, such as README.md, that will show
+the github badge.
 
 =item The target rewrite function needs to be over-ridden.
 

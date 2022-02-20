@@ -125,6 +125,13 @@ This behaviour can be over-riden by
 
     RAKU_POD_RENDER_FORCE_HIGHLIGHTER_REFRESH zef install Raku::Pod::Render
 
+=head1 Tests
+
+Only sanity tests are under the C<t/> directory. Extensive tests are under C<xt/>.
+
+Some tests require an online connection. The tests can be run offline by setting the
+environment variable TEST_OFFLINE, eg. C<TEST_OFFLINE=1 prove6 -I. xt/>.
+
 =head1 More Information
 
 See L<RenderPod> for the generic module and L<Pod2HTML> for

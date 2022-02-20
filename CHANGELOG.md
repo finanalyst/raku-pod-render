@@ -165,8 +165,6 @@
 *  trim white space in head texts (occurs if head text is also indexed)
 
 # 2022-02-11 v3-7-0
-
-
 *  refactored the templating system
 
 	*  move-templating out of ProcessedPod
@@ -197,9 +195,16 @@
 
 *  renamed sanity tests to make order more logical, testing base roles/classes first
 
+# 2022-02-11 v3-7-1
+
+
+*  Add github badge to front of a Markdown file.
+
+*  Add TEST_OFFLINE environment flag so that tests can be run offline.
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-02-11T12:36:49Z
+Rendered from CHANGELOG at 2022-02-20T14:29:00Z

@@ -1,5 +1,11 @@
 use v6.*;
 
+class X::ProcessedPod::MarkDown::BadgeError is Exception {
+    method message {
+        'Attempt to add a github badge without a META6.json file in working directory.'
+    }
+}
+
 class X::ProcessedPod::TemplateEngineMissing is Exception {
     method message {
         'A templating engine could not be detected from the templates given'

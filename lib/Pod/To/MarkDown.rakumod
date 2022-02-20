@@ -1,11 +1,26 @@
 use ProcessedPod;
+use RenderPod::Exceptions;
 unit class Pod::To::MarkDown:auth<github:finanalyst> is ProcessedPod;
 has $.def-ext is rw;
 
-submethod TWEAK {
+submethod TWEAK(
+        :$github-badge = False,
+        :$badge-path = '/actions/workflows/test.yaml/badge.svg'
+    ) {
     $!def-ext = 'md';
     if 'md-templates.raku'.IO.f { self.templates('md-templates.raku') }
-    else { self.templates( self.md-templates) }
+    else { self.templates( self.md-templates) };
+    if $github-badge {
+        X::ProcessedPod::MarkDown::BadgeError.new.throw
+            unless 'META6.json'.IO.f;
+        use JSON::Fast;
+        my $path = from-json('META6.json'.IO.slurp)<source-url>
+                .subst(/ ^ .+ <?before \/\/ > / , 'https:')
+                .subst(/ '.' .+? $ /, $badge-path);
+        self.modify-templates( self.templater.make-template-from-string(
+            %(:github_badge( "![github-tests-passing-badge]($path)\{\{> nl2 }}" ),)
+        ))
+    }
 }
 method rewrite-target(Str $candidate-name is copy, :$unique --> Str ) {
     # when indexing a unique target is needed even when same entry is repeated
@@ -48,6 +63,7 @@ method md-templates {
         'nl' => ~$?NL, # OS dependent new line
         'nl2' => ~ ($?NL x 2),
         'sp2' => "  ",
+        :github_badge( '' ),
         'escaped' => -> %params {
             if ( %params<contents> ~~ / \`/ ) {
                 %params<contents> .= trans( [ q{`}  ] =>
@@ -102,6 +118,7 @@ method md-templates {
         # templates used by output methods, eg., source-wrap, file-wrap, etc
         # In HTML Meta tags can go in the Head section, but for Markdown they will be at the top above the TOC.
         'source-wrap' => q:to/TEMPL/,
+            {{> github_badge }}
             {{> title }}
             {{# metadata }}
             {{{ metadata }}}{{/ metadata }}

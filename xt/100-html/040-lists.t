@@ -267,16 +267,18 @@ P<file:t/tmp-disclaimernotice>
 P<https://doc.perl6.org>
 
 =end pod
+if %*ENV<TEST_OFFLINE> {
+    $pn +=1;
+    ok 1, 'not done link tests';
+} else {
+    $rv=$processor.render-block($=pod[$pn++]);
 
-$rv = $processor.render-block( $=pod[$pn++] );
-
-like $rv,
-    /
-        'Artistic License 2.0'
-        .+
-        'ABSOLUTELY NO WARRANTY IS IMPLIED'
-        .+
-        'Raku Documentation'
-    /, 'Seems to have got all three docs';
-
+    like $rv,/
+    'Artistic License 2.0'
+    .+
+    'ABSOLUTELY NO WARRANTY IS IMPLIED'
+    .+
+    'Raku Documentation'
+    /,'Seems to have got all three docs';
+}
 $fn.IO.unlink if $fn.IO.e;
