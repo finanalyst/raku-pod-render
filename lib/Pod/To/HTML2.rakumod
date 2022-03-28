@@ -87,7 +87,7 @@ class Pod::To::HTML2 is ProcessedPod {
             :$highlight-code,
             :$head,
             Bool :$min-top = False,
-            :$type = 'crotmp'
+            :$type = 'closure'
                     ) {
         my Bool $t-loaded = False;
         $!def-ext = 'html';
@@ -352,7 +352,7 @@ class Pod::To::HTML2 is ProcessedPod {
     }
 
     #| returns a hash of keys and Raku closure template
-    multi method html-templates(:type($) where *eq 'closure') {
+    multi method html-templates(:type($) where * eq 'closure') {
         %(
         # the following are extra for HTML files and are needed by the render (class) method
         # in the source-wrap template.
@@ -631,7 +631,7 @@ class Pod::To::HTML2 is ProcessedPod {
     }
 
     #| returns a hash of keys and Mustache templates
-    multi method html-templates(:type($) where *eq 'mustache') {
+    multi method html-templates(:type($) where * eq 'mustache') {
         %(
         # the following are extra for HTML files and are needed by the render (class) method
         # in the source-wrap template.
