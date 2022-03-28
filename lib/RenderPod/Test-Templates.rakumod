@@ -169,12 +169,14 @@ module Test-Templates {
     sub test-templates($template-file, Str :$extra, Int :$verbosity = 0 ) is export {
         my Rendering $tt .= new(:!debug);
         $tt.templates($template-file);
+        # remove _template key if it exists from templates
+        $tt.tmpl<_templater>:delete with $tt.tmpl<_templater>;
         # verify %struct and ProcessedPod are still in sync
         my $required = Set.new( $tt.required);
         my $got = Set.new( %struct.keys );
         die "Panic. Contact maintainer. Required templates in ProcessedPod and here are out of sync.\n"
                 ~( "Template(s) required, but not in test-templates: { ($required (-) $got).keys.join(', ') }")
-        if ($required (>) $got);
+            if ($required (>) $got);
         my @extra;
         with $extra {
             if $extra.IO.f {
@@ -190,7 +192,7 @@ module Test-Templates {
             }
         }
         my %rets = match-renderer-to-spec( $tt, :%struct );
-        my $extra-keys = $tt.tmpl.keys (-) $tt.required;
+        my $extra-keys = $tt.tmpl.keys (-) %struct.keys;
         say "Template test. Aggregate results:";
         say "\tNo of templates required: { +$tt.required }";
         say "\tNo of templates specified externally: { +@extra }",
@@ -205,7 +207,9 @@ module Test-Templates {
         #  = 4 all templates with sub-key returns
         #  = 5 5 + full response for all templates
         say "\tKeys with warnings: {+%rets<warn>.keys}"
-                ~ ((+%rets<warn>.keys and ! $verbosity) ?? ", viz.\n\t\t<{%rets<warn>.keys.join('>, <')}>" !! "\n");
+                ~ ((+%rets<warn>.keys and ! $verbosity)
+                        ?? ", viz.{ %rets<warn>.kv.map({ "\n\t\t$^a: " ~ $^b.join(', ') }) }"
+                        !! "\n");
         for %rets<warn>.keys.sort -> $key {
             if $verbosity {
                 say "For ｢$key｣";
@@ -259,11 +263,12 @@ module Test-Templates {
                 %report{$key}.append: "parameters sent: ｢{%test.raku}｣";
                 %verbose{$key} = $rv;
                 for @expected -> $sub-key {
+                    my $key-name = $sub-key.subst(/ ^ .+ '_' /, '');
                     if $rv ~~ / $sub-key / {
-                        %report{$key}.append: "ok ｢$sub-key｣ present"
+                        %report{$key}.append: "ok ｢$key-name｣ present"
                     }
                     else {
-                        %warn{$key}.append: "NOT ok ｢$sub-key｣ absent"
+                        %warn{$key}.append: "｢$key-name｣ absent";
                     }
                 }
             }

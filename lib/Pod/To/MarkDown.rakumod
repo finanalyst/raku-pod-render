@@ -77,6 +77,7 @@ method render($pod-tree) {
 
 method md-templates {
     %(
+        '_templater' => 'MustacheTemplater',
         'nl' => ~$?NL,
         # OS dependent new line
         'nl2' => ~($?NL x 2),

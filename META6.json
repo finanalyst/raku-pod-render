@@ -1,11 +1,13 @@
 {
   "name": "Raku::Pod::Render",
   "description": "A generic Pod6 Renderer with custom Pod::Blocks, FormatCodes for one or more files using templates, provides HTML and MarkDown.",
-  "version": "3.7.2",
-  "perl": "6.*",
+  "version": "3.7.3",
+  "perl": "6.d",
   "auth": "github:finanalyst",
   "depends": [
     "Template::Mustache",
+    "Cro::WebApp::Template::Repository::Build",
+    "Cro::WebApp",
     "URI",
     "LibCurl",
     "Pod::Load",

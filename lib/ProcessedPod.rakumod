@@ -84,6 +84,7 @@ class PodFile {
     #| Structure to collect links, eg. to test whether they all work
     has %.links;
     #| the templates used to render this file, copied from Templates role
+    #| so that a record can be kept per pod-file, and per run
     has %.templates-used is rw;
     multi method gist(PodFile:U: ) { 'Undefined PodFile' }
     multi method gist(PodFile:D: ) {

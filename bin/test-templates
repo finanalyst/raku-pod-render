@@ -1,5 +1,5 @@
 #!/usr/bin/env perl6
 use RenderPod::Test-Templates;
-sub MAIN($template-file, Str :$extra, Int :$verbosity = 0 ) is export {
+sub MAIN($template-file, Str :$extra, Int :v($verbosity) = 0 ) is export {
     test-templates($template-file, :$extra, :$verbosity)
 }

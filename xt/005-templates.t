@@ -7,7 +7,7 @@ use Test::Output;
 
 plan 7;
 
-my $tmpl-fn = 't/newtemplates.raku';
+my $tmpl-fn = 'xt/newtemplates.raku';
 $tmpl-fn.IO.unlink if $tmpl-fn.IO.f;
 
 my $pro;

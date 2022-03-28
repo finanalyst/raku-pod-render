@@ -6,11 +6,10 @@ use RenderPod::Highlighting;
 =head1 Base class
 
 The class of a template engine should have three methods
-=item render ( %tmpl, Str $key, %params )
-=item2 %tmpl is a hash containing all the required templates
+=item render ( Str $key, %params )
 =item2 $key is the template to be rendered
 =item2 %params is a hash of all the parameters to be used in the template
-=item restart
+=item refresh
 =item2 re-initialises the engine after the templates have been modified
 =item Str
 =item2 Not strictly needed, but provides a String when a template class is printed.
@@ -19,7 +18,7 @@ The class of a template engine should have three methods
 
 role Auto-detect-templater {
     #| storage of loaded templates
-    has %.tmpl is rw;
+    has %.tmpl;
     #| a structure to hold the tests that distinguish between templates and engines
     #| The first element is a closure that returns True if the templates are consistent with a templating
     #| engine.
@@ -28,6 +27,10 @@ role Auto-detect-templater {
     #| The first true test decides the Templater, so ordering the array may be important.
     has @!tmp-config =
             [
+                [
+                    { %!tmpl<format-b>.isa("Str") && %!tmpl<format-b> ~~ / '<.contents' / },
+                    "CroTemplater"
+                ],
                 [
                     { %!tmpl<format-b>.isa("Sub") },
                     "RakuClosureTemplater"
@@ -38,53 +41,85 @@ role Auto-detect-templater {
                 ],
 
             ];
+    #| Detects which tempate engine is to be used with the templates provided
+    #| First looks for the key '_templater', which if it exists, should contain the templater class name
+    #| Second tries to run the autodetect test, first test returning True defines the templater
     method detect-templater {
-        for @!tmp-config {
-            # The 0-th element of the array contains the test
-            next unless .[0]();
-            # the 1-st element contains the class to be instantiated
-            return ::(.[1]).new;
+        with %!tmpl<_templater> {
+            my $templater;
+            try {
+                $templater = ::(%!tmpl<_templater>).new(:%!tmpl);
+                CATCH {
+                    X::ProcessedPod::UnknownTemplatingEngine
+                        .new(:attempted(%!tmpl<_templater>))
+                        .throw
+                }
+            }
+            return $templater
         }
-        X::ProcessedPod::TemplateEngineMissing.throw;
+        else {
+            for @!tmp-config {
+                # The 0-th element of the array contains the test
+                next unless .[0]();
+                # the 1-st element contains the class to be instantiated
+                return ::(.[1]).new(:%!tmpl);
+            }
+            X::ProcessedPod::TemplateEngineMissing.throw;
+        }
     }
 }
 
 #| Use Cro Web templates
 class CroTemplater is export {
-    method render(%tmpl, Str $key, %params --> Str) {
-
+    use Cro::WebApp::Template::Repository::Build;
+    has %!tmpl;
+    submethod BUILD(:%!tmpl) {
+        templates-from-hash(%!tmpl)
     }
-    method restart {
-
+    method render(Str $key, %params --> Str) {
+        return %params<contents> if $key eq 'raw';
+        render-template($key, %params)
+    }
+    method refresh(%new-templates) {
+        modify-template-hash(%new-templates)
     }
     method Str {
         "Cro Web template engine"
     }
     method make-template-from-string(%strings --> Hash) {
-        %strings
+        my %templates;
+        for %strings.kv -> $key, $str {
+            %templates{$key} = qq:to/TMPL/
+            <:sub $key>
+            $str\</:>
+            TMPL
+        }
+        %templates
     }
 }
 
 #| The templates are sub (%prm, %tml) that act on the keys of %prm and return a Str
 #| keys 'escaped' and 'raw' take a Str as the only argument
 class RakuClosureTemplater is export {
+    has %!tmpl;
+    submethod BUILD(:%!tmpl) {}
     #| maps the key to template and emits the result of the closure
-    method render(%tmpl, Str $key, %params --> Str) {
+    method render(Str $key, %params --> Str) {
         # 'raw' typically does not need any extra processing. If it does, the following line can be commented out.
         return %params<contents> if $key eq 'raw';
-        X::ProcessedPod::Non-Existent-Template.new(:$key, :%params).throw
-        unless %tmpl{$key}:exists;
         #special case escape key. The template only expects a String scalar.
         #other templates expect two %
         if $key eq 'escaped' {
-            %tmpl<escaped>(%params<contents>)
+            %!tmpl<escaped>(%params<contents>)
         }
         else
         {
-            %tmpl{$key}(%params, %tmpl)
+            %!tmpl{$key}(%params, %!tmpl)
         }
     }
-    method restart {}
+    method refresh(%new-templates) {
+        { %!tmpl{$^a} = $^b } for %new-templates.kv;
+    }
     # no op for RakuClosure
     method Str {
         "Raku Closure template engine"
@@ -110,10 +145,15 @@ sub gen-closure-template (Str $tag) is export {
 }
 
 class MustacheTemplater is export {
+    # mustache acts on each template as it is given, and caches used ones.
     require Template::Mustache;
     # templating parameters.
     has $!engine;
-    method restart {
+    has %!tmpl;
+    submethod BUILD(:%!tmpl) {}
+
+    method refresh(%new-templates) {
+        { %!tmpl{$^a} = $^b } for %new-templates.kv;
         $!engine = Nil;
     }
     # templating engines like mustache do not handle logic or loops, which some Pod formats require.
@@ -122,15 +162,15 @@ class MustacheTemplater is export {
     # eg P format template escapes containers
 
     #| maps the key to template and renders the bloc
-    method render(%tmpl, Str $key, %params --> Str) {
+    method render(Str $key, %params --> Str) {
         $!engine = Template::Mustache.new without $!engine;
-        my $interpolate = %tmpl{$key} ~~ Block
-                ?? %tmpl{$key}(%params)
+        my $interpolate = %!tmpl{$key} ~~ Block
+                ?? %!tmpl{$key}(%params)
                 # if the template is a block, then run as sub and pass in the params
-                !! %tmpl{$key};
+                !! %!tmpl{$key};
         $!engine.render(
                 $interpolate,
-                %params, :from(%tmpl)
+                %params, :from(%!tmpl)
                 )
     }
     method Str {
@@ -171,7 +211,7 @@ role SetupTemplates does Auto-detect-templater does Highlighting {
             }
         }
         { %.tmpl{$^a} = $^b } for %new-templates.kv;
-        $!templater.restart
+        $!templater.refresh(%new-templates)
     }
     #| accepts a string filename that must evaluate to a hash
     #| or a hash of templates
@@ -214,8 +254,8 @@ role SetupTemplates does Auto-detect-templater does Highlighting {
         note "At $?LINE rendering with \<$key>" if $.debug;
 
         $.templs-used{$key}++;
-        # add name to Set
-        $!templater.render(%.tmpl, $key, %params)
+        # add name to Bag
+        $!templater.render($key, %params)
     }
     #| tests the loaded templates and autodetects the templater
     method set-engine {

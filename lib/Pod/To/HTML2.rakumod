@@ -56,7 +56,7 @@ class Pod::To::HTML2 is ProcessedPod {
             STORE => -> $, Str:D $css {
                 $!css = $css;
                 self.modify-templates(
-                    self.templater.make-template-from-string( %( :$css, ) )
+                    self.templater.make-template-from-string( %( :css("\<link rel=\"stylesheet\" href=\"$css>\">"), ) )
                 )
             }
         )
@@ -86,7 +86,9 @@ class Pod::To::HTML2 is ProcessedPod {
             :$favicon-src,
             :$highlight-code,
             :$head,
-            Bool :$min-top = False) {
+            Bool :$min-top = False,
+            :$type = 'crotmp'
+                    ) {
         my Bool $t-loaded = False;
         $!def-ext = 'html';
         my $css-text = $default-css-text;
@@ -128,31 +130,241 @@ class Pod::To::HTML2 is ProcessedPod {
         $favicon = '<link href="data:image/x-icon;base64,'
                 ~ $favicon-bin
                 ~ '" rel="icon" type="image/x-icon" />';
-        self.templates(self.html-templates)
+        self.templates(self.html-templates(:$type))
             unless $t-loaded;
         # modify the templates to include css, camelia, and favicon settings
         # unless turned off by min-top
         self.modify-templates( self.templater.make-template-from-string(
-                %( :$css-text, :$favicon, :camelia-img($camelia-svg) )  )
+                %( :css($css-text), :$favicon, :camelia-img($camelia-svg) )  )
             ) unless $min-top;
         self.css = $_ with $css-url;
         self.head = $_ with $head;
     }
 
+    multi method html-templates(:type($) where *eq 'crotmp') {
+        %(
+            :_templater<CroTemplater>,
+            :raw('<&HTML( .contents )>'),
+            :escaped('<.contents>'),
+            :block-code(q:to/TMPL/),
+                <?.<highlight-contents>><.highlight-contents></?>
+                <!.<highlight-contents>><pre class="pod-block-code">
+                    <.contents>
+                </pre>
+                </!>
+                TMPL
+            :camelia-img(q:to/TMPL/),
+                <:sub camelia-img>
+                <camelia /></:>
+                TMPL
+            :css(q:to/TMPL/),
+                <:sub css>
+                <style>debug</style></:>
+                TMPL
+            :head(q:to/TMPL/),
+                <:sub head>
+                </:>
+                TMPL
+            :favicon(q:to/TMPL/),
+				<:sub favicon>
+                <meta>NoIcon</meta></:>
+                TMPL
+            :comment(q:to/TMPL/),
+				<&HTML('<!-- ' ~ .contents ~ ' -->')>
+                TMPL
+            :declarator(q:to/TMPL/),
+				<a name="<.target>"></a>
+                <article>
+                    <code class="pod-code-inline"><.code></code>
+                    <.contents>
+                </article>
+                TMPL
+            :defn(q:to/TMPL/),
+				<dt>
+                <.term>
+                </dt><dd>
+                <.contents>
+                </dd>
+                TMPL
+            :dlist-end('</dl>'),
+            :dlist-start('<dl>'),
+            :favicon(''),
+            :footnotes(q:to/TMPL/),
+				<?{.notes.elems > 0}><div id="_Footnotes" class="footnotes">
+                    <ul>
+                    <@notes><li id="<.fnTarget>" >
+                        <span class="footnote-number"><.fnNumber></span>
+                    <.text>
+                    <a class="footnote" href="#<.retTarget>" >« Back »</a></li>
+                    </@>
+                    </ul></div>
+                </?>
+                <!{.notes.elems > 0}>Has no elements</!>
+                TMPL
+            :format-b('<strong><.contents><strong>'),
+            :format-c('<code><.contents><code>'),
+            :format-i('<em><.contents><em>'),
+            :format-k('<kbd><.contents><kbd>'),
+            :format-l(q:to/TMPL/),
+				<a href="<?.internal>#</?><.target><?.local>.html</?>">
+                <.contents>
+                </a>
+                TMPL
+            :format-n(q:to/TMPL/),
+				<sup><a name="<.retTarget>" href="#<.fnTarget>">[<.fnNumber>]</a></sup>
+                TMPL
+            :format-p(q:to/TMPL/),
+				<div><pre>
+                <.contents>
+                </pre></div>
+                TMPL
+            :format-r('<var><.contents><var>'),
+            :format-t('<samp><.contents><samp>'),
+            :format-u('<u><.contents><u>'),
+            :format-x('<a name="<.target>"></a><?.text><span class="glossary-entry"><.text></span></?>'),
+            :glossary(q:to/TMPL/),
+				<?.glossary><div id="_Glossary" class="glossary">
+                <div class="glossary-caption">Glossary</div>
+                <div class="glossary-defn header">Term explained</div><div class="header glossary-place">In section</div>
+                    <@glossary>
+                        <div class="glossary-defn">
+                        <.text>
+                        </div>
+                        <@refs>
+                          <div class="glossary-place"><a href="#<.target>"><?.<place>><.place></?></a></div>
+                        </@>
+                    </@>
+                </div>
+                </?>
+                TMPL
+            :heading(q:to/TMPL/),
+				<:sub heading($level=1,:$close=False)>
+                <?$close>/</?>h<$level></:>
+
+                <<&heading(.level)> id="<.target>">
+                <a href="#<.top>" class="u" title="go to top of document">
+                <.text>
+                </a>
+                <<&heading(.level,:close)>>
+                TMPL
+            :image(q:to/TMPL/),
+				<img src="<.src>"<?.width> width="<.width>"</?><?.height> height="<.height>"</?><?.alt> alt="<.alt>"</?>>')
+                TMPL
+            :item('<li><.contents></li>'),
+            :list(q:to/TMPL/),
+				<ul>
+                    <@items>
+                    <.item>
+                    </@>
+                </ul>
+                TMPL
+            :meta(q:to/TMPL/),
+				<@meta: $m>
+                    <meta name="<$m.name>" value="<$m.value>" />
+                </@>
+                TMPL
+            :named(q:to/TMPL/),
+				<:sub heading($level=1,:$close=False)><?$close>/</?>h<$level></:>
+                <section>
+                    <<&heading(.level)> id="<.target>">
+                    <a href="#<.top>" class="u" title="go to top of document">
+                    <.name>
+                    </a><<&heading(.level, :close)>>
+                    <.contents><?.<tail>><.tail></?>
+                </section>
+                TMPL
+            :output('<pre class="pod-output"><.contents></pre>'),
+            :para('<p><.contents><p>'),
+            :pod(q:to/TMPL/),
+				<section name="<.name>">
+                <.contents>
+                <?.<tail>><.tail></?>
+            </section>
+            TMPL
+            :source-wrap(q:to/TMPL/),
+				<:use 'css'>
+                <:use 'favicon'>
+                <:use 'camelia-img'>
+                <:use 'head'>
+
+                <!doctype html>
+                <html lang="<?.<lang>><.lang></?><!.<lang>>en</!>">
+                    <head>
+                        <title><.title></title>
+                        <meta charset="UTF-8">
+                        <&favicon>
+                        <.metadata>
+                        <&css>
+                        <&head>
+                    </head>
+                    <body class="pod">
+                        <header>
+                            <&camelia-img>
+                            <?.<title>><h1 class="title" id="<.title-target>" ><.title></h1></?>
+                        </header>
+                        <div class="pod-content">
+                            <?{.toc or .glossary}><nav>
+                                <.toc>
+                                <.glossary>
+                            </nav>
+                            </?>
+                            <?.<title-target>><div id="<.title-target>"></div></?>
+                            <?.<subtitle>><div class="subtitle"><.subtitle></div></?>
+                            <div class="pod-body<!.<toc>> no-toc</!>">
+                                <.body>
+                            </div>
+                            <.footnotes>
+                        </div>
+                        <footer>
+                            <div>Rendered from <span class="path"><?.<path>><.path></?><!.<path>><.name></!></span></div>
+                            <div>at <span class="time"><?.renderedtime><.renderedtime></?><!.renderedtime>a moment before time began!?</!></span></div>
+                        </footer>
+                    </body>
+                </html>
+                TMPL
+            :table(q:to/TMPL/),
+				<table class="pod-table <?.<class>><.class></?>">
+                    <?.<caption>><caption><.caption></caption></?>
+                    <?.<headers>><thead><@headers>
+                        <tr>
+                            <th><@cells><$_><:separator></th><th></:></@></th>
+                        </tr>
+                    </@></thead></?>
+                    <tbody>
+                        <@rows><tr>
+                            <td><@cells><$_><:separator></td><td></:></@></td>
+                        </tr>
+                    </@></tbody>
+                </table>
+                TMPL
+            :toc(q:to/TMPL/),
+                <?.<toc>>
+                    <div id="_TOC">
+                    <table>
+                    <caption>Table of Contents</caption>
+                        <@toc>
+                        <tr class="toc-level-<.level>"><td class="toc-text"><a href="#<.target>"><.text></a></td></tr>
+                        </@>
+                    </table></div>
+                </?>
+                TMPL
+            )
+    }
+
     #| returns a hash of keys and Raku closure template
-    method html-templates {
+    multi method html-templates(:type($) where *eq 'closure') {
         %(
         # the following are extra for HTML files and are needed by the render (class) method
         # in the source-wrap template.
-            'escaped' => sub ( $s ) {
+            '_templater' => 'RakuClosureTemplater',
+            'escaped' => sub ($s) {
                 if $s and $s ne ''
                 { $s.trans(qw｢ <    >    &     " ｣ => qw｢ &lt; &gt; &amp; &quot; ｣) }
                 else { '' }
             },
             'raw' => sub ( %prm, %tml ) { (%prm<contents> // '') },
             'camelia-img' => sub ( %prm, %tml ) { '<camelia />' },
-            'css-text' => sub ( %prm, %tml ) { '<style>debug</style>' },
-            'css' => sub ( %prm, %tml ) { '' },
+            'css' => sub ( %prm, %tml ) { '<style>debug</style>' },
             'head' => sub ( %prm, %tml ) { '' },
             'favicon' => sub ( %prm, %tml ) { '<meta>NoIcon</meta>' },
             'block-code' => sub ( %prm, %tml ) {
@@ -329,15 +541,15 @@ class Pod::To::HTML2 is ProcessedPod {
             'footnotes' => sub ( %prm, %tml ) {
                 with %prm<notes> {
                     if %prm<notes>.elems {
-                    "<div id=\"_Footnotes\" class=\"footnotes\">\n<ul>"
-                            ~ [~] .map({ '<li id="' ~ %tml<escaped>($_<fnTarget>) ~ '">'
-                            ~ ('<span class="footnote-number">' ~ ( $_<fnNumber> // '' ) ~ '</span>')
-                            ~ ($_<text> // '')
-                            ~ '<a class="footnote" href="#'
-                            ~ %tml<escaped>($_<retTarget>)
-                            ~ "\"> « Back »</a></li>\n"
-                    })
-                            ~ "\n</ul>\n</div>\n"
+                        "<div id=\"_Footnotes\" class=\"footnotes\">\n<ul>"
+                                ~ [~] .map({ '<li id="' ~ %tml<escaped>($_<fnTarget>) ~ '">'
+                                ~ ('<span class="footnote-number">' ~ ($_<fnNumber> // '') ~ '</span>')
+                                ~ ($_<text> // '')
+                                ~ '<a class="footnote" href="#'
+                                ~ %tml<escaped>($_<retTarget>)
+                                ~ "\"> « Back »</a></li>\n"
+                        })
+                                ~ "\n</ul>\n</div>\n"
                     }
                     else { '' }
                 }
@@ -395,10 +607,7 @@ class Pod::To::HTML2 is ProcessedPod {
                         ~ '<meta charset="UTF-8" />' ~ "\n"
                         ~ %tml<favicon>({}, {})
                         ~ (%prm<metadata> // '')
-                        ~ (  ( %tml<css>( {}, {} ) ne '' )
-                            ?? ('<link rel="stylesheet" href="' ~ %tml<css>({}, {}) ~ '">')
-                            !! %tml<css-text>({}, {})
-                        )
+                        ~ %tml<css>( {}, {} )
                         ~ %tml<head>( {}, {} )
                         ~ "\</head>\n"
             },
@@ -420,18 +629,15 @@ class Pod::To::HTML2 is ProcessedPod {
             },
         )
     }
-}
-
-class Pod::To::HTML2::Mustache is Pod::To::HTML2 {
 
     #| returns a hash of keys and Mustache templates
-    method html-templates {
+    multi method html-templates(:type($) where *eq 'mustache') {
         %(
         # the following are extra for HTML files and are needed by the render (class) method
         # in the source-wrap template.
+            '_templater' => 'MustacheTemplater',
             'camelia-img' => '<camelia />',
-            'css-text' => '<style>debug</style>',
-            'css' => '',
+            'css' => '<style>debug</style>',
             'head' => '',
             'favicon' => '<meta>NoIcon</meta>',
             # note that verbatim V<> does not have its own format because it affects what is inside it (see POD documentation)

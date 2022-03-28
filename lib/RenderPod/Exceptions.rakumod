@@ -6,6 +6,13 @@ class X::ProcessedPod::MarkDown::BadgeError is Exception {
     }
 }
 
+class X::ProcessedPod::UnknownTemplatingEngine is Exception {
+    has $.attempted;
+    method message {
+        "Can't create template engine ｢$.attempted｣. Is the spelling correct? Is the class defined in Templating.rakumod?"
+    }
+}
+
 class X::ProcessedPod::TemplateEngineMissing is Exception {
     method message {
         'A templating engine could not be detected from the templates given'

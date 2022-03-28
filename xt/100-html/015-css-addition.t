@@ -4,6 +4,7 @@ my $rv;
 my $processor;
 
 plan 13;
+diag "Typically this set of tests will PASS on a first iteration and fail on repeated iterations. The problem is being investigated.";
 
 =begin pod
 Some pod
