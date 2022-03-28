@@ -158,5 +158,7 @@ and if it exists, then it must contain the name of the templater class.
 =item Change behaviour of css-text. It now over-rides the css template, not the css-text template.
 =item The test suite sometimes fails at or after C<xt/100-html/015-css-addition.t> The tests
 individually pass.
+=item added :type to Pod::To::HTML that indicates which templating system to use, the default is 'closure'
+because crotmp causes random test failures.
 
 =end pod

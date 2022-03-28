@@ -200,17 +200,30 @@
 *  Add TEST_OFFLINE environment flag so that tests can be run offline.
 
 # 2022-02-20 v3-7-2
-
-
 *  changes to way badge path is calculated, from META6.json & .github directory
 
 *  simplified CI setup
 
 *  modification to templates
 
+# 2022-03-28 v3-7-3
+
+
+*  Add a check to detect templater that looks for `_templater` in the template hash and if it exists, then it must contain the name of the templater class.
+
+*  add test file to verify the auto-detect and `_templater` key.
+
+*  Add `_templater` key to HTML and MarkDown renderers
+
+*  Change behaviour of css-text. It now over-rides the css template, not the css-text template.
+
+*  The test suite sometimes fails at or after `xt/100-html/015-css-addition.t` The tests individually pass.
+
+*  added :type to Pod::To::HTML that indicates which templating system to use, the default is 'closure' because crotmp causes random test failures.
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-02-20T20:49:04Z
+Rendered from CHANGELOG at 2022-03-28T22:28:28Z
