@@ -71,17 +71,19 @@ role Auto-detect-templater {
 
 #| Use Cro Web templates
 class CroTemplater is export {
-    use Cro::WebApp::Template::Repository::Build;
+    use Cro::WebApp::Template::Repository::Hash;
     has %!tmpl;
     submethod BUILD(:%!tmpl) {
-        templates-from-hash(%!tmpl)
+        templates-from-hash(%!tmpl);
+        wait-for-hash-template-completion;
     }
     method render(Str $key, %params --> Str) {
         return %params<contents> if $key eq 'raw';
         render-template($key, %params)
     }
     method refresh(%new-templates) {
-        modify-template-hash(%new-templates)
+        modify-template-hash(%new-templates);
+        wait-for-hash-template-completion;
     }
     method Str {
         "Cro Web template engine"

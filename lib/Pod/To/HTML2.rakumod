@@ -87,7 +87,7 @@ class Pod::To::HTML2 is ProcessedPod {
             :$highlight-code,
             :$head,
             Bool :$min-top = False,
-            :$type = 'closure'
+            Str :$type = 'closure'
                     ) {
         my Bool $t-loaded = False;
         $!def-ext = 'html';

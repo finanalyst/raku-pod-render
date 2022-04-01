@@ -6,7 +6,7 @@
   "auth": "github:finanalyst",
   "depends": [
     "Template::Mustache",
-    "Cro::WebApp::Template::Repository::Build",
+    "Cro::WebApp::Template::Repository::Hash",
     "Cro::WebApp",
     "URI",
     "LibCurl",
