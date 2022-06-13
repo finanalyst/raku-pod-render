@@ -87,7 +87,7 @@ class Pod::To::HTML2 is ProcessedPod {
             :$highlight-code,
             :$head,
             Bool :$min-top = False,
-            Str :$type = 'closure'
+            Str :$type = 'rakuclosure'
                     ) {
         my Bool $t-loaded = False;
         $!def-ext = 'html';
@@ -100,7 +100,7 @@ class Pod::To::HTML2 is ProcessedPod {
             self.templates($templates);
             $t-loaded = True;
         }
-        # specified templates over-ride templates in a directory file
+        # specified templates over-ride templates in a file in CWD
         if ! $t-loaded and 'html-templates.raku'.IO.f {
             self.templates('html-templates.raku');
             $t-loaded = True;
@@ -352,7 +352,7 @@ class Pod::To::HTML2 is ProcessedPod {
     }
 
     #| returns a hash of keys and Raku closure template
-    multi method html-templates(:type($) where * eq 'closure') {
+    multi method html-templates(:type($) where * eq 'rakuclosure') {
         %(
         # the following are extra for HTML files and are needed by the render (class) method
         # in the source-wrap template.
