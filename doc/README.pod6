@@ -1,5 +1,4 @@
 =begin pod
-L<Badge|https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yaml/badge.svg>
 =TITLE Generic Pod Renderer
 
 =SUBTITLE Transforms POD in a Raku module/pod to other format such as HTML or MarkDown.

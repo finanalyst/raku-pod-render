@@ -19,8 +19,6 @@
 [More Information](#more-information)  
 
 ----
-[Badge](https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yaml/badge.svg)
-
 Intended
 
 *  to provide a plugin replacement for the original (legacy) Pod::To::HTML and to pass all its tests.
@@ -138,4 +136,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2022-02-20T20:48:41Z
+Rendered from README at 2022-06-13T17:59:35Z
