@@ -3,6 +3,9 @@
   "description": "A generic Pod6 Renderer with custom Pod::Blocks, FormatCodes for one or more files using templates, provides HTML and MarkDown.",
   "version": "3.7.4",
   "perl": "6.d",
+  "authors": [
+    "Richard Hainsworth"
+  ],
   "auth": "github:finanalyst",
   "depends": [
     "Template::Mustache",
@@ -24,18 +27,18 @@
     "Test"
   ],
   "provides": {
-    "RenderPod::Exceptions": "lib/RenderPod/Exceptions.rakumod",
-    "RenderPod::Templating": "lib/RenderPod/Templating.rakumod",
-    "RenderPod::Highlighting": "lib/RenderPod/Highlighting.rakumod",
+    "ExtractPod": "lib/ExtractPod.rakumod",
+    "InstallAtomHighlighter": "lib/InstallAtomHighlighter.rakumod",
     "Pod::To::HTML2": "lib/Pod/To/HTML2.rakumod",
     "Pod::To::HTML2::Mustache": "lib/Pod/To/HTML2.rakumod",
     "Pod::To::MarkDown": "lib/Pod/To/MarkDown.rakumod",
     "ProcessedPod": "lib/ProcessedPod.rakumod",
-    "ExtractPod": "lib/ExtractPod.rakumod",
-    "test-templates": "bin/test-templates",
-    "InstallAtomHighlighter": "lib/InstallAtomHighlighter.rakumod",
+    "RenderPod::Exceptions": "lib/RenderPod/Exceptions.rakumod",
+    "RenderPod::Highlighting": "lib/RenderPod/Highlighting.rakumod",
+    "RenderPod::Templating": "lib/RenderPod/Templating.rakumod",
+    "RenderPod::Test-Templates": "lib/RenderPod/Test-Templates.rakumod",
     "raku-pod-render-install-highlighter": "bin/raku-pod-render-install-highlighter",
-    "RenderPod::Test-Templates": "lib/RenderPod/Test-Templates.rakumod"
+    "test-templates": "bin/test-templates"
   },
   "resources": [
     "pod.css",
@@ -48,12 +51,11 @@
     "highlights/package.json"
   ],
   "support": {
-    "source": "https://github.com/finanalyst/raku-pod-render.git",
     "bugtracker": "https://github.com/finanalyst/raku-pod-render/issues",
-    "email": "richard@hainsworth.wales"
+    "email": "richard@hainsworth.wales",
+    "source": "https://github.com/finanalyst/raku-pod-render.git"
   },
   "license": "Artistic-2.0",
   "source-url": "git://github.com/finanalyst/raku-pod-render.git",
-  "authors": [ "Richard Hainsworth" ],
   "source-type": "git"
 }

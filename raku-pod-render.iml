@@ -2,864 +2,404 @@
 <module type="PERL6_MODULE_TYPE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/lib" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/bin" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lib" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/t" isTestSource="true" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
+      <library name="CBOR::Simple" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
+          <root url="raku://1166011395:CBOR::Simple!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
+      <library name="JSON::JWT" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
+          <root url="raku://1166011395:JSON::JWT!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="URI" type="perl6">
+      <library name="Base64" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:URI!/" />
+          <root url="raku://1166011395:Base64!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
+      <library name="Digest::HMAC" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
+          <root url="raku://1166011395:Digest::HMAC!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
+      <library name="File::Directory::Tree" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="URI" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:URI!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
+          <root url="raku://1166011395:File::Directory::Tree!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library name="URI" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:URI!/" />
+          <root url="raku://1166011395:URI!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
+      <library name="JSON::Name:ver&lt;0.0.6+&gt;" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
+          <root url="raku://1166011395:JSON::Name:ver&lt;0.0.6+&gt;!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
+      <library name="JSON::Name" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
+          <root url="raku://1166011395:JSON::Name!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
+      <library name="OO::Monitors" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
+          <root url="raku://1166011395:OO::Monitors!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
+      <library name="Cro::Core:ver&lt;0.8.7&gt;" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="URI" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:URI!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="URI" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:URI!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="URI" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:URI!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="URI" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:URI!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="URI" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:URI!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="URI" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:URI!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="URI" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:URI!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="URI" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:URI!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="URI" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:URI!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
+          <root url="raku://1166011395:Cro::Core:ver&lt;0.8.7&gt;!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library name="Test" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:Test!/" />
+          <root url="raku://1166011395:Test!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
+      <library name="Cro::WebApp" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
+          <root url="raku://1166011395:Cro::WebApp!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
+      <library name="Test::META" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
+          <root url="raku://1166011395:Test::META!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Test::Output" type="perl6">
+      <library name="DateTime::Parse" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:Test::Output!/" />
+          <root url="raku://1166011395:DateTime::Parse!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="URI" type="perl6">
+      <library name="File::Temp" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:URI!/" />
+          <root url="raku://1166011395:File::Temp!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
+      <library name="META6:ver&lt;0.0.24+&gt;" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
+          <root url="raku://1166011395:META6:ver&lt;0.0.24+&gt;!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
+      <library name="if" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:NativeCall!/" />
+          <root url="raku://1166011395:if!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Test" type="perl6">
+      <library name="IO::Path::ChildSecure" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:Test!/" />
+          <root url="raku://1166011395:IO::Path::ChildSecure!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
+      <library name="IO::Socket::Async::SSL" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
+          <root url="raku://1166011395:IO::Socket::Async::SSL!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
+      <library name="JSON::Marshal:ver&lt;0.0.23+&gt;" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:LibCurl!/" />
+          <root url="raku://1166011395:JSON::Marshal:ver&lt;0.0.23+&gt;!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Test::Output" type="perl6">
+      <library name="Digest" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:Test::Output!/" />
+          <root url="raku://1166011395:Digest!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="URI" type="perl6">
+      <library name="HTTP::HPACK" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:URI!/" />
+          <root url="raku://1166011395:HTTP::HPACK!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
+      <library name="JSON::OptIn" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://448594423:JSON::Fast!/" />
+          <root url="raku://1166011395:JSON::OptIn!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
+      <library name="IO::Socket::Async::SSL:ver&lt;0.7.8+&gt;" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:NativeCall!/" />
+          <root url="raku://1166011395:IO::Socket::Async::SSL:ver&lt;0.7.8+&gt;!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Test" type="perl6">
+      <library name="Pod::Load" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:Test!/" />
+          <root url="raku://1166011395:Pod::Load!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
+      <library name="MIME::Base64" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
+          <root url="raku://1166011395:MIME::Base64!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
+      <library name="Log::Timeline" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:LibCurl!/" />
+          <root url="raku://1166011395:Log::Timeline!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Test::Output" type="perl6">
+      <library name="TinyFloats:ver&lt;0.0.3+&gt;" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:Test::Output!/" />
+          <root url="raku://1166011395:TinyFloats:ver&lt;0.0.3+&gt;!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="URI" type="perl6">
+      <library name="OpenSSL" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:URI!/" />
+          <root url="raku://1166011395:OpenSSL!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
+      <library name="Template::Mustache" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:JSON::Fast!/" />
+          <root url="raku://1166011395:Template::Mustache!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
+      <library name="License::SPDX" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:NativeCall!/" />
+          <root url="raku://1166011395:License::SPDX!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Test" type="perl6">
+      <library name="JSON::Class:ver&lt;0.0.14+&gt;" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:Test!/" />
+          <root url="raku://1166011395:JSON::Class:ver&lt;0.0.14+&gt;!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
+      <library name="JSON::Class:ver&lt;0.0.15+&gt;" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
+          <root url="raku://1166011395:JSON::Class:ver&lt;0.0.15+&gt;!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
+      <library name="Cro::HTTP:ver&lt;0.8.7&gt;" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:LibCurl!/" />
+          <root url="raku://1166011395:Cro::HTTP:ver&lt;0.8.7&gt;!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Test::Output" type="perl6">
+      <library name="JSON::Fast:ver&lt;0.16+&gt;" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:Test::Output!/" />
+          <root url="raku://1166011395:JSON::Fast:ver&lt;0.16+&gt;!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="URI" type="perl6">
+      <library name="CWT::Repository::Hash" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:URI!/" />
+          <root url="raku://1166011395:CWT::Repository::Hash!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
+      <library name="PrettyDump" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:JSON::Fast!/" />
+          <root url="raku://1166011395:PrettyDump!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
+      <library name="JSON::Unmarshal:ver&lt;0.08+&gt;" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:NativeCall!/" />
+          <root url="raku://1166011395:JSON::Unmarshal:ver&lt;0.08+&gt;!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Test" type="perl6">
+      <library name="Crypt::Random" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:Test!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Test::Output" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:Test::Output!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="URI" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:URI!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:JSON::Fast!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:NativeCall!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Test" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:Test!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
+          <root url="raku://1166011395:Crypt::Random!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library name="LibCurl" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:LibCurl!/" />
+          <root url="raku://1166011395:LibCurl!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library name="Test::Output" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:Test::Output!/" />
+          <root url="raku://1166011395:Test::Output!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="URI" type="perl6">
+      <library name="Test::Deeply::Relaxed" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:URI!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="JSON::Fast" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:JSON::Fast!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="NativeCall" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:NativeCall!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Test" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:Test!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Template::Mustache:auth&lt;github.finanalyst&gt;" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:Template::Mustache:auth&lt;github.finanalyst&gt;!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Test::Output" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:Test::Output!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="URI" type="perl6">
-        <CLASSES />
-        <SOURCES>
-          <root url="raku://-1136607005:URI!/" />
+          <root url="raku://1166011395:Test::Deeply::Relaxed!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library name="JSON::Fast" type="perl6">
         <CLASSES />
+        <JAVADOC />
         <SOURCES>
-          <root url="raku://-1136607005:JSON::Fast!/" />
+          <root url="raku://1166011395:JSON::Fast!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Cro::TLS:ver&lt;0.8.7&gt;" type="perl6">
+        <CLASSES />
+        <JAVADOC />
+        <SOURCES>
+          <root url="raku://1166011395:Cro::TLS:ver&lt;0.8.7&gt;!/" />
         </SOURCES>
       </library>
     </orderEntry>
