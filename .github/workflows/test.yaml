@@ -11,6 +11,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install modules
+        run: zef install https://github.com/finanalyst/CWT-Repository-Hash/master.zip
         run: zef install .
       - name: Test
         run: zef --debug test .
