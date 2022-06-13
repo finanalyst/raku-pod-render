@@ -1,4 +1,4 @@
-name: "Raku tests"
+name: "Raku"
 on: [ push, pull_request ]
 jobs:
   test:
@@ -10,9 +10,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install CWTR-Hash
-        run: zef install https://github.com/finanalyst/CWT-Repository-Hash/archive/master.zip
-      - name: Install modules
+      - name: Install module
         run: zef install .
       - name: Test
         run: zef --debug test .
