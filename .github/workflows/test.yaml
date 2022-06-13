@@ -11,7 +11,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install CWTR-Hash
-        run: zef install https://github.com/finanalyst/CWT-Repository-Hash/master.zip
+        run: zef install https://github.com/finanalyst/CWT-Repository-Hash/archive/master.zip
       - name: Install modules
         run: zef install .
       - name: Test
