@@ -323,15 +323,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="CWT::Repository::Hash" type="perl6">
-        <CLASSES />
-        <JAVADOC />
-        <SOURCES>
-          <root url="raku://1166011395:CWT::Repository::Hash!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library name="PrettyDump" type="perl6">
         <CLASSES />
         <JAVADOC />
@@ -400,6 +391,15 @@
         <JAVADOC />
         <SOURCES>
           <root url="raku://1166011395:Cro::TLS:ver&lt;0.8.7&gt;!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Cro::WebApp::Template::Repository::Hash" type="perl6">
+        <CLASSES />
+        <JAVADOC />
+        <SOURCES>
+          <root url="raku://1166011395:Cro::WebApp::Template::Repository::Hash!/" />
         </SOURCES>
       </library>
     </orderEntry>
