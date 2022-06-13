@@ -3,7 +3,7 @@ use RenderPod::Test-Templates;
 plan 3;
 
 diag "Two failures are planned, test 2 - errors in return values, test 4 - incomplete list";
-my %templates = EVALFILE 'resources/closure-temp.raku';
+my %templates = EVALFILE 'resources/html-rakuclosure.raku';
 templates-present %templates, 'Yes they are all there';
 my %extra = EVALFILE 'resources/extra-test.raku';
 extra-templates-match %templates, %extra, 'We got em';

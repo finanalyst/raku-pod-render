@@ -2,7 +2,6 @@
 >Renders POD6 sources into HTML using templates
 
 
-----
 ## Table of Contents
 [Usage with compiler](#usage-with-compiler)  
 [Standalone usage mixing Pod and code](#standalone-usage-mixing-pod-and-code)  
@@ -20,7 +19,7 @@
 [Why Reinvent the Wheel?](#why-reinvent-the-wheel?)  
 
 ----
-A simple default set of templates is provided with a default set of css and a header with the Camelia-bug image.
+A default set of templates is provided with a default set of css and a header with the Camelia-bug image.
 
 Since no assumption can be made about the way the html is served, everything in the default templates assumes output to an html file that can be served as a file (eg., no embedded images from external files). The default behaviour can be changed by changing one or more or all of the templates.
 
@@ -28,9 +27,21 @@ The rationale for re-writing the whole Pod::To::HTML2 module is in the section [
 
 For more information about methods not covered here see the [PodProcess Class](RenderPod.md). A sister class [Markdown](MarkDown.md) is available.
 
-The default templating engine is `RakuClosureTemplater`, but the `Mustache` templating engine is retained. Some of the `xt` tests use the `Mustache` engine, and `Pod::To::Markdown` uses Mustache.
+Three sets of default templates are available for
 
-The templating system is chosen automatically ddepending on the templates that are provided. The default templates are `Raku Closure Templates`, but the class `Pod::To::HTML2::Mustache` is provided which supplies `Mustache` templates by default.
+*  `RakuClosureTemplater`,
+
+*  `Mustache` templating engine, and
+
+*  `Cro::WebApp::Template` engine.
+
+Some of the `xt` tests use the `Mustache` engine. By default the **rakuclosure** templates are chosen.
+
+The default can be changed by setting `:type = 'crotmp'` or `:type = 'mustache'` when instantiating Pod::To::HTML.
+
+If a file **html-templates.raku** is present in the Current Working Directory, then it is evaluated as a raku program and a Hash result is expected. This Hash is then used for the templates. The templating system is chosen automatically depending on the templates that are provided.
+
+A user can copy the contents (just the evaluation of the Hash) of one of the html-templates methods to **html-templates.raku** in the current working directory, and tweak the templates.
 
 # Usage with compiler
 From the terminal:
@@ -308,6 +319,5 @@ This module deal with these problems as follows:
 
 
 
-
 ----
-Rendered from Pod2HTML2 at 2021-01-18T13:06:54Z
+Rendered from Pod2HTML2 at 2022-06-13T16:49:53Z

@@ -52,6 +52,6 @@ Another fascinating mess
 $rv = $processor.render-block($=pod[$pc]);
 
 like $rv,
-        / '<section' .*? '>' .*? 'Another fascinating mess' .*? '</section>' /, 'latest snippit only';
+        / '<section' .*? '>' .*? '<p>Another fascinating mess</p>' .*? '</section>' /, 'latest snippit only';
 
 done-testing;

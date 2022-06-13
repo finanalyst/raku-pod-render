@@ -4,7 +4,7 @@
 
 =SUBTITLE Renders POD6 sources into HTML using templates
 
-A simple default set of templates is provided with a default set of css and a header with the Camelia-bug image.
+A default set of templates is provided with a default set of css and a header with the Camelia-bug image.
 
 Since no assumption can be made about the way the html is served, everything in the default templates assumes output to
 an html file that can be served as a file (eg., no embedded images from external files). The default behaviour can be changed by
@@ -14,11 +14,24 @@ The rationale for re-writing the whole Pod::To::HTML2 module is in the section L
 
 For more information about methods not covered here see the L<PodProcess Class|RenderPod>. A sister class L<Markdown|MarkDown> is available.
 
-The default templating engine is C<RakuClosureTemplater>, but the C<Mustache> templating engine is retained. Some of the C<xt> tests use
-the C<Mustache> engine, and C<Pod::To::Markdown> uses Mustache.
+Three sets of default templates are available for
+=item C<RakuClosureTemplater>,
+=item C<Mustache> templating engine, and
+=item C<Cro::WebApp::Template> engine.
 
-The templating system is chosen automatically ddepending on the templates that are provided. The default templates are C<Raku Closure Templates>,
-but the class C<Pod::To::HTML2::Mustache> is provided which supplies C<Mustache> templates by default.
+Some of the C<xt> tests use the C<Mustache> engine. By default the B<rakuclosure> templates are chosen.
+
+The default can be changed by setting C<:type = 'crotmp'> or C<:type = 'mustache'> when instantiating
+Pod::To::HTML.
+
+If a file B<html-templates.raku> is present in the Current Working Directory, then it is
+evaluated as a raku program and a Hash result is expected. This Hash is then used for the templates.
+The templating system is chosen automatically depending on the templates that
+are provided.
+
+A user can copy the contents (just the evaluation of the Hash) of one of
+the html-templates methods to B<html-templates.raku> in the current
+working directory, and tweak the templates.
 
 =head1 Usage with compiler
 

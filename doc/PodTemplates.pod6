@@ -41,8 +41,6 @@ The minimum set of templates is C<block-code comment declarator defn dlist-end d
 Almost all of these templates expect a L<parameter to be rendered|Parameters of required templates>.
 The test functions will check the templates for the parameters to be returned.
 
-
-
 =head1 Test-Templates
 
 These subs are intended for use in a TAP context. They can be applied as follows

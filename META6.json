@@ -1,7 +1,7 @@
 {
   "name": "Raku::Pod::Render",
   "description": "A generic Pod6 Renderer with custom Pod::Blocks, FormatCodes for one or more files using templates, provides HTML and MarkDown.",
-  "version": "3.7.3",
+  "version": "3.7.4",
   "perl": "6.d",
   "auth": "github:finanalyst",
   "depends": [
@@ -42,7 +42,7 @@
     "Camelia.svg",
     "favicon.ico",
     "camelia-ico.bin",
-    "closure-temp.raku",
+    "html-rakuclosure.raku",
     "extra-test.raku",
     "highlights/highlight-filename-from-stdin.coffee",
     "highlights/package.json"

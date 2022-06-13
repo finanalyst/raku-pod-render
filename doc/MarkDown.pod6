@@ -52,4 +52,9 @@ no backward link from the footnote to the originating text.
 
 =item Pod::To::MarkDown used the Mustache template system, not the Raku Closure Templates.
 
+=item If a template
+file called B<md-templates.raku> is contained in the Current Working Directory, and that
+file has the same format as the default templates, then it will over-ride the default templates.
+See L<RenderPod> for more detail.
+
 =end pod

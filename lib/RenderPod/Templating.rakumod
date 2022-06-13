@@ -2,6 +2,34 @@ use v6.d;
 use RenderPod::Exceptions;
 use RenderPod::Highlighting;
 
+#| a structure to hold the tests that distinguish between templates and engines
+#| The first element is a closure that returns True if the templates are consistent with a templating
+#| engine.
+#| The second element is the name of the class that encapsulates the engine.
+#| The array is only used after the templates have been loaded.
+#| The first true test decides the Templater, so ordering the array may be important.
+sub detect-from-tests(%templates) {
+    my @template-tests =
+            [
+                [
+                    { %templates<format-b>.isa("Str") && %templates<format-b> ~~ / '<.contents' / },
+                    "CroTemplater"
+                ],
+                [
+                    { %templates<format-b>.isa("Sub") },
+                    "RakuClosureTemplater"
+                ],
+                [
+                    { %templates<format-b>.isa("Str") },
+                    "MustacheTemplater"
+                ],
+
+            ];
+    for @template-tests {
+        return .[1] if .[0]()
+    }
+    X::ProcessedPod::TemplateEngineMissing.throw;
+}
 =begin pod
 =head1 Base class
 
@@ -16,74 +44,36 @@ The class of a template engine should have three methods
 
 =end pod
 
-role Auto-detect-templater {
-    #| storage of loaded templates
-    has %.tmpl;
-    #| a structure to hold the tests that distinguish between templates and engines
-    #| The first element is a closure that returns True if the templates are consistent with a templating
-    #| engine.
-    #| The second element is the name of the class that encapsulates the engine.
-    #| The array is only used after the templates have been loaded.
-    #| The first true test decides the Templater, so ordering the array may be important.
-    has @!tmp-config =
-            [
-                [
-                    { %!tmpl<format-b>.isa("Str") && %!tmpl<format-b> ~~ / '<.contents' / },
-                    "CroTemplater"
-                ],
-                [
-                    { %!tmpl<format-b>.isa("Sub") },
-                    "RakuClosureTemplater"
-                ],
-                [
-                    { %!tmpl<format-b>.isa("Str") },
-                    "MustacheTemplater"
-                ],
-
-            ];
-    #| Detects which tempate engine is to be used with the templates provided
-    #| First looks for the key '_templater', which if it exists, should contain the templater class name
-    #| Second tries to run the autodetect test, first test returning True defines the templater
-    method detect-templater {
-        with %!tmpl<_templater> {
-            my $templater;
-            try {
-                $templater = ::(%!tmpl<_templater>).new(:%!tmpl);
-                CATCH {
-                    X::ProcessedPod::UnknownTemplatingEngine
-                        .new(:attempted(%!tmpl<_templater>))
-                        .throw
-                }
-            }
-            return $templater
-        }
-        else {
-            for @!tmp-config {
-                # The 0-th element of the array contains the test
-                next unless .[0]();
-                # the 1-st element contains the class to be instantiated
-                return ::(.[1]).new(:%!tmpl);
-            }
-            X::ProcessedPod::TemplateEngineMissing.throw;
-        }
-    }
-}
-
 #| Use Cro Web templates
 class CroTemplater is export {
     use Cro::WebApp::Template::Repository::Hash;
-    has %!tmpl;
-    submethod BUILD(:%!tmpl) {
-        templates-from-hash(%!tmpl);
-        wait-for-hash-template-completion;
+    has %!sources;
+    has %!dependents;
+    submethod BUILD(:%tmpl) {
+        templates-from-hash(%tmpl);
+        self.update-ancestors(%tmpl);
+    }
+    method update-ancestors(%templates) {
+        for %templates.kv -> $k, $v {
+            if $v ~~ / [ '<:use' \s+ \' ~ \' $<used> = .+? \s* '>' .+? ]+ $ / {
+                %!sources{$k} = $v;
+                %!dependents{$_} = $k for $/<used>
+            }
+        }
     }
     method render(Str $key, %params --> Str) {
         return %params<contents> if $key eq 'raw';
-        render-template($key, %params)
+        render-template($key, %params, :hash)
     }
     method refresh(%new-templates) {
+        for %new-templates.keys {
+            with %!dependents{$_} {
+                %new-templates{$_} = %!sources{$_}
+                    unless %new-templates{$_}:exists
+            }
+        }
         modify-template-hash(%new-templates);
-        wait-for-hash-template-completion;
+        self.update-ancestors(%new-templates);
     }
     method Str {
         "Cro Web template engine"
@@ -183,7 +173,7 @@ class MustacheTemplater is export {
     }
 }
 
-role SetupTemplates does Auto-detect-templater does Highlighting {
+role SetupTemplates does Highlighting {
     #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
     has @.required = < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
@@ -192,6 +182,8 @@ role SetupTemplates does Auto-detect-templater does Highlighting {
     has Bool $.templates-loaded is rw = False;
     #| the object containing the templater engine
     has $.templater is rw;
+    #| storage of loaded templates
+    has %.tmpl;
     #| a variable to collect which templates have been used for trace and debugging
     has BagHash $.templs-used is rw .= new;
     #| allows for templates to be replaced during pod processing
@@ -259,11 +251,25 @@ role SetupTemplates does Auto-detect-templater does Highlighting {
         # add name to Bag
         $!templater.render($key, %params)
     }
-    #| tests the loaded templates and autodetects the templater
+    #| Detects which template engine is to be used with the templates provided
+    #| First looks for the key '_templater', which if it exists, should contain the templater class name
+    #| Second tries to run the autodetect test, first test returning True defines the templater
     method set-engine {
-        $!templater = self.detect-templater;
+        with %!tmpl<_templater> {
+            try {
+                $!templater  = ::(%!tmpl<_templater>).new(:%!tmpl);
+                CATCH {
+                    X::ProcessedPod::UnknownTemplatingEngine
+                        .new(:attempted(%!tmpl<_templater>))
+                        .throw
+                }
+            }
+        }
+        else {
+            $!templater = ::(detect-from-tests(%!tmpl)).new(:%!tmpl)
+        }
         X::ProcessedPod::NoTemplateEngine.new.throw
-        unless $!templater;
+            unless $!templater;
         note "Using $!templater" if $.verbose;
     }
     method reset-used {

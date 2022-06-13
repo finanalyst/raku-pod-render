@@ -207,8 +207,6 @@
 *  modification to templates
 
 # 2022-03-28 v3-7-3
-
-
 *  Add a check to detect templater that looks for `_templater` in the template hash and if it exists, then it must contain the name of the templater class.
 
 *  add test file to verify the auto-detect and `_templater` key.
@@ -221,9 +219,16 @@
 
 *  added :type to Pod::To::HTML that indicates which templating system to use, the default is 'closure' because crotmp causes random test failures.
 
+# 22-06-13 v3-7-4
+
+
+*  default engine set to 'rakuclosure' because crotmp fails many tests because it does not permit double html injection.
+
+*  correction to CWTR::Hash stops failure in test suite.
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-03-28T22:28:28Z
+Rendered from CHANGELOG at 2022-06-13T16:49:44Z

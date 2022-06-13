@@ -1,19 +1,31 @@
+#!/usr/bin/env raku
+use v6.d;
 use RenderPod::Templating;
-my $camelia-svg = 'camelia-svg';
-my $css-text = 'css-text';
-my $favicon-bin = 'favicon-bin';
+
 %(
 # the following are extra for HTML files and are needed by the render (class) method
 # in the source-wrap template.
-    'escaped' => sub ( $s ) { $s.trans: qw｢ <    >    &     " ｣ => qw｢ &lt; &gt; &amp; &quot; ｣ },
+    '_templater' => 'RakuClosureTemplater',
+    'escaped' => sub ($s) {
+        if $s and $s ne ''
+        { $s.trans(qw｢ <    >    &     " ｣ => qw｢ &lt; &gt; &amp; &quot; ｣) }
+        else { '' }
+    },
     'raw' => sub ( %prm, %tml ) { (%prm<contents> // '') },
-    'camelia-img' => sub ( %prm, %tml ) { $camelia-svg },
-    'css-text' => sub ( %prm, %tml ) { $css-text },
-    'favicon' => sub ( %prm, %tml ) { '<link href="data:image/x-icon;base64,' ~ $favicon-bin ~ '" rel="icon" type="image/x-icon" />' },
+    'camelia-img' => sub ( %prm, %tml ) { '<camelia />' },
+    'css' => sub ( %prm, %tml ) { '<style>debug</style>' },
+    'head' => sub ( %prm, %tml ) { '' },
+    'favicon' => sub ( %prm, %tml ) { '<meta>NoIcon</meta>' },
     'block-code' => sub ( %prm, %tml ) {
-        '<pre class="pod-block-code">'
-                ~ (%prm<contents> // '')
+        if %prm<highlighted>:exists {
+            # a highlighter will add its own classes to the <pre> container
+            %prm<highlighted>
+        }
+        else {
+            '<pre class="pod-block-code">'
+                ~ %prm<contents>
                 ~ '</pre>'
+        }
     },
     'comment' => sub ( %prm, %tml ) { '<!-- ' ~ (%prm<contents> // '') ~ ' -->' },
     'declarator' => sub ( %prm, %tml ) {
@@ -39,10 +51,21 @@ my $favicon-bin = 'favicon-bin';
     'format-u' => gen-closure-template('u'),
     'para' => gen-closure-template('p'),
     'format-l' => sub ( %prm, %tml ) {
+        # transform a local file with an internal target
+        my $trg = %prm<target>;
+        if %prm<local> {
+            if $trg ~~ / (<-[#]>+) '#' (.+) $ / {
+                $trg = "$0\.html\#$1";
+            }
+            else {
+                $trg ~= '.html'
+            }
+        }
+        elsif %prm<internal> {
+            $trg = "#$trg"
+        }
         '<a href="'
-                ~ (%prm<internal> ?? '#' !! '')
-                ~ %prm<target>
-                ~ (%prm<local> ?? '.html'!! '')
+                ~ $trg
                 ~ '">'
                 ~ (%prm<contents> // '')
                 ~ '</a>'
@@ -61,7 +84,7 @@ my $favicon-bin = 'favicon-bin';
     },
     'format-x' => sub ( %prm, %tml ) {
         '<a name="' ~ (%prm<target> // '') ~ '"></a>'
-                ~ ( ( %prm<text>.defined and %prm<text> ne '' ) ?? '<span class="glossary-entry">' ~ %prm<text> ~ '</span>' !! '')
+        ~ ( ( %prm<text>.defined and %prm<text> ne '' ) ?? '<span class="glossary-entry">' ~ %prm<text> ~ '</span>' !! '')
     },
     'heading' => sub ( %prm, %tml ) {
         '<h' ~ (%prm<level> // '1')
@@ -114,7 +137,7 @@ my $favicon-bin = 'favicon-bin';
                 ~ ( ( %prm<headers>.defined and %prm<headers> ne '' ) ??
         ("\t<thead>\n"
                 ~ [~] %prm<headers>.map({ "\t\t<tr><th>" ~ .<cells>.join('</th><th>') ~ "</th></tr>\n"})
-                        ~ "\t</thead>"
+                ~ "\t</thead>"
         ) !! '')
                 ~ "\t<tbody>\n"
                 ~ ( ( %prm<rows>.defined and %prm<rows> ne '' ) ??
@@ -123,62 +146,87 @@ my $favicon-bin = 'favicon-bin';
                 ~ "\t</tbody>\n"
                 ~ "</table>\n"
     },
-    'title' => sub ( %prm, %tml) {
-        '<h1 class="title" id="' ~ %tml<escaped>(%prm<title-target>) ~ '">' ~ %prm<title> ~ '</h1>'
+    'top-of-page' => sub ( %prm, %tml ) {
+        if %prm<title-target>:exists and %prm<title-target> ne '' {
+            '<div id="' ~ %tml<escaped>(%prm<title-target>) ~ '"></div>'
+        }
+        else { '' }
     },
-    'subtitle' => sub ( %prm, %tml ) { '<div class="subtitle">' ~ %prm<subtitle> ~ '</div>' },
+    'title' => sub ( %prm, %tml) {
+        if %prm<title>:exists and %prm<title> ne '' {
+            '<h1 class="title"'
+             ~ ((%prm<title-target>:exists and %prm<title-target> ne '')
+                    ?? ' id="' ~ %tml<escaped>(%prm<title-target>) !! '' ) ~ '">'
+             ~ %prm<title> ~ '</h1>'
+        }
+        else { '' }
+    },
+    'subtitle' => sub ( %prm, %tml ) {
+        if %prm<subtitle>:exists and %prm<subtitle> ne '' {
+            '<div class="subtitle">' ~ %prm<subtitle> ~ '</div>' }
+        else { '' }
+    },
     'source-wrap' => sub ( %prm, %tml ) {
         "<!doctype html>\n"
                 ~ '<html lang="' ~ ( ( %prm<lang>.defined and %prm<lang> ne '' ) ?? %tml<escaped>(%prm<lang>) !! 'en') ~ "\">\n"
                 ~ %tml<head-block>(%prm, %tml)
                 ~ "\t<body class=\"pod\">\n"
                 ~ %tml<header>(%prm, %tml)
-                ~ (( %prm<toc>.defined or %prm<glossary>.defined ) ?? '<div class="toc-glossary">' !! '')
+                ~ '<div class="pod-content">'
+                ~ (( (%prm<toc>.defined and %prm<toc>.keys) or (%prm<glossary>.defined and %prm<glossary>.keys) ) ?? '<nav>' !! '')
                 ~ (%prm<toc> // '')
                 ~ (%prm<glossary> // '')
-                ~ (( %prm<toc>.defined or %prm<glossary>.defined ) ?? '</div>' !! '')
+                ~ (( (%prm<toc>.defined and %prm<toc>.keys) or (%prm<glossary>.defined and %prm<glossary>.keys) ) ?? '</nav>' !! '')
+                ~ %tml<top-of-page>(%prm, %tml)
                 ~ %tml<subtitle>(%prm, %tml)
-                ~ '<div class="pod-body' ~ (( %prm<toc>.defined and %prm<toc> ne '' ) ?? '' !! ' no-toc') ~ '">'
+                ~ '<div class="pod-body' ~ (( %prm<toc>.defined and %prm<toc>.keys ) ?? '' !! ' no-toc') ~ '">'
                 ~ (%prm<body> // '')
                 ~ "\t\t</div>\n"
                 ~ (%prm<footnotes> // '')
+                ~ '</div>'
                 ~ %tml<footer>(%prm, %tml)
                 ~ "\n\t</body>\n</html>\n"
     },
     'footnotes' => sub ( %prm, %tml ) {
         with %prm<notes> {
-            "<div class=\"footnotes\">\n<ol>"
-                    ~ [~] .map({ '<li id="' ~ %tml<escaped>($_<fnTarget>) ~ '">'
-                    ~ ($_<text> // '')
-                    ~ '<a class="footnote" href="#'
-                    ~ %tml<escaped>($_<retTarget>)
-                    ~ "\"> « Back »</a></li>\n"
-            })
-                    ~ "\n</ol>\n</div>\n"
+            if %prm<notes>.elems {
+                "<div id=\"_Footnotes\" class=\"footnotes\">\n<ul>"
+                        ~ [~] .map({ '<li id="' ~ %tml<escaped>($_<fnTarget>) ~ '">'
+                        ~ ('<span class="footnote-number">' ~ ($_<fnNumber> // '') ~ '</span>')
+                        ~ ($_<text> // '')
+                        ~ '<a class="footnote" href="#'
+                        ~ %tml<escaped>($_<retTarget>)
+                        ~ "\"> « Back »</a></li>\n"
+                })
+                        ~ "\n</ul>\n</div>\n"
+            }
+            else { '' }
         }
         else { '' }
     },
     'glossary' => sub ( %prm, %tml ) {
-        if %prm<glossary>.defined {
-            "<table id=\"Glossary\">\n<caption>Glossary</caption>\n<tr><th>Term</th><th>Section Location</th></tr>\n"
-                    ~ [~] %prm<glossary>.map({ "<tr class=\"glossary-defn-row\">\n"
-                    ~ '<td class="glossary-defn">'
-                    ~ ($_<text> // '')
-                    ~ "</td><td></td></tr>\n"
-                    ~ [~] $_<refs>.map({
-                        '<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#'
-                                ~ %tml<escaped>($_<target>)
-                                ~ '">'
-                                ~ ($_<place>.defined ?? $_<place> !! '')
-                                ~ "</a></td></tr>\n"
-                    })
-            })
-                    ~ "\n</table>\n"
+        if %prm<glossary>.defined and %prm<glossary>.keys {
+            '<div id="_Glossary" class="glossary">' ~ "\n"
+                    ~ '<div class="glossary-caption">Glossary</div>' ~ "\n"
+                    ~ '<div class="glossary-defn header">Term explained</div><div class="header glossary-place">In section</div>'
+                    ~ [~] %prm<glossary>.map({
+                        '<div class="glossary-defn">'
+                        ~ ($_<text> // '')
+                        ~ '</div>'
+                        ~ [~] $_<refs>.map({
+                            '<div class="glossary-place"><a href="#'
+                                    ~ %tml<escaped>($_<target>)
+                                    ~ '">'
+                                    ~ ($_<place>.defined ?? $_<place> !! '')
+                                    ~ "</a></div>\n"
+                        })
+                })
+                    ~ "</div>\n"
         }
         else { '' }
     },
     'meta' => sub ( %prm, %tml ) {
-        if %prm<meta>.defined {
+        with %prm<meta> {
             [~] %prm<meta>.map({
                 '<meta name="' ~ %tml<escaped>( .<name> )
                         ~ '" value="' ~ %tml<escaped>( .<value> )
@@ -188,18 +236,17 @@ my $favicon-bin = 'favicon-bin';
         else { '' }
     },
     'toc' => sub ( %prm, %tml ) {
-        if %prm<toc>.defined {
-            "<table id=\"TOC\">\n<caption>Table of Contents</caption>\n"
+        if %prm<toc>.defined and %prm<toc>.keys {
+            "<div id=\"_TOC\"><table>\n<caption>Table of Contents</caption>\n"
                     ~ [~] %prm<toc>.map({
                 '<tr class="toc-level-' ~ .<level> ~ '">'
                         ~ '<td class="toc-text"><a href="#'
                         ~ %tml<escaped>( .<target> )
                         ~ '">'
-                        ~ ( $_<counter>.defined ?? ('<span class="toc-counter">' ~ %tml<escaped>( .<counter> ) ~ '</span>') !! '' )
-                        ~ ' ' ~ %tml<escaped>(  $_<text> // '' )
+                        ~ %tml<escaped>(  $_<text> // '' )
                         ~ "</a></td></tr>\n"
             })
-                    ~ "</table>\n"
+                    ~ "</table></div>\n"
         }
         else { '' }
     },
@@ -207,21 +254,22 @@ my $favicon-bin = 'favicon-bin';
         "\<head>\n"
                 ~ '<title>' ~ %tml<escaped>(%prm<title>) ~ "\</title>\n"
                 ~ '<meta charset="UTF-8" />' ~ "\n"
-                ~ %tml<favicon>(%prm, %tml)
+                ~ %tml<favicon>({}, {})
                 ~ (%prm<metadata> // '')
-                ~ (  ( %prm<css>.defined and %prm<css> ne '' )
-                ?? ('<link rel="stylesheet" href="' ~ %prm<css> ~ '">')
-                !! %tml<css-text>(%prm, %tml)
-        )
-                ~ (%prm<head> // '')
+                ~ %tml<css>( {}, {} )
+                ~ %tml<head>( {}, {} )
                 ~ "\</head>\n"
     },
     'header' => sub ( %prm,%tml) {
-        '<header>' ~ %tml<camelia-img>(%prm, %tml) ~ %tml<title>(%prm, %tml) ~ '</header>'
+        '<header>' ~ %tml<camelia-img>(%prm, %tml) ~ '<h1 class="title">' ~ %prm<title> ~ '</h1></header>'
     },
     'footer' => sub ( %prm, %tml ) {
         '<footer><div>Rendered from <span class="path">'
-                ~ (( %prm<path>.defined && %prm<path> ne '') ?? %tml<escaped>(%prm<path>) !! 'Unknown')
+                ~ ( ( %prm<path>.defined && %prm<path> ne '')
+                    ??
+                    %tml<escaped>(%prm<path>)
+                    !!
+                    %tml<escaped>(%prm<name>) )
                 ~ '</span></div>'
                 ~ '<div>at <span class="time">'
                 ~ (( %prm<renderedtime>.defined && %prm<path> ne '') ?? %tml<escaped>(%prm<renderedtime>) !! 'a moment before time began!?')

@@ -3,7 +3,13 @@ use Pod::To::HTML2;
 my $rv;
 my $processor;
 
-#plan 13;
+plan 13;
+
+unless %*ENV<CROTMP> {
+    skip-rest "Only use these tests if CROTMP is set in ENV";
+    exit
+};
+
 
 =begin pod
 Some pod
@@ -60,6 +66,7 @@ throws-like { $processor = Pod::To::HTML2.new(:favicon-src('favicon-new'),:type<
 'favicon-new'.IO.spurt('This favicon will not work in HTML but will be put into head');
 
 lives-ok { $processor = Pod::To::HTML2.new(:favicon-src('favicon-new'),:type<crotmp>) }, 'favicon file now exists';
+
 $processor.render-tree($=pod);
 $rv = $processor.source-wrap;
 like $rv, /

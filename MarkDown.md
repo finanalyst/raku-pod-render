@@ -50,9 +50,11 @@ See [RenderPod](RenderPod.md) [PodToHTML2](PodToHTML2.md) for more detail. `Pod:
 
 *  Pod::To::MarkDown used the Mustache template system, not the Raku Closure Templates.
 
+*  If a template file called **md-templates.raku** is contained in the Current Working Directory, and that file has the same format as the default templates, then it will over-ride the default templates. See [RenderPod](RenderPod.md) for more detail.
+
 
 
 
 
 ----
-Rendered from MarkDown at 2022-02-20T20:49:03Z
+Rendered from MarkDown at 2022-06-13T16:49:45Z

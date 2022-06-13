@@ -161,4 +161,10 @@ individually pass.
 =item added :type to Pod::To::HTML that indicates which templating system to use, the default is 'closure'
 because crotmp causes random test failures.
 
+=head1 22-06-13 v3-7-4
+=item default engine set to 'rakuclosure' because crotmp fails many tests because it
+does not permit double html injection.
+
+=item correction to CWTR::Hash stops failure in test suite.
+
 =end pod

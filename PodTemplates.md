@@ -1,8 +1,7 @@
 # Templates needed for a Processed Pod.
-
-----
-----
+>
 ## Table of Contents
+[Template Engine Autodetection](#template-engine-autodetection)  
 [Minimum Set](#minimum-set)  
 [Test-Templates](#test-templates)  
 [Verification utility](#verification-utility)  
@@ -14,12 +13,38 @@
 [Notes](#notes)  
 
 ----
-This describes the template set for the ProcessedPod renderer, the Test-Template functions, and the test-templates verification utility.
+This describes the template set for the ProcessedPod renderer, the templating engines that can be used, the Test-Template functions, and the test-templates verification utility.
+
+The templating part of Raku-Pod-Render is separated into a Templating module `RenderPod::Templating`. It is written to allow for other templating engines to be added. Currently the following Engines are available in this distribution:
+
+*  Mustache
+
+*  Raku Closure (a templating system designed for Raku-Pod-Render)
+
+*  Cro Templates
+
+# Template Engine Autodetection
+Templates are written to be interpretted by a templating engine. The Templating module in this distribution has been written to allow for other engines to be added. It is best to look at the module to see how this is done.
+
+The first minimum set of templates is loaded and an autodetect function determines which engine to use. Subsequent templates added by plugins must use the same template engine.
+
+The template engine is determined in two ways:
+
+*  The hash (normally loaded from a file) containing the minimum set of templates may contain the key `_templater`, which must have a String value that is the name of the class implementing the Templating Engine. For the default engines, these are
+
+> **Mustache**  
+MustacheTemplater
+
+> **Raku Closure**  
+RakuClosureTemplater
+
+> **Cro Templates**  
+CroTemplater
 
 # Minimum Set
 The minimum set of templates is `block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading item list meta named output para pod raw source-wrap table toc`.
 
-Almost all of these templates expect a [parameter to be rendered](Parameters of required templates.md).
+Almost all of these templates expect a [parameter to be rendered](Parameters of required templates.md). The test functions will check the templates for the parameters to be returned.
 
 # Test-Templates
 These subs are intended for use in a TAP context. They can be applied as follows
@@ -288,4 +313,4 @@ These are the parameters for the required templates for `ProcessedPod`, and help
 
 
 ----
-Rendered from PodTemplates at 2022-02-11T12:36:56Z
+Rendered from PodTemplates at 2022-06-13T16:49:51Z
