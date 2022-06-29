@@ -1,5 +1,5 @@
 use Test;
 
-use-ok "Pod::To::HTML2:auth<github:finanalyst>";
+use-ok "Pod::To::HTML2:auth<zef:finanalyst>";
 
 done-testing;
