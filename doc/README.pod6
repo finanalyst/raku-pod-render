@@ -27,7 +27,8 @@ being installed. If this is desired then,
 
     zef install Raku::Pod::Render
 
-will install the module without checking or installing a highlighter. If, B<after default installation>, the
+will install the module without checking or installing a highlighter.
+If, B<after the default installation>, the
 highlighter is needed and I<node & npm are installed>, then it can be installed by running the following in a terminal:
 
     raku-render-install-highlighter

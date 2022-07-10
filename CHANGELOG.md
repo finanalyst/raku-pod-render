@@ -220,15 +220,25 @@
 *  added :type to Pod::To::HTML that indicates which templating system to use, the default is 'closure' because crotmp causes random test failures.
 
 # 22-06-13 v3-7-4
-
-
 *  default engine set to 'rakuclosure' because crotmp fails many tests because it does not permit double html injection.
 
 *  correction to CWTR::Hash stops failure in test suite.
+
+# 22-07-08 v3-7-5
+*  move to fez
+
+# head
+
+change testing
+
+# 22-07-10 v3-7-6
+
+
+*  minor changes to README, update CHANGELOG
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-06-13T16:49:44Z
+Rendered from CHANGELOG at 2022-07-10T15:28:22Z

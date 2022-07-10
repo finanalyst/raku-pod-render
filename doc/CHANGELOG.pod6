@@ -167,4 +167,11 @@ does not permit double html injection.
 
 =item correction to CWTR::Hash stops failure in test suite.
 
+=head1 22-07-08 v3-7-5
+=item move to fez
+=head change testing
+
+=head1 22-07-10 v3-7-6
+=item minor changes to README, update CHANGELOG
+
 =end pod

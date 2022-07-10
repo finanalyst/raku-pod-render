@@ -46,7 +46,7 @@ Since it is intended that `Raku::Pod::Render` can be used as a dependency for ot
 ```
 zef install Raku::Pod::Render
 ```
-will install the module without checking or installing a highlighter. If, **after default installation**, the highlighter is needed and _node & npm are installed_, then it can be installed by running the following in a terminal:
+will install the module without checking or installing a highlighter. If, **after the default installation**, the highlighter is needed and _node & npm are installed_, then it can be installed by running the following in a terminal:
 
 ```
 raku-render-install-highlighter
@@ -136,4 +136,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2022-06-13T17:59:35Z
+Rendered from README at 2022-07-10T15:28:51Z
