@@ -231,7 +231,10 @@
 
 change testing
 
-# 22-07-10 v3-7-6
+# 22-07-09 v3-7-6
+*  version bump
+
+# 22-07-10 v3-7-7
 
 
 *  minor changes to README, update CHANGELOG
@@ -241,4 +244,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2022-07-10T15:28:22Z
+Rendered from CHANGELOG at 2022-07-10T15:40:31Z
