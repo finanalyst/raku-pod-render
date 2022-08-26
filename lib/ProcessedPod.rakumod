@@ -891,16 +891,20 @@ class ProcessedPod does SetupTemplates {
         my Str $contents;
         my LibCurl::Easy $curl;
         my Bool $html = False;
-
         given $uri.scheme {
             when 'http' | 'https' {
-                $curl .= new(:URL($link), :followlocation, :verbose($.verbose));
-                if $curl.perform.response-code ~~ / '2' \d\d / {
+                $curl .= new(:URL($link), :followlocation, :failonerror );
+                try {
+                    $curl.perform;
                     $contents = $curl.perform.content;
-                }
-                else {
-                    $contents = "See: $link-contents";
-                    note "Response code from ｢$link｣ is { $curl.perform.response-code }" if $.verbose;
+                    CATCH {
+                        when X::LibCurl {
+                            $contents = "Link ｢$link｣ caused LibCurl Exception, response code ｢{ $curl.response-code }｣ with error ｢{ $curl.error }｣"
+                            }
+                        default {
+                            $contents = "Link ｢$link｣ caused LibCurl Exception, response code ｢{ $curl.response-code }｣ with error ｢{ $curl.error }｣"
+                        }
+                    }
                 }
             }
             when 'file' | '' {
@@ -914,18 +918,6 @@ class ProcessedPod does SetupTemplates {
             }
             default {
                 $contents = "See: $link-contents"
-            }
-        }
-        CATCH {
-            when X::LibCurl {
-                #$contents = "Link ｢$link｣ caused LibCurl Exception, response code ｢{$curl.response-code}｣ with error ｢{$curl.error}｣";
-                $contents = "See: $link-contents";
-                note "Link ｢$link｣ caused LibCurl Exception, response code ｢{ $curl.response-code }｣ with error ｢{ $curl.error }｣"
-                    if $.verbose or $.debug;
-            }
-            default {
-                $contents = "See: $link-contents";
-                note "Link ｢$link｣ caused an exception with message ｢{ .message }｣" if $.verbose or $.debug;
             }
         }
         $html = so $contents ~~ / '<html' .+ '</html>'/;

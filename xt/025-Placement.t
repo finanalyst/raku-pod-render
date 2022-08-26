@@ -56,7 +56,7 @@ if %*ENV<TEST_OFFLINE> {
 
     $rv=$pro.render-block($=pod[$pv++]);
     like $rv,/
-    'See: https://noplace__nowhere.como.uk'
+    'caused LibCurl Exception'
     /,'Error with bad http';
 }
 =begin pod
