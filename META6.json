@@ -36,9 +36,7 @@
     "RenderPod::Exceptions": "lib/RenderPod/Exceptions.rakumod",
     "RenderPod::Highlighting": "lib/RenderPod/Highlighting.rakumod",
     "RenderPod::Templating": "lib/RenderPod/Templating.rakumod",
-    "RenderPod::Test-Templates": "lib/RenderPod/Test-Templates.rakumod",
-    "raku-pod-render-install-highlighter": "bin/raku-pod-render-install-highlighter",
-    "test-templates": "bin/test-templates"
+    "RenderPod::Test-Templates": "lib/RenderPod/Test-Templates.rakumod"
   },
   "resources": [
     "pod.css",
@@ -57,5 +55,9 @@
   },
   "license": "Artistic-2.0",
   "source-url": "git://github.com/finanalyst/raku-pod-render.git",
+  "bin": [
+    "bin/raku-pod-render-install-highlighter",
+    "bin/test-templates"
+  ],
   "source-type": "git"
 }
