@@ -1,10 +1,15 @@
 use v6.*;
 use Test;
-
 use ProcessedPod;
-use RenderPod::Templating;
 use Test::Output;
-
+# A helper sub for RakuClosureTemplates
+sub gen-closure-template (Str $tag) is export {
+    my $start = '<' ~ $tag ~ '>';
+    my $end = '</' ~ $tag ~ '>';
+    return sub (%prm, %tml? --> Str) {
+        $start ~ (%prm<contents> // '') ~ $end;
+    }
+}
 plan 7;
 
 my $tmpl-fn = 'xt/newtemplates.raku';

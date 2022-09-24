@@ -1,11 +1,17 @@
 use Test;
 use Test::Deeply::Relaxed;
 use ProcessedPod;
-use RenderPod::Templating;
 
+# A helper class for RakuClosureTemplates
+multi sub gen-closure-template (Str $tag) is export {
+    my $start = '<' ~ $tag ~ '>';
+    my $end = '</' ~ $tag ~ '>';
+    return sub (%prm, %tml? --> Str) {
+        $start ~ (%prm<contents> // '') ~ $end;
+    }
+}
 plan 4;
 
-my $rv;
 my $pro = ProcessedPod.new;
 my $pv = 0;
 
@@ -58,7 +64,7 @@ is-deeply-relaxed $pro.pod-file.pod-config-data, %( :different("This is differen
 
 =begin pod
 =AUTHOR A.N. Writer
-=SUMMARY Some summerised remarks
+=SUMMARY Some summarised remarks
 
 Stuff
 
@@ -72,7 +78,7 @@ like $pro.source-wrap,
         .+ 'Stuff'
         .+ '</body>'
         '<meta>'
-        [ \s* 'Author=A.N. Writer' | \s* 'Summary=Some summerised remarks' ] **2
+        [ \s* 'Author=A.N. Writer' | \s* 'Summary=Some summarised remarks' ] **2
         \s* '</meta></file>'
         /, 'Got meta data structure';
 done-testing;

@@ -1,9 +1,17 @@
 use v6.*;
 use Test;
 use File::Directory::Tree;
-
 use ProcessedPod;
-use RenderPod::Templating;
+
+# A helper sub for RakuClosureTemplates
+sub gen-closure-template (Str $tag) is export {
+    my $start = '<' ~ $tag ~ '>';
+    my $end = '</' ~ $tag ~ '>';
+    return sub (%prm, %tml? --> Str) {
+        $start ~ (%prm<contents> // '') ~ $end;
+    }
+}
+
 my $rv;
 my $processor = ProcessedPod.new;
 my $pc = 0;

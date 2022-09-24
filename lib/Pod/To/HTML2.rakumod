@@ -393,14 +393,30 @@ class Pod::To::HTML2 is ProcessedPod {
                         ~ '</dd>'
             },
             'dlist-end' => sub ( %prm, %tml ) { "\n</dl>" },
-            'format-b' => gen-closure-template('strong'),
-            'format-c' => gen-closure-template('code'),
-            'format-i' => gen-closure-template('em'),
-            'format-k' => gen-closure-template('kbd'),
-            'format-r' => gen-closure-template('var'),
-            'format-t' => gen-closure-template('samp'),
-            'format-u' => gen-closure-template('u'),
-            'para' => gen-closure-template('p'),
+            'format-b' => sub ( %prm, %tml --> Str ) {
+				'<strong>' ~ (%prm<contents> // '') ~ '</strong>'
+			},
+            'format-c' => sub ( %prm, %tml --> Str ) {
+				'<code>' ~ (%prm<contents> // '') ~ '</code>'
+			},
+            'format-i' => sub ( %prm, %tml --> Str ) {
+				'<em>' ~ (%prm<contents> // '') ~ '</em>'
+			},
+            'format-k' => sub ( %prm, %tml --> Str ) {
+				'<kbd>' ~ (%prm<contents> // '') ~ '</kbd>'
+			},
+            'format-r' => sub ( %prm, %tml --> Str ) {
+				'<var>' ~ (%prm<contents> // '') ~ '</var>'
+			},
+            'format-t' => sub ( %prm, %tml --> Str ) {
+				'<samp>' ~ (%prm<contents> // '') ~ '</samp>'
+			},
+            'format-u' => sub ( %prm, %tml --> Str ) {
+				'<u>' ~ (%prm<contents> // '') ~ '</u>'
+			},
+            'para' => sub ( %prm, %tml --> Str ) {
+				'<p>' ~ (%prm<contents> // '') ~ '</p>'
+			},
             'format-l' => sub ( %prm, %tml ) {
                 # transform a local file with an internal target
                 my $trg = %prm<target>;

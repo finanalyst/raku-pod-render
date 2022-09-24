@@ -127,14 +127,14 @@ class RakuClosureTemplater is export {
     }
 }
 
-#| A helper class for RakuClosureTemplates
-sub gen-closure-template (Str $tag) is export {
-    my $start = '<' ~ $tag ~ '>';
-    my $end = '</' ~ $tag ~ '>';
-    return sub (%prm, %tml? --> Str) {
-        $start ~ (%prm<contents> // '') ~ $end;
-    }
-}
+##| A helper class for RakuClosureTemplates
+#sub gen-closure-template (Str $tag) is export {
+#    my $start = '<' ~ $tag ~ '>';
+#    my $end = '</' ~ $tag ~ '>';
+#    return sub (%prm, %tml? --> Str) {
+#        $start ~ (%prm<contents> // '') ~ $end;
+#    }
+#}
 
 class MustacheTemplater is export {
     # mustache acts on each template as it is given, and caches used ones.
