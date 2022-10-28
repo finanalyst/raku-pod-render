@@ -690,7 +690,7 @@ class ProcessedPod does SetupTemplates {
         $target = $.register-toc(:$level, :text(recurse-until-str($node).tclc))
             if +$level;
         my $template = $node.config<template> // $node.name.lc;
-        my $data;
+        my $datax;
         my $name-space = $node.config<name-space> // $template // $node.name.lc;
         $data = $_ with %!plugin-data{ $name-space };
         $.completion($in-level, 'zero', %(), :$defn )
