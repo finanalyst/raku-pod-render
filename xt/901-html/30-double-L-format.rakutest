@@ -1,0 +1,29 @@
+use Test;
+use Pod::To::HTML2;
+my $def-dir = 'xt/test-def'.IO;
+my $tar-dir = 'xt/tar-dir'.IO;
+
+bail-out "Requires $def-dir and $tar-dir" unless ($def-dir ~~ :e and $tar-dir ~~ :e);
+chdir ~$tar-dir;
+
+my $processor = Pod::To::HTML2.new(:$def-dir, :plugins() );
+my $rv;
+my $pn = 0;
+
+plan 1;
+
+=begin pod
+
+Otherwise it constructs a L<Block|/type/Block>.
+To force construction of a L<Block|/type/Block>, follow the opening brace with a semicolon.
+
+=end pod
+
+$rv = $processor.render-block( $=pod[$pn++] );
+like $rv, /
+        'Otherwise it constructs a <a href="/type/Block.html">Block</a>.'
+        \s*'To force construction of a <a href="/type/Block.html">Block</a>'
+        ', follow the opening brace with a semicolon.'
+    /, 'double link points to same place';
+
+done-testing;

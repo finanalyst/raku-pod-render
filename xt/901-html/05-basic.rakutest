@@ -1,0 +1,89 @@
+#!/usr/bin/env perl6
+use v6.d;
+use Test;
+use File::Directory::Tree;
+use Pod::To::HTML2;
+
+my $rv;
+my $processor;
+my $pn = 0;
+my $def-dir = 'xt/test-def'.IO;
+my $tar-dir = 'xt/tar-dir'.IO;
+my $resources = 'resources'.IO;
+
+rmtree ~$def-dir if $def-dir ~~ :e;
+rmtree ~$tar-dir if $tar-dir ~~ :e;
+mktree $tar-dir;
+
+my $top-dir = $*CWD;
+
+plan 15;
+
+=begin pod
+
+Some pod
+
+=end pod
+
+throws-like { indir $tar-dir, Pod::To::HTML2.new(:$def-dir) },
+        X::ProcessedPod::NoRenderPodDirectory,
+        'No default directory';
+mktree ~$def-dir;
+throws-like { indir $tar-dir, Pod::To::HTML2.new(:$def-dir) },
+        X::ProcessedPod::BadDefault,
+        'No assets in default directory';
+# copy all assets to test default
+diag 'testing with distributed html-templates-rakuclosure';
+
+my @todo = $resources, ;
+while @todo {
+    for @todo.pop.dir -> $path {
+        next if $path ~~ m/<[_]>/ ;
+        my $b = $path.basename;
+        my $part-d = $path.dirname.subst(/ ^ 'resources' \/? /, '');
+        if $path.d {
+            "$def-dir/$part-d/$b".IO.cleanup.mkdir;
+            @todo.push: $path
+        }
+        else {
+            $path.copy("$def-dir/$part-d/$b".IO.cleanup.Str);
+        }
+    }
+}
+chdir ~$tar-dir;
+lives-ok { $processor = Pod::To::HTML2.new(:$def-dir) }, 'instantiates with defaults';
+isa-ok $processor, 'Pod::To::HTML2', 'correct return type';
+ok 'favicon.ico'.IO ~~ :e & :f, 'Favicon is transfered from defaults';
+ok 'rakudoc-styling.css'.IO ~~ :e & :f, 'CSS transfered';
+ok 'rakudoc-extra.css'.IO ~~ :e & :f, 'Plugin CSS transferred';
+$processor.process-pod($=pod[$pn++]);
+$rv = $processor.source-wrap;
+like $rv,
+        / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /, 'basic html file';
+like $rv, / '<head' .+? '<link' .+? 'stylesheet' .+ 'rakudoc-styling' /, 'style information is in place';
+
+$rv = $processor.pod-body;
+like $rv,
+        / '<section' .*? '>' .*? 'Some pod' .*? '</section>' /, 'html but no file wrapping';
+unlike $rv,
+        / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? '</body>' .*? '</html>' /, 'confirm there is not html wrapping';
+cmp-ok $processor.tmpl.keys, '(>)', <latex graphviz hr>, 'got templates from plugins';
+$processor.file-wrap(:filename<new-file>);
+ok 'new-file.html'.IO ~~ :e & :f, 'file is created with html as default extension';
+
+=begin pod
+Another fascinating mess
+=end pod
+
+lives-ok { $rv = Pod::To::HTML2.render($=pod[$pn], :$def-dir) }, 'captures Pod into HTML';
+like $rv, /
+    '<html' .+? '>' .+
+    '<body' .*? '>' .+
+    'Another fascinating mess' .+
+    '</body>' .* '</html>'
+    /, 'got HTML page';
+
+diag 'prepare for remaining HTML tests using fixed test raku closure templates';
+chdir $top-dir;
+"resources/test_things/html-rakuclosure.raku".IO.copy("$tar-dir/html-templates-rakuclosure.raku");
+done-testing;

@@ -25,7 +25,8 @@ module Test-Templates {
             :external('Bool'),
             :target('Str'),
             :local('Bool'),
-            :contents('Str')
+            :link-label('Str'),
+            :place('Str')
         ),
         format-n => %(
             :retTarget('Str'),
@@ -49,7 +50,7 @@ module Test-Templates {
         ),
         item => %( :contents('Str')),
         list => %( :items( @('Str', ) ) ),
-        named => %(
+        unknown-name => %(
             :level('Str'),
             :target('Str'),
             :top('Str'),

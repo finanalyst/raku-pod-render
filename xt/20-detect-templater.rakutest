@@ -1,0 +1,37 @@
+use v6.d;
+use Test;
+use ProcessedPod;
+use RenderPod::Templating;
+plan 7;
+
+my $tmpl-fn = 'xt/newtemplates.raku';
+$tmpl-fn.IO.unlink if $tmpl-fn.IO.f;
+
+my ProcessedPod $processor .= new;
+
+my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta unknown-name output para pod raw source-wrap table toc >;
+
+# test for Cro Templates
+my %templates = @templates Z=> ( "\[beg]<.contents>$_\[end]" for @templates );
+lives-ok { $processor.templates(%templates) }, 'loads templates';
+isa-ok $processor.templater, 'CroTemplater', 'auto-detects Cro templater';
+
+$processor .= new;
+%templates<_templater> = 'NotKnownTemplater';
+throws-like { $processor.templates(%templates) }, X::ProcessedPod::UnknownTemplatingEngine,
+        message => / 'Can\'t create template engine ｢NotKnownTemplater｣' /,
+        'Catches unknown templater';
+
+$processor .= new;
+%templates<_templater> = 'CroTemplater';
+lives-ok { $processor.templates(%templates) }, 'loads templates';
+isa-ok $processor.templater, 'CroTemplater', 'auto-detects Cro templater';
+
+$processor .= new;
+%templates<_templater> = 'MustacheTemplater';
+lives-ok { $processor.templates(%templates) }, 'loads templates';
+isa-ok $processor.templater, 'MustacheTemplater', '_templater key overides autodetection';
+
+done-testing

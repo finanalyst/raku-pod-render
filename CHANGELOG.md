@@ -15,7 +15,7 @@
 *  resolved issue relating to name. Changed Pod::To::HTML to Pod::To::HTML2
 
 # 2021-01-18
-*  added CHANGELOG.pod6 / CHANGELOD.md
+*  added CHANGELOG.pod6 / CHANGELOG.md
 
 *  Added functionality to Unused **FormatCodes**
 
@@ -235,13 +235,53 @@ change testing
 *  version bump
 
 # 22-07-10 v3-7-7
-
-
 *  minor changes to README, update CHANGELOG
+
+# 2022-09-24 v3-8-0
+*  allow rakudoc to be an alias to pod for a named block
+
+*  make github badge changable in MarkDown
+
+# 2022-10-x v4-0-0
+*  Refactor HTML2 to
+
+	*  rely on and accept custom plugins
+
+	*  remove all template reliant tests to Pod-Render folder
+
+	*  introduce Rakudoc-to-html utility to render a single Rakudoc file to html into current directory
+
+*  Change name of MarkDown to MarkDown2
+
+*  Change params of Link FormatCode. Now both local and internal may have targets, the template must handle both. The character # designating a target must be added by a template. Before there was a flag defining local/internal/external, a parameter for contents, and a parameter for target (the file | page name). Now there is an extra parameter `location` defining the location inside the file|page.
+
+*  rename mandatory template `named` tp `unknown-name`, which is called when an unknown named Pod::Block is used.
+
+*  refactor modify-templates for plugins, in order to allow for multiple templating in plugins.
+
+	*  A plugin template file may evaluate to a hash of hashes if the key `RakuClosureTemplater` (case insensitive) exists as a first level key
+
+	*  Each primary key then refers to a templating engine,
+
+	*  the second level keys are the template names.
+
+	*  a plugin's templates are only added to the instance of ProcessedPod using `modify-templates`
+
+	*  when `modify-templates` is called for a plugin, it checks whether the default `RakuClosureTemplater` key is present.
+
+		*  If so, the templates pointed to by `.templater.Str` in the plugin's templates are used, and if not present, then an Exception is thrown.
+
+		*  If not, the plugin is using Rakuclosuer templates, so if `.templater.Str` is not `RakuClosureTemplater` then an Exception is thrown
+
+*  remove ExtractPod as Pod::Load is Raku canonical
+
+TODO - test legacy API - test Highlighting separately
+
+
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-07-10T15:40:31Z
+Rendered from CHANGELOG at 2022-10-28T16:54:53Z

@@ -13,7 +13,7 @@
 =item resolved issue relating to name. Changed Pod::To::HTML to Pod::To::HTML2
 
 =head1 2021-01-18
-=item added CHANGELOG.pod6 / CHANGELOD.md
+=item added CHANGELOG.pod6 / CHANGELOG.md
 =item Added functionality to Unused B<FormatCodes>
 =item2 Codes such as B<L> and B<X> have the form C<CodeLetter<some content | data ; more data> >
 =item2 The C<Pod::Block> then provides B<some content> as C<contents> and then C<meta> is a list of B<'data', 'more data'>
@@ -176,5 +176,47 @@ does not permit double html injection.
 
 =head1 22-07-10 v3-7-7
 =item minor changes to README, update CHANGELOG
+
+=head1 2022-09-24 v3-8-0
+=item allow rakudoc to be an alias to pod for a named block
+=item make github badge changable in MarkDown
+
+=head1 2022-10-x v4-0-0
+=item Refactor HTML2 to
+=item2 rely on and accept custom plugins
+=item2 remove all template reliant tests to Pod-Render folder
+=item2 introduce Rakudoc-to-html utility to render a single Rakudoc file to html
+into current directory
+
+=item Change name of MarkDown to MarkDown2
+=item Change params of Link FormatCode. Now both local and internal may have targets, the template
+must handle both. The character # designating a target must be added by a template.
+Before there was a flag defining local/internal/external, a parameter for contents, and a parameter
+for target (the file | page name). Now there is an extra parameter C<location> defining the location
+inside the file|page.
+
+=item rename mandatory template C<named> tp C<unknown-name>, which is called when an unknown named Pod::Block is used.
+=item refactor modify-templates for plugins, in order to allow for multiple templating
+in plugins.
+=item2 A plugin template file may evaluate to a hash of hashes if the key C<RakuClosureTemplater> (case insensitive)
+exists as a first level key
+
+=item2 Each primary key then refers to a templating engine,
+=item2 the second level keys are the template names.
+=item2 a plugin's templates are only added to the instance of ProcessedPod using C<modify-templates>
+=item2 when C<modify-templates> is called for a plugin, it checks whether the default C<RakuClosureTemplater>
+key is present.
+
+=item3 If so, the templates pointed to by C<.templater.Str> in the plugin's templates are used, and if not
+present, then an Exception is thrown.
+
+=item3 If not, the plugin is using Rakuclosuer templates, so if C<.templater.Str> is not C<RakuClosureTemplater>
+then an Exception is thrown
+
+=item remove ExtractPod as Pod::Load is Raku canonical
+
+TODO
+- test legacy API
+- test Highlighting separately
 
 =end pod

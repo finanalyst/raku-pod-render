@@ -1,0 +1,16 @@
+=begin pod
+=TITLE latex-render is a plugin for Collection
+
+The plugin is for the render milestone.
+
+It transforms the latex contents by sending the Latex markup to the online CodeCogs Equation editor.
+
+=head1 Custom blocks
+
+Latex
+
+=head1 Templates
+
+Latex
+
+=end pod

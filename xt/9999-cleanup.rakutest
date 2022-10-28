@@ -1,0 +1,17 @@
+use v6.d;
+use Test;
+use File::Directory::Tree;
+plan 1;
+
+if %*ENV<NoDelete> {
+    skip-rest 'NoDelete set in environment';
+}
+else {
+    rmtree "xt/$_" for <test-def tar-dir md-tar-dir md-test-def shell-dir>;
+    my @xt = 'xt'.IO.dir.grep({ ($_ ~~ :e & :d ) and ($_ !~~ / \d+ \- /)});
+    ok @xt.elems == 0, @xt.elems
+        ?? ('sub-directories of ｢xt/｣ not all deleted, still got: ' ~ @xt>>.Str)
+        !! 'all sub-directories of ｢xt/｣ deleted';
+}
+
+done-testing;

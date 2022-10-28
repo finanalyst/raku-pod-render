@@ -1,0 +1,62 @@
+use v6.*;
+use Test;
+use ProcessedPod;
+use Test::Output;
+# A helper sub for RakuClosureTemplates
+sub gen-closure-template (Str $tag) is export {
+    my $start = '<' ~ $tag ~ '>';
+    my $end = '</' ~ $tag ~ '>';
+    return sub (%prm, %tml? --> Str) {
+        $start ~ (%prm<contents> // '') ~ $end;
+    }
+}
+plan 8;
+
+my $tmpl-fn = 'xt/newtemplates.raku';
+$tmpl-fn.IO.unlink if $tmpl-fn.IO.f;
+
+my $processor;
+
+lives-ok { $processor = ProcessedPod.new }, 'instantiates';
+
+my $pod = Pod::FormattingCode.new(:type('B'), :contents(['hello world']));
+
+throws-like { $processor.render-block($pod) },
+        X::ProcessedPod::MissingTemplates,
+        message=>/'No templates loaded'/,
+        "Catches the absence of templates";
+
+my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta unknown-name output para pod raw source-wrap table toc >;
+
+my %templates = @templates Z=> ( "[beg]$_\[end]" for @templates );
+        # this creates a set of pseudo templates
+
+%templates<format-c>:delete; # assumes format-c is a required template
+
+throws-like { $processor.templates(%templates) }, X::ProcessedPod::MissingTemplates,
+        message=> / 'but are not:' \s* 'format-c' \s* /,
+        "Catches the missing template";
+
+# testing with the default RakuClosureTemplates.
+
+%templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
+$processor.verbose = True;
+stderr-like { $processor.templates(%templates) }, / 'Using RakuClosureTemplater' /, 'full set of RakuClosure templates';
+is $processor.templater.Str, 'RakuClosureTemplater', 'Stringify templater yields its type';
+
+like $processor.rendition('format-b', %(:contents('Hello world'))),
+        / '<format-b>' 'Hello world' '</format-b>' /, 'basic interpolation correct';
+
+$processor.modify-templates( %( format-b => -> %params, % { '#' x %params<level> ~ ' ' ~ %params<text> ~ "\n" }));
+
+like $processor.rendition('format-b', %(:text('Hello World'), :level(5) )),
+        / \# **5 \s* 'Hello World' /, 'template replaced, and pointy routine accepted as a template';
+
+$processor.modify-templates( %(:newone(-> %prm, %tml { '<container>' ~ %prm<contents> ~ '</container>'}),
+                       :format-b( -> %prm, %tml { %tml<newone>(%prm,%tml)  ~  ' is wrapped'} ) ) );
+like $processor.rendition('format-b', %(:contents('Hello world'))),
+        / '<container>' 'Hello world' '</container> is wrapped' /, 'interpolation with partials correct';
+
+done-testing;

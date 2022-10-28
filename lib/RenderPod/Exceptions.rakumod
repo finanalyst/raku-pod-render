@@ -1,5 +1,24 @@
 use v6.*;
+class X::ProcessedPod::BadPluginTemplates is Exception {
+    has $.path;
+    has $.template-type;
+    method message() {
+        "Attempted to use ｢$.template-type｣, but the plugin ｢$.path｣ does not have templates for this engine."
+    }
+}
 
+class X::ProcessedPod::NoRenderPodDirectory is Exception {
+    has $.defaults;
+    method message() {
+        "Could not find default directory ｢$!defaults｣"
+    }
+}
+class X::ProcessedPod::BadDefault is Exception {
+    has $.asset;
+    method message() {
+        "Could not find expected ｢$.asset｣ in defaults or current directories"
+    }
+}
 class X::ProcessedPod::MarkDown::BadgeError is Exception {
     method message {
         'Attempt to add a github badge without a META6.json file in working directory.'

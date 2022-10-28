@@ -1,54 +1,127 @@
 =begin pod
 
-=TITLE Rendering POD6 into HTML
+=TITLE Rendering Rakudoc (aka POD6) into HTML
 
-=SUBTITLE Renders POD6 sources into HTML using templates
+=SUBTITLE Renders Rakudoc sources into HTML using templates and plugins
 
-A default set of templates is provided with a default set of css and a header with the Camelia-bug image.
+A Rakudoc (once called POD6) document is rendered by Raku into a structure called a Pod-tree. A Pod-tree
+can also be constructed from the Rakudoc used to document a Raku program.
 
-Since no assumption can be made about the way the html is served, everything in the default templates assumes output to
-an html file that can be served as a file (eg., no embedded images from external files). The default behaviour can be changed by
-changing one or more or all of the templates.
+Pod::To::HTML2 converts the Pod-tree into an HTML file, or a fragment of Rakudoc into a fragment of HTML.
 
-The rationale for re-writing the whole Pod::To::HTML2 module is in the section L<Why Reinvent the Wheel?|#Why Reinvent the Wheel?>.
+Pod::To::HTML2 is a subclass of B<ProcessedPod>, which contains significantly more information about the Rakudoc
+in a file. See L<the documentation of PodRender|PodRender> for more detail.
 
-For more information about methods not covered here see the L<PodProcess Class|RenderPod>. A sister class L<Markdown|MarkDown> is available.
+See the sister L<Pod::To::MarkDown|Markdown> class for rendering a Rakudoc file to MarkDown.
 
-Three sets of default templates are available for
-=item C<RakuClosureTemplater>,
-=item C<Mustache> templating engine, and
-=item C<Cro::WebApp::Template> engine.
+A Pod-tree consists of Pod::Blocks. The contents and metadata associated with each block is passed
+to a template with the same name as the block.
 
-Some of the C<xt> tests use the C<Mustache> engine. By default the B<rakuclosure> templates are chosen.
+Templates are stored separately from the code in C<Pod::To::HTML2> and so can be tweaked by the user.
 
-The default can be changed by setting C<:type = 'crotmp'> or C<:type = 'mustache'> when instantiating
-Pod::To::HTML.
+Rakudoc can be customised by creating new named blocks and FormatCodes (see Raku documentation on POD6).
+The C<Pod::To::HTML2> class enables the creation of new blocks and FormatCodes via L<plugins|#Plugins>.
+Several non-standard Blocks are included to show how this is done.
 
-If a file B<html-templates.raku> is present in the Current Working Directory, then it is
-evaluated as a raku program and a Hash result is expected. This Hash is then used for the templates.
-The templating system is chosen automatically depending on the templates that
-are provided.
+The rationale for re-writing the whole B<Pod::To::HTML> module is in the section L<Why Reinvent the Wheel?|#Why Reinvent the Wheel?>.
 
-A user can copy the contents (just the evaluation of the Hash) of one of
-the html-templates methods to B<html-templates.raku> in the current
-working directory, and tweak the templates.
+=head1 Requirements for HTML
+
+To render a Rakudoc file into HTML, the following are needed:
+=item Content in the form of a Pod-tree, OR a filename containing Rakudoc, which is then converted
+to a Pod-tree
+
+=item templates that will generate HTML for each Pod Block
+=item a favicon file
+=item CSS content for rendering the HTML
+=item images referenced in the CSS or content
+=item Javascript or JQuery programs and libraries.
+
+The HTML file must then be served together with the CSS, favicon.ico, script and image assets.
+This can be
+done in many different ways, eg, with a Cro App, but each has a different set of dependencies.
+It is assumed the user will know how to serve files once generated.
+
+=head1 Simple usage
+
+This distribution assumes a user may want simplicity in order
+=item to quickly render a single Rakudoc file
+=item to tweak/provide any of the templates, favicon, CSS
+=item add plugins to create custom blocks
+=item include the C<=Image> named block and reference an image.
+
+Anything more complex, such as another destination directory or handling more than one Rakudoc file,
+needs to be done by instantiating the underlying classes. An more complex example is the C<Collection>
+module, which adds even more plugins. B<Collection> I<render> plugins can be adapted for
+C<Pod::To::HTML2>.
+
+The utility C<Rakudoc-to-html> in this distribution will render a Rakudoc file.
+
+The utility creates the following in the directory where Rakudoc-to-html was called:
+=item an html file with the same name as the Rakudoc file;
+=item a C<favicon.ico> file, if it is B<not> already present;
+=item a CSS file called C<rakudoc-styling.css> if it is B<not> already present;
+=item the file C<Camelia.svg> if it is B<not> already present
+=item a sub-directory C<assets/css> which will contain css defined for
+L<plugins|#Plugins>.
+=item a sub-directory C<assets/images> with images defined by plugins or L<user images|#Image management>.
+=item a sub-directory C<assets/js> for js and jQuery scripts defined by plugins
+
+The default templates, favicon, plugins and rakudoc-styling css are installed when this
+distribution is installed into a directory called
+C<$*HOME/.local/share/RenderPod>.
+(See L<Defaults and customisation|#Defaults and customisation> for more detail.)
+
+If files for html (See L<Default and customisation|#Default and customisation>) are present
+in the current working directory, they will be used in place of the defaults
+in C<$*HOME/.local/share/RenderPod>.
+
+The recommended way to customise the templates/favicon/css/plugin files is to create an empty
+directory, copy whichever defaults are to be modified from the defaults directory
+to the empty directory, modify them, then call
+C<Rakudoc-to-html> in that directory with a path to the source. The HTML file
+and its associated assets will be generated in the directory.
+
+If the Pod::To::HTML2 class is instantiated, or the Pod::To::HTML2 functions are used, then the default
+assets can be used, or taken from files in the Current Working Directory.
+
+Three sets of the main default templates are available for the three templating engines automatically detected
+in this distribution:
+=item C<RakuClosure> template system, (default choice)
+=item C<Mustache> templating engine, (plugins do not work with Mustache) and
+=item C<Cro::WebApp::Template> engine (the interface with Crotmp is not fully developed).
+
+The templating engine can be selected
+by calling C<Rakudoc-to-html> with the C<type> option set to
+=item B<crotmp> eg., C< Rakudoc-to-html --type=crotmp>
+=item B<mustache>, eg., C<Rakudoc-to-html --type='mustache'>.
+=item B<rakuclosure>, eg., C<Rakudoc-to-html --type='rakuclosure'>.
 
 =head1 Usage with compiler
 
 From the terminal:
 =begin code :lang<shell>
-raku --doc=HTML input.raku > output.html
+raku --doc=HTML2 input.raku > output.html
 =end code
 
-This takes the POD in the C<input.raku> file, transforms it into HTML, outputs a full HTML page including a Table of Contents, Glossary and Footnotes.
+This takes the Rakudoc (aka POD6) in the C<input.raku> file, transforms it into HTML,
+outputs a full HTML page including a Table of Contents, Glossary and Footnotes.
+As described in L<Simple Usage|#Simple Usage>, the C<favicon.ico>, C<rakudoc-styling.css>,
+image and additional CSS files are placed in the Current working directory.
+Take care that if the C<output.html> file name includes a path part, then it will not be matched with the favicon and css files.
 
-Some rendering options can be passed via the PODRENDER Environment variable. The options can be used to turn off components of the page.
+This will only work with C<rakuclosure> templates.
+
+=head2 Component options
+
+Some rendering options can be passed via the RAKOPTS Environment variable.
+=item The TOC, Glossary (Index), Meta and Footnotes can be turned off.
 
 =begin code :lang<shell>
-PODRENDER='NoTOC NoMETA NoGloss NoFoot' raku --doc=HTML input.raku > output.html
+RAKOPTS='NoTOC NoMETA NoGloss NoFoot' raku --doc=HTML2 input.raku > output.html
 =end code
 
-The following regexen are applied to the contents of the PODRENDER environment variable
+The following regexen are applied to the contents of the RAKOPTS environment variable
 and if one or more matchd, they switch off the default rendering of the respective section:
 
 =begin table :caption('Regexen and Page Component')
@@ -62,6 +135,127 @@ regex applied |  if Match, then Turns off
 
 Any or all of 'NoTOC' 'NoMETA' 'NoGloss' 'NoFoot' may be included in any order.
 Default is to include each section.
+
+=head2 Plugins options
+
+Setting the Environment variable C<PLUGINS> to a list of plugins will invoke only those
+plugins.
+
+For example, if only the Graphviz plugin, and no other, is required, then use
+=begin code :lang<shell>
+PLUGINS='Graphviz' raku --doc=HTML2 input.raku > output.html
+=end code
+
+=head1 rakudoc-to-html
+
+This is invoked on the command line as (e
+
+    rakudoc-to-html input.rakudoc
+
+The options are mostly like those for the compiler, and are:
+=item --rakopts # like RAKOPTS
+=item --plugins # like PLUGINS
+=item --type # default is 'rakuclosure', see L<templates|#Templates>)
+
+=head1 Defaults and customisation
+
+The directory C<$*HOME/.local/share/RenderPod> contains the following files:
+=item html-templates-rakuclosure.raku # templates in Rakuclosure form to convert Rakudoc to HTML
+=item html-templates-mustache.raku # ditto for mustache
+=item html-templates-crotmp.raku # ditto for crotmp
+=item rakudoc-styling.css # the css to be associated with the HTML (name can be changed)
+=item scss/_highlight.scss # highlights source, used by next
+=item scss/rakudoc-styling.scss # the scss source for the css file (this is not used by
+Pod::To::HTML2 but is included for ease of use). Converting scss to css can be found by
+internet searching. SASS is a good utility.
+
+=item favicon.ico # the favicon file
+=item simple-extras/ # plugin for simple additions to Rakudoc
+=item graphviz/ # plugin to allow for graphviz files
+=item latex-render/ # plugin to render math equations in Latex syntax to an image
+using a free on-line renderer.
+
+=item gather-js-jq/ # a special plugin for including js and jquery scripts in plugins.
+The plugin has a README, which provides more information about the various
+js/jq config keys.
+
+=item gather-css/ # a special plugin for including css in plugins. The plugin has a README,
+which provides more information about the various css config keys.
+
+=item md-templates-rakuclosure.raku, etc. markdown files. They are
+not relevant for html rendering (see Pod::To::Markdown for more detail)
+
+The following are always copied to the CWD (current working directory) if not present. If
+B<already> present, they are B<not> copied.
+=item favicon.ico
+=item rakudoc-styling.css
+
+So a custom favicon in the current directory is always used, and custom css in the current directory
+is always used. It is recommended that the file in <defaults>/scss is tweaked and a css file
+generated in the local directory.
+
+The remaining files in the list above are not automatically copied to the CWD, but if they are present,
+then they are used instead of the defaults.
+By copying to CWD a template file, or a plugin directory, these will
+be used by C<Rakudoc-to-html>. So they can be tweaked locally.
+
+=head2 Template file
+
+A template file must contain the minimum number of templates (see L<RenderPod> for more detail).
+
+The template file must evaluate to a Raku B<Associative> type, eg. Hash.
+
+The C<_templater> key (see one of the files for an example) defines which templating system is used.
+
+The plugins are not guaranteed to have template systems other than C<rakuclosure>. Template systems
+cannot be mixed.
+
+=head1 Plugins
+
+A plugin is in a directory with the same name. A plugin name must start with a letter and contain
+any letter, number, or '-' characters. It may not contain a '_' after the first letter.
+
+The following plugins are called by default, unless explicitly removed (by passing
+a plugins list without one or all of them):
+=item simple-extras
+=item graphviz
+=item latex-render
+
+Two special plugins are included in the defaults directory. Their contents are used by
+C<Pod::To::HTML2> directly from the defaults directory. Copying them to a local directory
+will not have an effect. Its not a good idea to change them without reading the plugin
+documentation for the C<Collection> module. They are:
+=item gather-css
+=item gather-js-jq
+
+Each plugin contains a README file, which may provide more detail.
+
+A plugin must contain
+=item the file C<config.raku>
+=item files named in C<config.raku>
+=item The config B<must> contain the following keys
+=item2 template-raku # can be an empty string, otherwise a file for templates
+=item2 custom-raku #  can be an empty string, otherwise a file for custom blocks
+=item The config B<may> contain the following
+=item2 css # a file containing css, which will be merged into C<rakudoc-extra.css>
+=item2 css-add # a file to be transfered to CWD
+=item2 css-link # a url for a style sheet
+=item2 js-script # this must be either a String, or point to a [string name, ordering] array.
+=item2 jquery # ditto
+=item2 js-link # ditto
+=item2 jquery-link # ditto
+
+More information about the js/jquery keys can be found in C< <defaults>/gather-s-q>
+
+The file pointed to by the C<template-raku> key is a raku program that evaluates to an
+Associative (eg., Hash) with keys pointing to templates. Plugins currently only use the
+C<rakuclosure> system. More detail can be found in L<RakuClosureTemplates>.
+
+The file pointed to by the C<custom-raku> key is a raku program that evaluates to a Positional
+(eg., Array). This is the list of names for the custom blocks. The templates should be
+the lower case names provided by the custom-raku list.
+
+The default plugins provide examples.
 
 =head1 Standalone usage mixing Pod and code
 
@@ -118,118 +312,94 @@ $renderer.file-wrap(:output-file<some-useful-name>, :ext<html>);
 
 =end code
 
-=head1 HTML Components: CSS, Classes & Favicon
+=head1 Custom blocks
 
-A minimal CSS is provided for the default templates and is placed in a <style>...</style> container.
-This default behaviour can be changed by
-=item Providing custom CSS, Dom classes and Favicon (see below for more detail)
-=item Turning on a 'debugging' supershort form by setting C<min-top> to C<True>, eg. C<$render.min-top=True> after
-the instantiation of a C<Pod::Too::HTML> object as given above. Note that this is implemented in the Templates, so if
-new Templates are provided, imitate the default Templates to get the same behaviour.
+The Rakudoc specification allows for Pod::Blocks to be named and meta data associated with it.
+This allows us to leverage the standard syntax to allow for non-standard blocks and templates.
 
-In addition to the rendering of containers, extra styling can be achieved by adding classes via configuration parameters.
-For example C<myclass> can be added to a table as follows C<=begin table :classes<myclass> >. The CSS to affect the styling
-needs to be added to a customisable CSS.
+Briefly, the name of the Block is placed in C<html-blocks> (case is not important), and
+a template with the same name (B<must> be lower case), is placed in the C<html-templates-xxx.raku>
+file (the B<xxx> depending on which templating system is used). Note, changes need only be made
+to the file with the templating system the user wants and specifies with the C<--type> option.
 
-The different customisations are incompatible during object instantiation.
-
-=item If C<:templates> is specified, then the C<:css-type>, C<:css-src> and C<:favicon-src> will not have any effects.
-This should not be a concern because when providing templates, a raku program that evaluates to a Hash is run. Any
-desired customisation can be handled in the same program.
-
-=item If a file C<html-templates.raku> exists in the current directory, then it will be given to the object, see above.
-
-=item It is possible, though to retain the C<:css-type>, C<:css-src> and C<:favicon-src> customisations, but to change
-specific templates, via the C<modify-templates> method.
-
-=head2 Customisable CSS
-
-Two variables C<:css-type> and C<:css-src> are provided to customise the loading of css for the 'source-wrap' template provided here.
-These can be specified as arguments to C<processor>.
-
-If the C<head-block> templates, which is used in the C<source-wrap> template, contain the Mustache stanza C«{{> css-text }}», which
-calls the partial template C<css-text>
-.
-When C<Pod::To::HTML2> is instantiated using these variables, a style string is given to the css-text. In order to use the default
-css behaviour of C<Pod::To::HTML2>, only over-ride some templates, keeping css-text, and use the C<css-text> or C<head-block> templates.
-
-If C<:css-type> is specified, then C<:css-src> must be specified.
-
-=head2 CSS Load
-
-=begin code :lang<raku>
-    use Pod::To::HTML2;
-    my Pod::To::HTML2 $processor .= new(:css-type<load>, :css-src('path/to/custom.css') );
-=end code
-
-The contents of path/to/custom.css are slurped into a C< <style> > container and given to the template C<css-text>.
-
-This is similar to the default action of the module, except that the pod.css file is in the module repository.
-
-=head2 CSS Link
-
-Normally, when HTML is served a separate CSS file is loaded from a path on the server, or an http/https link. Then it
-is know where the source is, eg.,C<assets/pod.css>, or it might be loaded from another internet source, eg.
-C<https://somedomain.com/assets/pod.css>.
-
-=begin code :lang<raku>
-    use Pod::To::HTML2;
-    my Pod::To::HTML2 $processor .= new(:css-type<link>, :css-src('https://somedomain.dom/assets/pod.css') );
-=end code
-
-This generates a string that is given to the template C<css-text>. For example:
-C< <link rel="stylesheet" type="text/css" href="https://somedomain.com/assets/pod.css" media="screen" title="default" /> >
-
-=head2 Camelia Image
-
-The Camelia image is the mascot for Raku. It is provided in the Header by default.
-
-The behaviour can be changed by changing the C<header> template
-
-=head2 Favicon
-
-The Camelia icon is inserted by default. Since the most generic form has no other links, the favicon has to be
-provided as a Base64 encoding of a standard icon.
-
-If another favicon is required, then it can be inserted by
-
-=item convert the favicon to base64 coding, eg. a site such as L<MotoBit|https://www.motobit.com/util/base64-decoder-encoder.asp>
-
-=item store the text string produced in a file, eg 'assets/favicon.bin'
-
-=item provide that filename when instantiating a C<Pod::To::HTML2> object, eg.,
-
-=begin code
-use Pod::To::HTML2;
-my Pod::To::HTML2 $p .= new(:favicon-src('assets/favicon.bin') );
-...
-=end code
-
-Note that the validity of the favicon cannot be tested here, and that different browsers have different favicon requirements.
-
-=head1 Custom Pod and Template
-
-Standard Pod allows for Pod::Blocks to be named and configuration data provided. This allows us to leverage the standard
-syntax to allow for non-standard blocks and templates.
-
-For example, the HTML module adds the C<Image> custom block and provides the C<image> template. (In keeping
-with other named blocks, I<Title> case may be conventionally used for the block name
+In keeping with other named blocks, I<Title> case may be conventionally used for the block name
 and I<Lower> case is required for the template.
+
+Some examples are provided in the default templates. They are
+=item C<Image> custom block and provides the C<image> template. The actual images should be
+in the C<assets/images> sub-directory. It is up to the user to do this.
+
+=item C<HR>. This adds a xxxish-dots class to C< <hr> > HTML elements.
+=item C<Quotation>. This formats content with an indentation, and adds both
+author and citation components.
+
+=item C<Latex-render>
+=item C<Graphviz>
+
+=head2 Latex-render
+
+When an equation is given in a Latex syntax after a C<Latex> block, the description of the equation
+is sent to an online renderer, and the image is inserted into the html. Eg.
+=begin code
+    =for Latex
+    \begin{align*}
+    \sum_{i=1}^{k+1} i^{3}
+    &= \biggl(\sum_{i=1}^{n} i^{3}\biggr) +  i^3\\
+    &= \frac{k^{2}(k+1)^{2}}{4} + (k+1)^3 \\
+    &= \frac{k^{2}(k+1)^{2} + 4(k+1)^3}{4}\\
+    &= \frac{(k+1)^{2}(k^{2} + 4k + 4)}{4}\\
+    &= \frac{(k+1)^{2}(k+2)^{2}}{4}
+    \end{align*}
+
+=end code
+
+It is assumed that there is internet connectivity to the online engine.
+
+=head Graphviz
+
+When a description of a digraph in the dot syntax is given between bracketing elements,
+then an image is generated in the html, eg.
+=begin code
+    =begin Graphviz
+        digraph G {
+            main -> parse -> execute;
+            main -> init;
+            main -> cleanup;
+            execute -> make_string;
+            execute -> printf
+            init -> make_string;
+            main -> printf;
+            execute -> compare;
+        }
+    =end Graphviz
+=end code
+
+The assumption is that the C<dot> utility is installed.
+
+More information on C<dot> and C<graphviz> can be found at L<Graphviz|https://www.graphviz.org/>
+
+The files <rakudoc-styling.css> and <favicon.ico> can be replaced completely. If they are
+present in the current directory, they will not be overwritten.
+
+=head1 Adding customisation programmatically
 
 Suppose we wish to have a diagram block with a source and to assign classes to it.
 We want the HTML container to be C<figure>.
 
-In the pod source code, we would have:
+In the Rakudoc source code, we would have:
 =begin code
     =for diagram :src<https://someplace.nice/fabulous.png> :class<float left>
     This is the caption.
 =end code
 
 Note that the C<for> takes configuration parameters to be fed to the template, and ends at the first
-blank line or next C<pod> instruction.
+blank line or next C<Pod::Block>, that is a line begining with C<=>.
 
-Then in the rendering program we need to provide to ProcessedPod the new object name, and the corresponding template.
-These must be the same name. Thus we would have:
+Then in the rendering program we need to provide to the C<ProcessedPod> class
+the new object name, and the corresponding template (in B<this> example, the C<Mustache> system is
+used, which means all the other templates must be in C<Mustache>).
+
+The Block name and template must be the same name. Thus we would have:
 =begin code
     use v6;
     use Pod::To::HTML2;
@@ -243,7 +413,8 @@ These must be the same name. Thus we would have:
 Generally it is desirable to highlight code contained in C< =code > blocks. While perhaps this may be done in-Browser,
 it can be done at HTML generation, via the Templates and a highlighter function.
 
-Raku::Pod::Render by default sets up the atom-highlighter stack (installation dependencies can be found in L<README>).
+This distribution, C<Raku::Pod::Render>, by default sets up the atom-highlighter
+stack (installation dependencies can be found in L<README>).
 
 Since highlighting generates considerably more HTML, it is turned off by default, which will affect the C< --doc=HTML > compiler option.
 
@@ -288,16 +459,10 @@ $p.templates( %( format-b => '<b>{{ contents }}</b>' .... ) );
 If :templates is given a string, then it expects a file that can be compiled by raku and evaluates to
 a Hash containing the templates. More about the hash can be found in L<RenderPod|renderpod>.
 
-When a C<Pod::To::HTML2> object is instantiated, and the file 'html-templates.raku' exists in the current working directory,
-it will be evaluated and treated as the source of the templates hash (see above).
-
-This allows a developer to use the compiler option C<--doc=HTML> together with her own templates. Note that css
-must also be provided explicitly in the C<head-block> template.
-
 =head1 Exported Subroutines
 
-Two functions are exported to provide backwards compatibility with legacy Pod::To::HTML2 module. They map onto the methods
-described above.
+Two functions are exported to provide backwards compatibility with legacy Pod::To::HTML module.
+They map onto the methods described in C<PodRender>.
 
 Only those options actually tested will be supported.
 
@@ -308,14 +473,6 @@ Only those options actually tested will be supported.
 =item pod2html
 
     sub pod2html( $pod, *%options ) is export
-
-=head1 Miscellaneous
-
-In the contents, headers can be prefixed with their header levels in the form 1.2.4
-
-The default separator (.) can be changed by setting (eg to _) as :counter-separator<_>
-
-The header levels can be omitted by setting :no-counters
 
 =head1 Why Reinvent the Wheel?
 
@@ -351,21 +508,8 @@ as desired.
 =item All the links (both external and internal) are collected together and can be accessed after processing the Pod source,
 thus allowing for testing of the links separately.
 
-=item There is a clear distinction between rendering a Pod tree (all of the pod in a source), a pod block (the text between
-the C< =begin pod> and C< =end pod> markers, and outputting the pod for a page or for the body of a page (without headers,
-footers, or page components). This distinction required a different API.
-
 =item There is a clear distinction between what is needed for a particular output format, eg., HTML or MarkDown, and what is
 needed to render Pod. Thus, HTML requires css and headers, etc. MarkDown requires the anchors to connect a Table of Contents
 to specific Headers in the text to be written in a specific way.
-
-=item C<Pod::To::HTML2> subclass allows for a more flexible provision of css or other assets.
-
-=item The C<source-wrap> template can be completely rewritten to allow for different assets.
-
-=item css can be provided in a file that is B<slurped> into the header as a style component
-
-=item css can be provided as a link to a source, when the location of the asset is known and
-will be loaded by the HTML server.
 
 =end pod

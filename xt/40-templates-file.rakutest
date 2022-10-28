@@ -1,0 +1,35 @@
+use v6.*;
+use Test;
+
+use ProcessedPod;
+
+plan 3;
+
+my ProcessedPod $processor;
+
+my $tmpl-fn = 'newtemplates.raku';
+my $path = 'xt';
+"$path/$tmpl-fn".IO.unlink if "$path/$tmpl-fn".IO.f;
+
+my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+    format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+    item list meta unknown-name output para pod raw source-wrap table toc >;
+
+my %templates  = @templates Z=> ( "\<$_>\{\{\{ contents }}}\</$_>" for @templates );
+%templates<format-b> = '<new-form-b>{{ contents }}</new-form-b>';
+$processor .= new(:name<Testing> );
+
+"$path/$tmpl-fn".IO.spurt(%templates.raku.substr(0, *-3 ) );
+
+dies-ok { $processor.templates( $tmpl-fn,:$path ) }, 'bad template is trapped' ;
+
+"$path/$tmpl-fn".IO.spurt(%templates.raku );
+
+lives-ok { $processor.templates($tmpl-fn, :$path ) }, 'accepts a template file';
+
+like $processor.rendition('format-b', %(:contents('Hello world'))),
+        / '<new-form-b>' 'Hello world' '</new-form-b>' /, 'basic interpolation correct from file';
+
+"$path/$tmpl-fn".IO.unlink if "$path/$tmpl-fn".IO.f;
+
+done-testing;

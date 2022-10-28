@@ -1,37 +1,33 @@
 {
   "name": "Raku::Pod::Render",
   "description": "A generic Pod6 Renderer with custom Pod::Blocks, FormatCodes for one or more files using templates, provides HTML and MarkDown.",
-  "version": "3.7.10",
+  "version": "4.0.0",
   "perl": "6.d",
   "authors": [
     "Richard Hainsworth"
   ],
   "auth": "zef:finanalyst",
   "depends": [
-    "Template::Mustache",
-    "Cro::WebApp::Template::Repository::Hash",
-    "Cro::WebApp",
     "URI",
     "LibCurl",
-    "Pod::Load",
     "Test::Deeply::Relaxed",
     "File::Directory::Tree",
     "Test::Output",
     "File::Temp",
     "Test::META",
     "PrettyDump",
-    "JSON::Fast"
+    "JSON::Fast",
+    "RakuConfig",
+    "Pod::Load"
   ],
   "build-depends": [],
   "test-depends": [
     "Test"
   ],
   "provides": {
-    "ExtractPod": "lib/ExtractPod.rakumod",
     "InstallAtomHighlighter": "lib/InstallAtomHighlighter.rakumod",
     "Pod::To::HTML2": "lib/Pod/To/HTML2.rakumod",
-    "Pod::To::HTML2::Mustache": "lib/Pod/To/HTML2.rakumod",
-    "Pod::To::MarkDown": "lib/Pod/To/MarkDown.rakumod",
+    "Pod::To::MarkDown2": "lib/Pod/To/MarkDown2.rakumod",
     "ProcessedPod": "lib/ProcessedPod.rakumod",
     "RenderPod::Exceptions": "lib/RenderPod/Exceptions.rakumod",
     "RenderPod::Highlighting": "lib/RenderPod/Highlighting.rakumod",
@@ -39,14 +35,42 @@
     "RenderPod::Test-Templates": "lib/RenderPod/Test-Templates.rakumod"
   },
   "resources": [
-    "pod.css",
-    "Camelia.svg",
+    "rakudoc-styling.css",
     "favicon.ico",
-    "camelia-ico.bin",
-    "html-rakuclosure.raku",
-    "extra-test.raku",
-    "highlights/highlight-filename-from-stdin.coffee",
-    "highlights/package.json"
+    "Camelia.svg",
+    "html-templates-rakuclosure.raku",
+    "html-templates-mustache.raku",
+    "html-templates-crotmp.raku",
+    "md-templates-mustache.raku",
+    "highlight_files/highlight-filename-from-stdin.coffee",
+    "highlight_files/package.json",
+    "scss_files/_highlights.scss",
+    "scss_files/rakudoc-styling.scss",
+    "test_things/extra-test.raku",
+    "test_things/badfile.txt",
+    "test_things/disclaimer.txt",
+    "test_things/rend-test-file.raku",
+    "simple-extras/simple-extras.scss",
+    "simple-extras/config.raku",
+    "simple-extras/README.rakudoc",
+    "simple-extras/extra-blocks.raku",
+    "simple-extras/simple-extras.css",
+    "simple-extras/extra-templates.raku",
+    "gather-css/collator.raku",
+    "gather-js-jq/collator.raku",
+    "gather-css/cleanup.raku",
+    "gather-js-jq/cleanup.raku",
+    "graphviz/config.raku",
+    "graphviz/graphv-blocks.raku",
+    "graphviz/graphv-templates.raku",
+    "graphviz/README.rakudoc",
+    "latex-render/config.raku",
+    "latex-render/latex-block.raku",
+    "latex-render/latex-template.raku",
+    "latex-render/README.rakudoc",
+    "latex-render/latex-render.css",
+    "latex-render/latex-render.scss",
+    "images/README.rakudoc"
   ],
   "support": {
     "bugtracker": "https://github.com/finanalyst/raku-pod-render/issues",
@@ -57,7 +81,8 @@
   "source-url": "git://github.com/finanalyst/raku-pod-render.git",
   "bin": [
     "bin/raku-pod-render-install-highlighter",
-    "bin/test-templates"
+    "bin/test-templates",
+    "bin/Rakudoc-to-html"
   ],
   "source-type": "git"
 }

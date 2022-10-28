@@ -1,0 +1,12 @@
+=begin pod
+=TITLE graphviz is plugin for Collection
+
+The plugin is for the render milestone. Renders digraph description into an svg image.
+
+=head1 Custom blocks
+
+GraphViz, Graphviz, graphviz
+
+=head1 Templates
+
+=end pod

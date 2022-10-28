@@ -1,0 +1,67 @@
+use Test;
+use Test::Output;
+
+use ProcessedPod;
+# A helper sub for RakuClosureTemplates
+sub gen-closure-template (Str $tag) is export {
+    my $start = '<' ~ $tag ~ '>';
+    my $end = '</' ~ $tag ~ '>';
+    return sub (%prm, %tml? --> Str) {
+        $start ~ (%prm<contents> // '') ~ $end;
+    }
+}
+my ProcessedPod $p .= new;
+
+plan 3;
+
+like $p.pod-file.gist,
+        /
+        'renderedtime => Str=｢｣'
+        .+ 'templates-used => No templates used'
+        /, 'blank PodFile gist';
+my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta unknown-name output para pod raw source-wrap table toc >;
+my %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
+%templates<escaped> = sub ($s) {
+    if $s and $s ne ''
+    { $s.trans(qw｢ <    >    &     " ｣ => qw｢ &lt; &gt; &amp; &quot; ｣) }
+    else { '' }
+};
+$p .= new;
+$p.templates( %templates );
+
+=begin pod
+
+my $d = 'one two three';
+
+This is C<format-code C>.
+
+=head1 A title
+
+=defn the
+definite article
+
+=end pod
+$p.debug = True;
+stderr-like { $p.process-pod($=pod[0]) },
+    /
+    'Node is Pod::Block::Named with name ｢pod｣'
+    .+
+    'Node is Pod::Block::Para'
+    .+
+    'Node is Pod::FormattingCode with type ｢C｣'
+    .+
+    'Completion with template ｢format-c｣'
+    /, 'debugging of handle methods and completion works';
+$p.debug = False;
+$p.source-wrap;
+
+my $pf = $p.emit-and-renew-processed-state;
+like $pf.gist,
+    /
+        ':target("A_title"),'
+        \s+ ':text("A title")'
+    /, 'reasonable PodFile gist';
+
+done-testing;

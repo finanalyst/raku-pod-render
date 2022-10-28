@@ -1,0 +1,28 @@
+
+=begin pod
+=TITLE Image plugin for Collection
+
+=head1 Blocks
+
+The block name is C<Image>, though <image> is also possible.
+
+    =for Image :src<path-to-image-in-collection-assets-directory> :id<optional-id-given-to-img>  :alt<optional> :class<extra>
+    This text will be included in the Table of Contents by default, but not visible with the image
+
+=item C<src> must be an image with a path relative to the Current Working Directory
+=item C<id> is an option id attached to the <img> tag, and can be used for styling
+=item C<alt> is given the the alt attribute of the <img> tag
+=item C<class> is included in the class list of the outer C<div> container
+
+head1 Template
+
+The default template renders the image as
+
+    <div class="image-container other classes"><img src="path-to-source" alt="alt text" id="id"></img>
+
+=head1 Styling
+
+The plugin provides three classes by default: C<justify-right>, C<justify-center> and C<justify-left>, moving the image accordingly.
+
+=end pod
+

@@ -1,0 +1,34 @@
+use v6.*;
+use Test;
+
+use ProcessedPod;
+
+plan 5;
+
+my $processor= ProcessedPod.new;
+
+my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta unknown-name output para pod raw source-wrap table toc >;
+
+# testing with Mustache::Template.
+
+my %templates  = @templates Z=> ( "\<$_>\{\{\{ contents }}}\</$_>" for @templates );
+
+lives-ok { $processor.templates(%templates) }, 'full set of templates is ok';
+is $processor.templater.Str, 'MustacheTemplater', 'Stringify templater yields its type';
+
+like $processor.rendition('format-b', %(:contents('Hello world'))),
+        / '<format-b>' 'Hello world' '</format-b>' /, 'basic interpolation correct';
+
+$processor.modify-templates( %( format-b => -> %params { '#' x %params<level> ~ ' {{ text }}' ~ "\n" }));
+
+like $processor.rendition('format-b', %(:text('Hello World'), :level(5) )),
+        / \# **5 \s* 'Hello World' /, 'template replaced, and pointy routine accepted as a template';
+
+$processor.modify-templates( %(:newone('<container>{{ contents }}</container>'),
+                       :format-b('{{> newone }} is wrapped')) );
+like $processor.rendition('format-b', %(:contents('Hello world'))),
+        / '<container>' 'Hello world' '</container> is wrapped' /, 'interpolation with partials correct';
+
+done-testing;

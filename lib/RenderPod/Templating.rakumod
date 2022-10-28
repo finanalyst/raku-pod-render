@@ -40,7 +40,9 @@ The class of a template engine should have three methods
 =item refresh
 =item2 re-initialises the engine after the templates have been modified
 =item Str
-=item2 Not strictly needed, but provides a String when a template class is printed.
+=item2 Mandatory, provides the name of the templater that is used for plugin
+template Hash files. A plugin may provide templates for one or more templating
+engines (see L<RenderPod|RenderPod#Plugins>).
 
 =end pod
 
@@ -76,7 +78,7 @@ class CroTemplater is export {
         self.update-ancestors(%new-templates);
     }
     method Str {
-        "Cro Web template engine"
+        "CroTemplater"
     }
     method make-template-from-string(%strings --> Hash) {
         my %templates;
@@ -114,7 +116,7 @@ class RakuClosureTemplater is export {
     }
     # no op for RakuClosure
     method Str {
-        "Raku Closure template engine"
+        "RakuClosureTemplater"
     }
     method make-template-from-string(%strings --> Hash) {
         my %templates;
@@ -127,19 +129,10 @@ class RakuClosureTemplater is export {
     }
 }
 
-##| A helper class for RakuClosureTemplates
-#sub gen-closure-template (Str $tag) is export {
-#    my $start = '<' ~ $tag ~ '>';
-#    my $end = '</' ~ $tag ~ '>';
-#    return sub (%prm, %tml? --> Str) {
-#        $start ~ (%prm<contents> // '') ~ $end;
-#    }
-#}
-
 class MustacheTemplater is export {
     # mustache acts on each template as it is given, and caches used ones.
     require Template::Mustache;
-    # templating parameters.
+    # templating parameters. }}}
     has $!engine;
     has %!tmpl;
     submethod BUILD(:%!tmpl) {}
@@ -166,7 +159,7 @@ class MustacheTemplater is export {
                 )
     }
     method Str {
-        "Mustache template engine"
+        "MustacheTemplater"
     }
     method make-template-from-string(%strings --> Hash) {
         %strings
@@ -177,7 +170,7 @@ role SetupTemplates does Highlighting {
     #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
     has @.required = < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
-        item list meta named output para pod raw source-wrap table toc >;
+        item list meta unknown-name output para pod raw source-wrap table toc >;
     #| must have templates. Generically, no templates loaded.
     has Bool $.templates-loaded is rw = False;
     #| the object containing the templater engine
@@ -192,17 +185,37 @@ role SetupTemplates does Highlighting {
     #| a Str path to a Raku program that evaluates to a Hash
     #| Keys of the hash are added to the Templates, silently over-riding
     #| previous keys.
-    method modify-templates($templates, :$path = '.')
+    method modify-templates($templates, :$path = '.', :$plugin = False)
     {
-        return unless $templates;
         # no action for blank string or empty Hash
+        return unless $templates;
         my %new-templates;
         given $templates {
-            when Hash { %new-templates = $templates }
+            when Associative { %new-templates = $templates }
             when Str {
-                #use SEE_NO_EVAL;
                 %new-templates = indir($path, { EVALFILE $templates });
             }
+        }
+        # if the templates are from a plugin, there may be a set of templates
+        # for the templater engine chosen. If not throw an error.
+        # The templater key may have variable capitalisation eg RakuClo.., or rakuclo... etc
+        if $plugin {
+            my $template-type = $.templater.Str.lc;
+            my $got-ts = False;
+            if 'rakuclosuretemplater' (elem) %new-templates.keys>>.lc {
+                for %new-templates.keys {
+                    next unless $template-type eq .lc;
+                    %new-templates = %new-templates{ $_ };
+                    $got-ts = True;
+                    last
+                }
+            }
+            elsif $template-type eq 'rakuclosuretemplater' {
+                $got-ts = True;
+                # new-templates can stay unchanged
+            }
+            X::ProcessedPod::BadPluginTemplates.new(:$path, :$template-type).throw
+                unless $got-ts
         }
         { %.tmpl{$^a} = $^b } for %new-templates.kv;
         $!templater.refresh(%new-templates)
@@ -215,7 +228,6 @@ role SetupTemplates does Highlighting {
             when Hash { %.tmpl = $templates }
             when Str {
                 # a string should be a filename with a compilable file
-                #use SEE_NO_EVAL;
                 try {
                     %.tmpl = indir($path, { EVALFILE $templates });
                     CATCH {

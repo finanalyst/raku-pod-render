@@ -1,0 +1,93 @@
+use v6.*;
+use Test;
+
+use ProcessedPod;
+
+plan 7;
+
+# use the Mustache variant
+my ProcessedPod $processor;
+my $pn = 0;
+
+my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
+        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
+        item list meta unknown-name output para pod raw source-wrap table toc >;
+
+my %templates = @templates Z=> ("\<$_>\{\{\{ contents }}}\</$_>" for @templates);
+%templates<format-b> = '<bold>{{{ contents }}}</bold>';
+$processor .= new(:name<Testing>);
+$processor.templates(%templates);
+
+$processor.custom = <diagram object>;
+$processor.modify-templates(%( diagram => '<figure src="{{ src }}" class="{{ class }}">{{{ contents }}}</figure>',
+                         object => '<object>{{{ contents }}}</object>'));
+=begin pod
+=for diagram :src<http://file.com/file.png> :class<one two three>
+This is a caption
+
+=for object :src<http://file.com/file.png> :class<one two three>
+Some stuff
+
+=end pod
+
+my $rv = $processor.render-block($=pod[$pn++]);
+like $rv, /
+    'figure src="' \s* 'http://file.com/file.png'
+    \s* '" class="' \s* ['one' \s* | 'two' \s* | 'three' \s*] ** 3  \s* '">'
+    .+  'This is a caption'
+    .+ '</figure>'
+    .*
+    '<object>' .+ 'Some stuff' .+ '</object>'
+/, 'output from pod rendered by templates';
+
+=begin pod
+
+=for superdooper :key<pair>
+Shouldn't be here
+
+=end pod
+
+lives-ok { $rv = $processor.render-block($=pod[$pn]) }, 'soft fail to unknown-name';
+like $rv, /
+    '<unknown-name>' .+ 'Shouldn\'t be here' .+ '</unknown-name>'
+    /, 'renders as a unknown-name block';
+
+$processor.custom.push: 'superdooper';
+
+throws-like { $processor.render-block($=pod[$pn++]) }, X::ProcessedPod::Non-Existent-Template,
+        'traps custom object without template',
+        message => / 'non-existent template ｢superdooper｣' .+ 'key' .+ 'pair' /;
+
+=begin pod
+
+=for superdooper :template<object>
+Will render this
+
+=end pod
+
+$rv = $processor.render-block($=pod[$pn++]);
+like $rv, /
+    '<object>' .+ 'Will render this' .+ '</object>'
+/, 'new block rendered by existing template';
+
+=begin pod
+
+=for object :src<http://file.com/file.png> :class<one two three>
+Some stuff with B<embedded> Rakudoc
+
+=end pod
+$processor.modify-templates(%(
+    :object('<processed>{{{ contents }}}</processed>'
+            ~ '<raw>{{{ raw-contents }}}</raw>'),
+    :raw('{{{ contents }}}'),
+    )
+);
+$rv = $processor.render-block($=pod[$pn++]);
+like $rv, /
+        '<processed><para><escaped>Some stuff with </escaped><bold><escaped>embedded</escaped></bold>' .+ '</para></processed>'
+        /, 'got processed contents';
+like $rv, /
+        '<raw>Some stuff with <bold>embedded</bold> Rakudoc</raw>'
+    /, 'got raw contents';
+
+done-testing;

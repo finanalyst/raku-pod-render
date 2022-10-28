@@ -1,0 +1,62 @@
+=begin pod
+=head1 Usage with compiler
+
+From the terminal:
+=begin code :lang<shell>
+raku --doc=MarkDown2 input.raku > README.md
+=end code
+
+This takes the POD in the C<input.raku> file, transforms it into MarkDown. This module uses the Mustache templating engine.
+
+Some rendering options can be passed via the PODRENDER Environment variable. The options can be used to turn off components of the page.
+
+=begin code :lang<shell>
+PODRENDER='NoTOC NoFoot' raku --doc=MarkDown input.raku > README.md
+=end code
+
+The following regexen are applied to PODRENDER and switch off the default rendering of the respective section:
+
+=begin table
+regex applied |  if Match, then Turns off
+============================================
+/:i 'no' '-'? 'toc' / | Table of Contents
+/:i 'no' '-'? 'meta' / | Meta information (eg AUTHOR)
+/:i 'no' '-'? 'footnotes' / | Footnotes.
+=end table
+
+Any or all of 'NoTOC', 'NoMeta', or 'NoFoot' may be included in any order.
+Default is to include each section.
+
+=head1 Usage from a program
+
+The class can be used from a program,
+such as L<raku-pod-extraction|https://github.com/finanalyst/raku-pod-extraction>.
+
+=head1 More detail and differences from Pod::To::HTML2
+
+See L<RenderPod> L<PodToHTML2> for more detail. C<Pod::To::MarkDown2> has
+templates to produce MarkDown and not HTML. In addition:
+
+=item A boolean C<github-badge> (default: False) and an associated string C<badge-path>
+(default: C<'/actions/workflows/test.yaml/badge.svg'>) are provided. These will generate
+a badge at the start of a Pod6 file converted to Markdown, such as README.md, that will show
+the github badge.
+
+=item The target rewrite function needs to be over-ridden.
+
+=item MarkDown2 is not intended for internal links. So there is no glossary and META data
+is treated as paragraphs.
+
+=item Footnotes have to be rendered at the end of the document, and there is
+no backward link from the footnote to the originating text.
+
+=item <Pod::To::MarkDown2> uses the Mustache template system, not the Raku Closure Templates.
+
+=item If a template
+file called B<md-templates.raku> is contained in the Current Working Directory, and that
+file has the same format as the default templates, then it will over-ride the default templates.
+See L<RenderPod> for more detail.
+
+=item C<Pod::To::MarkDown2> currently has no plugins
+
+=end pod

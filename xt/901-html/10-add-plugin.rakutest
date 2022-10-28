@@ -1,0 +1,49 @@
+use v6.d;
+use Test;
+use Pod::To::HTML2;
+use File::Directory::Tree;
+
+my $rv;
+my $processor;
+my $def-dir = 'xt/test-def'.IO;
+my $tar-dir = 'xt/tar-dir'.IO;
+
+bail-out "Requires $def-dir and $tar-dir" unless ($def-dir ~~ :e and $tar-dir ~~ :e);
+chdir ~$tar-dir;
+
+plan 2;
+# add new plugin to current directory
+rmtree 'new-plugin' if 'new-plugin'.IO ~~ :e;
+mktree 'new-plugin';
+# plugin needs a config.raku, a template file, a custom block file
+'new-plugin/config.raku'.IO.spurt( q:to/FILE/ );
+    %( :template-raku<templates.raku>, :custom-raku<custom.raku> )
+    FILE
+'new-plugin/custom.raku'.IO.spurt( q:to/FILE/ );
+    <NEWBLOCK NewBlock>
+    FILE
+'new-plugin/templates.raku'.IO.spurt( q:to/FILE/ );
+    %(
+        newblock => sub (%prm, %tml) {
+            '<div class="new-block">' ~ %prm<contents> ~ '</div>'
+        }
+    )
+    FILE
+=begin pod
+This is ambient
+
+=NewBlock Some extra text
+
+More ambient text
+
+=end pod
+$processor = Pod::To::HTML2.new(:$def-dir, :plugins<new-plugin latex-render>);
+cmp-ok 'NewBlock', '(elem)', $processor.custom.list, 'got new block as custom key';
+$rv = $processor.process-pod($=pod);
+like $rv, /
+    '<div class="new-block">'
+    .*? 'Some extra text'
+    .*? '</div>'
+    /, 'new plugin has been used';
+
+done-testing;

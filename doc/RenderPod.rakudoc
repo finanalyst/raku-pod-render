@@ -17,12 +17,14 @@ It also means that the same generic class can be used for HTML and MarkDown, or 
 
 Two other modules are provided: C<Pod::To::HTML2> and C<Pod::To::MarkDown>. For more information on them, see L<Pod::To::HTML2|Pod2HTML2>. These have
 the functionality and default templates to be used in conjunction with the
-B<raku> (aka perl6) compiler option C<--doc=name>.
+B<raku> (aka perl6) compiler option C<--doc=name>. Eg:
 
-ProcessedPod has also been designed to allow for rendering multiple POD6
+    raku --doc=HTML2 a-raku-program-with-rakudoc-content.raku
+
+ProcessedPod has also been designed to allow for rendering multiple Rakudoc (POD6)
 files. In this case, the components collected from individual source, such as TOC, Glossary, Footnotes, and Metadata
 information, need to be combined. However, a user will want to have pages dedicated to the whole collection of sources,
-with the content of these collection pages described using POD6, which will require customised pod and associated templates,
+with the content of these collection pages described using Rakudoc (POD6), which will require customised pod and associated templates,
 but also the templates will need to have data provided from an external source (eg. the collective TOC). This functionality
 can be added via plugins.
 
@@ -85,8 +87,8 @@ C<no-glossary>, C<no-footnotes>, or C<no-meta> in the config of pod. eg
 
 =head1 Templates
 
-POD6 files contain both content and hints about how to render the content. The aim of this module is to separate the
-output completely from processing the POD6.
+Rakudoc (POD6) files contain both content and hints about how to render the content. The aim of this module is to separate the
+output completely from processing the Rakudoc (POD6).
 
 Both a new Raku-Closure-Template system (see L<RakuClosureTemplates>) and the Template::Mustache system can be used.
 Essentially Raku-Closure-Templates are Raku C<subs> which are compiled by Raku and the run to generate a string.
@@ -209,7 +211,7 @@ Verbose causes information to be produced by the template handler and rendering 
 
 =head1 Handling Declarator blocks
 
-Currently POD6 that starts with C<|#> or C<#=> next to a declaration are not handled consistently or correctly.
+Currently Rakudoc (POD6) that starts with C<|#> or C<#=> next to a declaration are not handled consistently or correctly.
 Declarator comments only work when associated with C<Routine> declarations, such as C<sub> or C<method>.
 Declarator comments associated with variables are concatenated by the compiler with the next C<Routine> declaration.
 
@@ -236,7 +238,7 @@ which returns a String, viz C< .render( Str $string, Hash %params, :from( %hash-
 
 =head1 Customised Pod and Templates
 
-The POD6 specification is sufficiently generic to allow for some easy customisations, and the C<Pod::To::HTML2> renderer
+The Rakudoc (POD6) specification is sufficiently generic to allow for some easy customisations, and the C<Pod::To::HTML2> renderer
 in this distribution passes the associated meta data on to the template. This allows for the customisation of Pod::Blocks
 and Format Codes.
 
@@ -246,12 +248,13 @@ Standard Pod allows for Pod::Blocks to be B<named> and configuration data provid
 syntax to allow for non-standard blocks and templates.
 
 If a class needs to be added to Pod Block, say a specific paragraph, then the following can be put in a pod file
-
+=begin code
     =begin para :class<float right>
         Paragraph texts
     =end para
+=end code
 
-The 'para' template needs to be changed (either on the fly or at instantiation)
+Suppose the 'para' template needs to be changed (either on the fly or at instantiation)
 
     para => '<p{{# class }} class="{{ class }}">{{{ contents }}</p>'
 
@@ -304,6 +307,7 @@ C<TITLE>, C<SUBTILE> etc. Care needs to be taken to ensure the template specifie
 given.
 
 Pod Blocks that have been added as custom provide some extra functionality in order to aid plugin development.
+
 =head3 Plugin config data
 
 When a L<plugin is added|Plugins> the configuration data of the plugin is added to the C<ProcessedPod>
@@ -339,7 +343,7 @@ It is for the template to use the target appropriately.
 
 This is even easier to handle as all that is needed is to supply a template in the form C<format-ß> where B<ß> is a
 unicode character other than the standard codes, viz., B<B C E I K L N P T U V X Z>, which are defined
-in the Pod6 specification. Several of the standard codes, such as B<L> and B<X>, parse the contents, placing
+in the Rakudoc (POD6) specification. Several of the standard codes, such as B<L> and B<X>, parse the contents, placing
 all data after C<|> in the meta container, and if separated by C<;>, meta contains a list of data itmes.
 
 If a ProcessedPod object comes across a non-standard Format Code letter, it will parse the contents, using the semantics
@@ -380,7 +384,7 @@ to have any action.
 =head1 Plugins
 
 A plugin contains Custom Pod Blocks and Custom Templates, and it may contain other data that cannot be inferred from
-the POD6 content files, such as css, scss, HTML scripts, JQuery plugins, etc.
+the Rakudoc (POD6) content files, such as css, scss, HTML scripts, JQuery plugins, etc.
 
 Templates can be added using the C<.modify-templates> method.
 
@@ -401,8 +405,30 @@ my-plugin/
 -- blocks.raku
 =end code
 
-C<templates.raku> must be a valid Raku program that evaluates to a C<Hash> whose keys are added as
-described in C<.modify-templates>.
+C<templates.raku> must be a valid Raku program that evaluates to a C<Hash>.
+There is a difference between the template hash for a plugin, and the
+template hash for C<.modify-templates>.
+
+In order to allow for plugins
+to be used with multiple template engines, the first level keys may be the name
+of the templating engine. The first-level keys then point to the extra templates
+provided by the plugin.
+
+Since the default templating engine is C<RakuClosureTemplater> the first level keys
+are tested to see whether they include B<rakuclosuretemplater>. If so, other keys
+correspond to other templating engines.
+
+The current valid keys (case insensitive) are:
+=item MustacheTemplater
+=item CroTemplater
+=item RakuClosureTemplater
+
+If the B<rakuclosuretemplater> key exists, then the templates corresponding to
+the C<.templater.Str.lc> method chain are chosen.
+
+If the templater engine is B<not> C<RakuClosureTemplater> and the plugin templates do
+not contain a key for the templater engine, then a C<X::ProcessedPod::BadPluginTemplates>
+will be thrown.
 
 C<add-plugin> is defined as
 
@@ -685,7 +711,7 @@ Within the templating Role
     #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
     has @.required = < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
-        item list meta named output para pod raw source-wrap table toc >;
+        item list meta unknown-name output para pod raw source-wrap table toc >;
     #| must have templates. Generically, no templates loaded.
     has Bool $.templates-loaded is rw = False;
     has $.templater-is is rw = 'rakuclosure';
@@ -792,10 +818,6 @@ Within the GenericPod class
     has %!plugin-data = {};
 =end code
 
-=head1 ExtractPod
-
-This is a helper module that provides a version of C<load> instead of the file load version of Pod::Load.
-
 =head1 Templates
 
 More information can be found in L<PodTemplates|PodTemplates>
@@ -804,7 +826,7 @@ There is a minimum set of templates that must be provided for a Pod file to be r
 =begin code
     < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
-        item list meta named output para pod raw source-wrap table toc >
+        item list meta unknown-name output para pod raw source-wrap table toc >
 =end code
 
 When the C<.templates> method is called, the templates will be checked against this list for completeness. An

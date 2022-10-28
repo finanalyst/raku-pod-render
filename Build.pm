@@ -14,6 +14,24 @@ sub test-highlighter( Str $hilite-path --> Bool ) {
 }
 
 method build($dist-path) {
+    my $def = "$*HOME/.local/share/PodRender";
+    note "Creating $def";
+    my @todo = "$dist-path/resources".IO, ;
+    while @todo {
+        for @todo.pop.dir -> $path {
+            next if $path ~~ m/<[_]>/ ;
+            my $b = $path.basename;
+            my $part-d = $path.dirname.subst(/ ^ "$dist-path/resources" \/? /, '');
+            if $path.d {
+                "$def/$part-d/$b".IO.cleanup.mkdir;
+                @todo.push: $path
+            }
+            else {
+                $path.copy("$def/$part-d/$b".IO.cleanup.Str);
+            }
+        }
+    }
+    # handle the Highlighting
     unless %*ENV<POD_RENDER_HIGHLIGHTER>:exists and %*ENV<POD_RENDER_HIGHLIGHTER> {
         note "Not building highlighting";
         exit 0
@@ -42,7 +60,7 @@ method build($dist-path) {
     chdir $hilite-path;
     for <highlight-filename-from-stdin.coffee package.json> -> $fn {
         "$hilite-path/$fn".IO.spurt:
-        "$dist-path/resources/highlights/$fn".IO.slurp;
+        "$dist-path/resources/highlight_files/$fn".IO.slurp;
     }
     my $git-run;
     if 'atom-language-perl6'.IO.d {

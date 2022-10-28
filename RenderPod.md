@@ -1,7 +1,7 @@
 # Rendering Pod Distribution
+>A generic distribution to render Pod in a file (program or module) or in a cache (eg. the Raku documentation collection). The module allows for user defined pod-blocks, user defined rendering templates, and user defined plugins that provide custom pod blocks, templates, and external data.
 
-----
-----
+
 ## Table of Contents
 [Creating a Renderer](#creating-a-renderer)  
 [Pod Source Configuration](#pod-source-configuration)  
@@ -18,7 +18,6 @@
 [Change the Templating Engine](#change-the-templating-engine)  
 [Customised Pod and Templates](#customised-pod-and-templates)  
 [Custom Pod Block](#custom-pod-block)  
-[Para](#para)  
 [Plugin config data](#plugin-config-data)  
 [Table of Contents](#table-of-contents)  
 [Custom Format Code](#custom-format-code)  
@@ -42,7 +41,6 @@
 [source-wrap](#source-wrap)  
 [Individual component renderers](#individual-component-renderers)  
 [Public Class Attributes](#public-class-attributes)  
-[ExtractPod](#extractpod)  
 [Templates](#templates)  
 
 ----
@@ -50,9 +48,12 @@ This distribution ('distribution' because it contains several modules and other 
 
 The output depends entirely on the templates. Absolutely no output rendering is performed in the module that processes the POD6 files. The body of the text, TOC, Glossary, and Footnotes can be output or suppressed, and their position can be controlled using a combination of templates, or in the case of HTML, templates and CSS. It also means that the same generic class can be used for HTML and MarkDown, or any other output format such as epub.
 
-Two other modules are provided: `Pod::To::HTML2` and `Pod::To::MarkDown`. For more information on them, see [Pod::To::HTML2](Pod2HTML2.md). These have the functionality and default templates to be used in conjunction with the **raku** (aka perl6) compiler option `--doc=name`.
+Two other modules are provided: `Pod::To::HTML2` and `Pod::To::MarkDown`. For more information on them, see [Pod::To::HTML2](Pod2HTML2.md). These have the functionality and default templates to be used in conjunction with the **raku** (aka perl6) compiler option `--doc=name`. Eg:
 
-ProcessedPod has also been designed to allow for rendering multiple POD6 files. In this case, the components collected from individual source, such as TOC, Glossary, Footnotes, and Metadata information, need to be combined. However, a user will want to have pages dedicated to the whole collection of sources, with the content of these collection pages described using POD6, which will require customised pod and associated templates, but also the templates will need to have data provided from an external source (eg. the collective TOC). This functionality can be added via plugins.
+```
+raku --doc=HTML2 a-raku-program-with-rakudoc-content.raku
+```
+ProcessedPod has also been designed to allow for rendering multiple Rakudoc (POD6) files. In this case, the components collected from individual source, such as TOC, Glossary, Footnotes, and Metadata information, need to be combined. However, a user will want to have pages dedicated to the whole collection of sources, with the content of these collection pages described using Rakudoc (POD6), which will require customised pod and associated templates, but also the templates will need to have data provided from an external source (eg. the collective TOC). This functionality can be added via plugins.
 
 The `Pod::To::HTML2` module has a simple way of handling customised CSS, but no way to access embedded images other than svg files. Modifying the templates, when there is information about the serving environment, can change this.
 
@@ -99,7 +100,7 @@ The rendering of page components can be explicitly turned off by setting `no-toc
 
 ```
 # Templates
-POD6 files contain both content and hints about how to render the content. The aim of this module is to separate the output completely from processing the POD6.
+Rakudoc (POD6) files contain both content and hints about how to render the content. The aim of this module is to separate the output completely from processing the Rakudoc (POD6).
 
 Both a new Raku-Closure-Template system (see [RakuClosureTemplates](RakuClosureTemplates.md)) and the Template::Mustache system can be used. Essentially Raku-Closure-Templates are Raku `subs` which are compiled by Raku and the run to generate a string.
 
@@ -195,7 +196,7 @@ Debug causes information to be produced in each Block Handle, so will be trigger
 Verbose causes information to be produced by the template handler and rendering subs.
 
 # Handling Declarator blocks
-Currently POD6 that starts with `|#` or `#=` next to a declaration are not handled consistently or correctly. Declarator comments only work when associated with `Routine` declarations, such as `sub` or `method`. Declarator comments associated with variables are concatenated by the compiler with the next `Routine` declaration.
+Currently Rakudoc (POD6) that starts with `|#` or `#=` next to a declaration are not handled consistently or correctly. Declarator comments only work when associated with `Routine` declarations, such as `sub` or `method`. Declarator comments associated with variables are concatenated by the compiler with the next `Routine` declaration.
 
 `GenericPod` passes out the declaration code as `:code` and the associated content as <:contents>. It also **adds** the code to the `Glossary` page component, generating a `:target` for the link back.
 
@@ -212,21 +213,24 @@ The new role may only need to over-ride `method rendition( Str $key, Hash %param
 Assuming that the templating engine is NewTemplateEngine, and that - like Template::Mustache - it is instantiates with `.new`, and has a `.render` method which takes a String template, and Hash of strings to interpolate, and which returns a String, viz `.render( Str $string, Hash %params, :from( %hash-of-templates) --` Str )>.
 
 # Customised Pod and Templates
-The POD6 specification is sufficiently generic to allow for some easy customisations, and the `Pod::To::HTML2` renderer in this distribution passes the associated meta data on to the template. This allows for the customisation of Pod::Blocks and Format Codes.
+The Rakudoc (POD6) specification is sufficiently generic to allow for some easy customisations, and the `Pod::To::HTML2` renderer in this distribution passes the associated meta data on to the template. This allows for the customisation of Pod::Blocks and Format Codes.
 
 ## Custom Pod Block
 Standard Pod allows for Pod::Blocks to be **named** and configuration data provided. This allows us to leverage the standard syntax to allow for non-standard blocks and templates.
 
 If a class needs to be added to Pod Block, say a specific paragraph, then the following can be put in a pod file
 
-# para
+```
+    =begin para :class<float right>
+        Paragraph texts
+    =end para
 
-Paragraph texts
+```
+Suppose the 'para' template needs to be changed (either on the fly or at instantiation)
 
-The 'para' template needs to be changed (either on the fly or at instantiation)
-
+```
 para => '<p{{# class }} class="{{ class }}">{{{ contents }}</p>'
-
+```
 A completely new block can be created. For example, the HTML module adds the `Image` custom block by default, and provides the `image` template.
 
 In keeping with other named blocks, _Title_ case may be conventionally used for the block name but _Lower_ case is required for the template. Note the _Upper_ case (all letters) is reserved for descriptors that are added (in HTML) as meta data.
@@ -294,7 +298,7 @@ The parameters passed to the template will also contain a `:target` key, which c
 It is for the template to use the target appropriately.
 
 ## Custom Format Code
-This is even easier to handle as all that is needed is to supply a template in the form `format-ß` where **ß** is a unicode character other than the standard codes, viz., **B C E I K L N P T U V X Z**, which are defined in the Pod6 specification. Several of the standard codes, such as **L** and **X**, parse the contents, placing all data after `|` in the meta container, and if separated by `;`, meta contains a list of data itmes.
+This is even easier to handle as all that is needed is to supply a template in the form `format-ß` where **ß** is a unicode character other than the standard codes, viz., **B C E I K L N P T U V X Z**, which are defined in the Rakudoc (POD6) specification. Several of the standard codes, such as **L** and **X**, parse the contents, placing all data after `|` in the meta container, and if separated by `;`, meta contains a list of data itmes.
 
 If a ProcessedPod object comes across a non-standard Format Code letter, it will parse the contents, using the semantics defined for **X**, as described above.
 
@@ -330,7 +334,7 @@ Would yield
 Naturally, the developer would need to set up significantly more HMTL/JS/CSS boilerplate in the header for this to have any action.
 
 # Plugins
-A plugin contains Custom Pod Blocks and Custom Templates, and it may contain other data that cannot be inferred from the POD6 content files, such as css, scss, HTML scripts, JQuery plugins, etc.
+A plugin contains Custom Pod Blocks and Custom Templates, and it may contain other data that cannot be inferred from the Rakudoc (POD6) content files, such as css, scss, HTML scripts, JQuery plugins, etc.
 
 Templates can be added using the `.modify-templates` method.
 
@@ -352,7 +356,23 @@ my-plugin/
 -- blocks.raku
 
 ```
-`templates.raku` must be a valid Raku program that evaluates to a `Hash` whose keys are added as described in `.modify-templates`.
+`templates.raku` must be a valid Raku program that evaluates to a `Hash`. There is a difference between the template hash for a plugin, and the template hash for `.modify-templates`.
+
+In order to allow for plugins to be used with multiple template engines, the first level keys may be the name of the templating engine. The first-level keys then point to the extra templates provided by the plugin.
+
+Since the default templating engine is `RakuClosureTemplater` the first level keys are tested to see whether they include **rakuclosuretemplater**. If so, other keys correspond to other templating engines.
+
+The current valid keys (case insensitive) are:
+
+*  MustacheTemplater
+
+*  CroTemplater
+
+*  RakuClosureTemplater
+
+If the **rakuclosuretemplater** key exists, then the templates corresponding to the `.templater.Str.lc` method chain are chosen.
+
+If the templater engine is **not** `RakuClosureTemplater` and the plugin templates do not contain a key for the templater engine, then a `X::ProcessedPod::BadPluginTemplates` will be thrown.
 
 `add-plugin` is defined as
 
@@ -595,7 +615,7 @@ Within the templating Role
     #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
     has @.required = < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
-        item list meta named output para pod raw source-wrap table toc >;
+        item list meta unknown-name output para pod raw source-wrap table toc >;
     #| must have templates. Generically, no templates loaded.
     has Bool $.templates-loaded is rw = False;
     has $.templater-is is rw = 'rakuclosure';
@@ -704,9 +724,6 @@ Within the GenericPod class
     has %!plugin-data = {};
 
 ```
-# ExtractPod
-This is a helper module that provides a version of `load` instead of the file load version of Pod::Load.
-
 # Templates
 More information can be found in [PodTemplates](PodTemplates.md)
 
@@ -715,7 +732,7 @@ There is a minimum set of templates that must be provided for a Pod file to be r
 ```
     < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
-        item list meta named output para pod raw source-wrap table toc >
+        item list meta unknown-name output para pod raw source-wrap table toc >
 
 ```
 When the `.templates` method is called, the templates will be checked against this list for completeness. An Exception will be thrown if all the templates are not provided. Extra templates can be included. `Pod::To::HTML2` uses this to have partial templates that use the required templates.
@@ -727,4 +744,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2021-02-13T14:47:00Z
+Rendered from RenderPod at 2022-10-28T16:54:51Z

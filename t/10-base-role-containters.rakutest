@@ -1,0 +1,8 @@
+use Test;
+
+plan 2;
+
+use-ok "RenderPod::Highlighting";
+use-ok "RenderPod::Templating";
+
+done-testing;

@@ -1,0 +1,55 @@
+use v6.*;
+use Test;
+
+use Pod::To::HTML2;
+my $def-dir = 'xt/test-def'.IO;
+my $tar-dir = 'xt/tar-dir'.IO;
+
+bail-out "Requires $def-dir and $tar-dir" unless ($def-dir ~~ :e and $tar-dir ~~ :e);
+# copy test files to tar-dir
+'resources/test_things/badfile.txt'.IO.copy("$tar-dir/badfile.txt");
+'resources/test_things/disclaimer.txt'.IO.copy("$tar-dir/disclaimer.txt");
+
+chdir ~$tar-dir;
+
+my $processor = Pod::To::HTML2.new(:$def-dir, :plugins() );
+my $rv;
+my $pn = 0;
+
+plan 2;
+
+=begin pod
+    =COPYRIGHT
+    P<https://raw.githubusercontent.com/rakudo/rakudo/master/LICENSE>
+
+    =DISCLAIMER
+    P<file:disclaimer.txt>
+
+    =DOCUMENTS
+    P<https://doc.perl6.org>
+
+=end pod
+
+$rv = $processor.render-block( $=pod[$pn++] );
+like $rv,
+        /
+    'Artistic License 2.0'
+    .+
+    'ABSOLUTELY NO WARRANTY IS IMPLIED'
+    .+
+    'Raku Documentation'
+    /,'Seems to have got all three docs';
+
+=begin pod
+
+    =EVIL
+    P<file:badfile.txt>
+
+=end pod
+
+$rv = $processor.render-block( $=pod[$pn++] );
+like $rv, /
+'The text contains a &lt;/pre&gt; which could cause formatting problems'
+/, 'Escape out containers';
+
+done-testing;

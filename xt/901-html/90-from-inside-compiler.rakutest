@@ -1,0 +1,89 @@
+use Test;
+use File::Directory::Tree;
+my $def = 'test-def';
+my $def-dir = "xt/$def".IO;
+my $tar-dir = 'xt/shell-dir'.IO;
+
+bail-out "Requires $def-dir" unless $def-dir ~~ :e;
+rmtree ~$tar-dir if $tar-dir ~~ :e;
+mktree ~$tar-dir;
+chdir ~$tar-dir;
+plan 15;
+
+diag 'RAKOPTS unset';
+my $p = shell "RAKDEFAULTS=../$def raku -I../.. --doc=HTML2 ../../resources/test_things/rend-test-file.raku", :out;
+
+my $rv = $p.out.slurp(:close);
+
+like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /,
+        'Pod::To::HTML2 works with compiler';
+
+like $rv, /
+'id="_Glossary"'
+/, 'glossary is rendered';
+
+like $rv, /
+'<meta name="Author" value="An author' .+ '"' .+ '/>'
+.+ '<meta name="Summary" value="This page' .+ '/>'
+/, 'meta is rendered';
+
+like $rv,
+        /
+        'id="_TOC"'
+        /, 'rendered TOC';
+
+like $rv, /
+'id="_Footnotes"'
+/, 'footnotes rendered';
+
+diag 'RAKOPTS="no-toc"';
+$p = shell "RAKOPTS='no-toc' RAKDEFAULTS=../$def raku -I../.. --doc=HTML2 ../../resources/test_things/rend-test-file.raku", :out;
+$rv = $p.out.slurp(:close);
+
+like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /,
+        'Pod::To::HTML2 works with compiler';
+
+like $rv, /
+'id="_Glossary"'
+/, 'glossary is rendered';
+
+like $rv, /
+'<meta name="Author" value="An author' .+ '"' .+ '/>'
+.+ '<meta name="Summary" value="This page' .+ '/>'
+/, 'meta is rendered';
+
+unlike $rv,
+        /
+        'id="_TOC"'
+        /, 'not rendered TOC';
+
+like $rv, /
+'id="_Footnotes"'
+/, 'footnotes rendered';
+
+diag 'RAKOPTS="no-toc no-glos"';
+$p = shell "RAKOPTS='no-toc no-glos' RAKDEFAULTS=../$def raku -I../.. --doc=HTML2 ../../resources/test_things/rend-test-file.raku", :out;
+$rv = $p.out.slurp(:close);
+
+like $rv, / .*? '<html' .*? '>' .*? '<body' .*? '>' .*? 'Some pod' .*? '</body>' .*? '</html>' /,
+        'Pod::To::HTML2 works with compiler';
+
+unlike $rv, /
+'id="_Glossary"'
+/, 'glossary not rendered';
+
+like $rv, /
+'<meta name="Author" value="An author' .+ '"' .+ '/>'
+.+ '<meta name="Summary" value="This page' .+ '/>'
+/, 'meta is rendered';
+
+unlike $rv,
+        /
+        'id="_TOC"'
+        /, 'not rendered TOC';
+
+like $rv, /
+'id="_Footnotes"'
+/, 'footnotes rendered';
+
+done-testing;

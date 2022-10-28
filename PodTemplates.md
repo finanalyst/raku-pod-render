@@ -11,6 +11,10 @@
 [Examples](#examples)  
 [Parameters of required templates](#parameters-of-required-templates)  
 [Notes](#notes)  
+[Custom block parameters](#custom-block-parameters)  
+[Notes](#notes)  
+[HTML2](#html2)  
+[Notes](#notes)  
 
 ----
 This describes the template set for the ProcessedPod renderer, the templating engines that can be used, the Test-Template functions, and the test-templates verification utility.
@@ -42,7 +46,7 @@ RakuClosureTemplater
 CroTemplater
 
 # Minimum Set
-The minimum set of templates is `block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading item list meta named output para pod raw source-wrap table toc`.
+The minimum set of templates is `block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading item list meta unknown-name output para pod raw source-wrap table toc`.
 
 Almost all of these templates expect a [parameter to be rendered](Parameters of required templates.md). The test functions will check the templates for the parameters to be returned.
 
@@ -149,7 +153,11 @@ Examples of a set of RakuClosureTemplates can be found in the `resources` direct
 *  `extra-test.raku` is a hash with the template structure for the `image` template.
 
 # Parameters of required templates
-These are the parameters for the required templates for `ProcessedPod`, and helper templates in Pod::To::HTML2
+Each block has a default template and provides parameters to the default template. It is possible to over-ride the default template of a block by associating it with `:template<xxxx>` metadata. In this case, the same parameters are provided to the over-ridden template.
+
+It is possible to provide a custom block to ProcessedPod, the parameters are shown below.
+
+HTML2 has some extra templates, shown below.
 
 >Required templates and their normal parameters
 
@@ -214,7 +222,7 @@ These are the parameters for the required templates for `ProcessedPod`, and help
  |  | contents |  | String | contents of block |
  | list |  |  |  | renders a lest of items, |
  |  | items |  | Array | Of strings already rendered with the "item" template |
- | named |  |  |  | A named block is included in the TOC |
+ | unknown-name |  |  |  | A named block is included in the TOC, but is not known to ProcessedPod |
  |  | level |  | String | level of the header implied by the block = 1 |
  |  | target |  | String | The target in the text body to which the TOC entry points |
  |  | top |  | String | The top of the document for the Header to point to |
@@ -223,8 +231,8 @@ These are the parameters for the required templates for `ProcessedPod`, and help
  | output |  |  |  | Output block contents |
  |  | contents |  | String |  |
  | pod |  |  |  |  |
- |  | name |  | String | Like "named" |
- |  | contents |  | String | as "named" |
+ |  | name |  | String | Like "unknown-name" |
+ |  | contents |  | String | as "unknown-name" |
  |  | tail |  | String | any remaining list at end of pod not triggered by next pod statement |
  | table |  |  |  | renders table with hash of keys |
  |  | caption |  | String | possibly empty caption |
@@ -269,18 +277,55 @@ These are the parameters for the required templates for `ProcessedPod`, and help
  |  |  | name | String | Name of meta data, eg. AUTHOR |
  |  |  | value | String | Value of key |
 
+## Notes
+If a block is accompanied by metadata in the Rakudoc document, then that data is also passed to the template.
+
+## Custom block parameters
+When a custom block name is provided to an instance of ProcessedPod, a default template with the same name, but in lower-case, must also be supplied. These are the parameters provided to the custom's default template (which can be over-ridden as explained above).
+
+>Custom Templates, MyBlock and formatcode-F
+
+ | Key | Parameter | Sub-param | Type | Description |
+|:----:|:----:|:----:|:----:|:----:|
+ | myblock |  |  |  | The name block is included in the TOC, unless overridden |
+ |  | level |  | String | level of the header implied by the block, unless overridden |
+ |  | target |  | String | The target in the text body to which the TOC entry points |
+ |  | top |  | String | The top of the document for the Header to point to |
+ |  | name |  | String | The Name of the block |
+ |  | contents |  | String | The processed contents of the block |
+ |  | raw-contents |  | String | Unprocessed contents of the block |
+ |  | myblock | custom structure | Hash | Data provided by plugin |
+ | format-f |  |  |  | A custom format code |
+ |  | contents |  | String | contents |
+ |  | meta |  | String / Array | contents after the straight line |
+
+### Notes
+For a custom block, using 'MyBlock' as an example:
+
+The difference between `contents` and `raw-contents` is that the string in `contents` has been processed by ProcessedPod as if it was a `para` and so if the contents contains embedded Rakudoc blocks, they will be rendered as well.
+
+`raw-contents` processes the contents with context Raw. This renders PodBlocks as text and does not escape contents.
+
+The parameter `myblock` is provided if data has been provided to the instance of ProcessedPod by the plugin that created the custom block and templates. Normally it is the same name as the Block name, but this can be over-ridden using the `:namespace<xxx>` metadata.
+
+The structure of `myblock` is determined by the plugin.
+
+If a custom block is associated with the metadata key `:headlevel(integer)`, then `level` is given the value of `integer`.
+
+If `integer` is 0, then the contents of the block are not included in the Table of Contents.
+
+For a custom format code, using format code `F` as an example:
+
+A Formatting Code in Rakudoc has the form F<contents|metadata> . See documentation about L<> as an example. The template is given this data.
+
+## HTML2
 >Helper templates in Pod::To::HTML2
 
  | Key | Parameter | Calls | Called-by | Description |
 |:----:|:----:|:----:|:----:|:----:|
- | camelia-img |  |  | head-block | Returns the string $camelia-svg |
- | css-text |  |  | head-block | Returns the string $css-text |
- | favicon |  |  | head-block | Returns the string $favicon-bin |
- | image |  |  |  | Renders a Custom =Image Pod Block |
- |  | src |  |  | the src for the image |
- |  | width |  |  | Default width |
- |  | height |  |  | Default height |
- |  | alt |  |  | Default ALT text (when no image is loaded) |
+ | camelia-img |  |  | head-block | Returns a reference to C<camelia-svg> |
+ | css |  |  | head-block | Returns a reference to C<rakudoc-styling.css> |
+ | favicon |  |  | head-block | Returns a reference to C<favicon.ico> |
  | title |  |  | head-block | Helper template to format title for text (title also used in header-block) |
  |  | title |  |  |  |
  |  | title-target |  |  |  |
@@ -299,7 +344,7 @@ These are the parameters for the required templates for `ProcessedPod`, and help
  |  | path |  |  | path to the source file |
  |  | renderedtime |  |  | time the source was rendered |
 
-## Notes
+### Notes
 
 
 *  All blocks pass any extra config parameters to the template, eg., 'class', as well but if a developer passes configuration data to a block, she will be able to use it in the template.
@@ -313,4 +358,4 @@ These are the parameters for the required templates for `ProcessedPod`, and help
 
 
 ----
-Rendered from PodTemplates at 2022-06-13T16:49:51Z
+Rendered from PodTemplates at 2022-10-28T16:55:01Z

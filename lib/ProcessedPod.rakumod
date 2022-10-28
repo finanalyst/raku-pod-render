@@ -16,6 +16,7 @@ grammar FC {
     token TOP {
         <head>
         | <head> \s* '|' \s* <metas> \s*
+        | ^ '|' \s* <metas> \s*
     }
 
     token head-word { <-[|\h]>+ }
@@ -178,8 +179,8 @@ class ProcessedPod does SetupTemplates {
 
     my enum Context <None Heading HTML Raw Output InPodCode>;
 
-    submethod TWEAK {
-        with %*ENV<PODRENDER> {
+    submethod TWEAK(:$rakopts) {
+        with %*ENV<RAKOPTS> // $rakopts {
             $!no-toc = ?m/:i 'No' \-? 'TOC'/;
             $!no-footnotes = ?m/:i 'No' \-? 'Foot'/;
             $!no-glossary = ?m/:i 'No' \-? 'Glos'/;
@@ -191,12 +192,12 @@ class ProcessedPod does SetupTemplates {
 
     # The next function is placed here because it may need to be over-ridden. (see Pod::To::Markdown)
 
-    #| rewrites targets (link destinations) to be made unique and to be cannonised depending on the output format
+    #| rewrites targets (link/footnotes destinations) to be made unique and to be canonised depending on the output format
     #| takes the candidate name, and whether it should be unique
-    #| returns with the cannonised link name
+    #| returns with the canonised link name
     method rewrite-target(Str $candidate-name is copy, :$unique --> Str) {
         # target names inside the POD file, eg., headers, glossary, footnotes
-        # function is called to cannonise the target name and to ensure - if necessary - that
+        # function is called to canonise the target name and to ensure - if necessary - that
         # the target name used in the link is unique.
         # This method uses the default algorithm for HTML and POD
         # It may need to be over-ridden, eg., for MarkDown which uses a different targeting function.
@@ -230,7 +231,7 @@ class ProcessedPod does SetupTemplates {
         else {
             %config = %( :$path )
         }
-        self.modify-templates( $template-raku, :$path ) if $template-raku;
+        self.modify-templates( $template-raku, :$path, :plugin ) if $template-raku;
         self.add-custom( $custom-raku, :$path ) if $custom-raku;
         self.add-data( $plugin-name, %config )
     }
@@ -419,39 +420,61 @@ class ProcessedPod does SetupTemplates {
         $target
     }
 
-    method register-link(Str $entry, Str $link --> List) {
-        return $.pod-file.links{$entry}<target location> if $.pod-file.links{$entry}:exists;
+    method register-link(Str $entry, Str $link-label --> Positional ) {
+        return $.pod-file.links{$entry}<target link-label type place> if $.pod-file.links{$entry}:exists;
         # just return target if it exists
         # A link may be
-        # - internal to the document so rewrite, no filename only #
-        # - to a group of documents with the same format (do not rewrite, template engine to handle extension), target has filename, maybe #
+        # - internal to the document so the target may need to be rewritten depending on output format
+        # - to another documents with the same format (do not rewrite file name, template engine to handle extension), target has filename, maybe a place inside
         # - to an external source no rewrite, has http(s) schema
         given $entry {
-            # remote links first
-            when / ^ 'http://' | ^ 'https://' / { $.pod-file.links{$entry} = %( :target($entry), :location<external>, :$link  ) }
+            # remote links first, if # in link, that will be handled by destination
+            when / ^ 'http://' | ^ 'https://' / {
+                $.pod-file.links{$_} = %(
+                    :target($_),
+                    :$link-label,
+                    :type<external>,
+                    :place()
+                )
+            }
             # next deal with internal links
             when / ^ '#' $<tgt> = (.+) / {
-                $.pod-file.links{$entry} = %(
-                    :target( $.rewrite-target( ~$<tgt>, :!unique) ),
-                    :location<internal>,
-                    :$link
+                $.pod-file.links{$_} = %(
+                    :target(),
+                    :$link-label,
+                    :type<internal>,
+                    :place($.rewrite-target( ~$<tgt>, :!unique))
                 );
             }
             when / (.+?) '#' (.+) $/ {
-                my $int-t = ~$1;
+                my $place = ~$1;
                 my $target = ~$0.subst(/'::'/, '/', :g); # only subst :: in file part
-                $target ~= "\#$int-t";
-                $.pod-file.links{$entry} = %( :$target, :location<local>, :$link );
+                $.pod-file.links{$_} = %(
+                    :$target,
+                    :$link-label,
+                    :type<local>,
+                    :$place
+                );
             }
-            when / '::' / {  # so no target inside file
-                my $target = $entry.subst(/'::'/,'/',:g );
-                $.pod-file.links{$entry} = %( :$target, :location<local>, :$link )
+            when / '::' / {  # so no place inside file, which would have been dealt with above
+                my $target = .subst(/'::'/,'/',:g );
+                $.pod-file.links{$_} = %(
+                    :$target,
+                    :$link-label,
+                    :type<local>,
+                    :place()
+                )
             }
             default  {
-                $.pod-file.links{$entry} = %(:target($entry), :location<local>, :$link)
+                $.pod-file.links{$_} = %(
+                    :target($_),
+                    :$link-label,
+                    :type<local>,
+                    :place()
+                )
             }
         }
-        $.pod-file.links{$entry}<target location>
+        $.pod-file.links{$entry}<target link-label type place>
     }
 
     # A footnote structure is created storing both the target anchor (with the footnote text)
@@ -480,7 +503,7 @@ class ProcessedPod does SetupTemplates {
     #| completes list if the context indicates the end of a list
     #| returns the string representation of the block / list
     method completion(Int $in-level, Str $key, %params, Bool :$defn --> Str) {
-        note "At $?LINE completing with template ｢$key｣ list level $in-level definition list ｢$defn｣" if $!debug;
+        note "Completion with template ｢$key｣ list level $in-level definition list ｢$defn｣" if $!debug;
         note 'Templates used so far: ', $.templs-used if $!debug and $!verbose;
         # most blocks would end a list if it exists, so call with zero
         # but if no list, viz $in-level=0, or a defn list then just return.
@@ -508,16 +531,16 @@ class ProcessedPod does SetupTemplates {
             if $top-level > 1 {
                 @.itemlist[$top-level - 2][0] = '' unless @.itemlist[$top-level - 2][0]:exists;
                 @.itemlist[$top-level - 2][*- 1] ~= self.rendition('list', %( :nesting($top-level - 1), :items(@.itemlist.pop)));
-                note "At $?LINE rendering with template ｢list｣ list level $in-level" if $!debug;
+                note "Rendering with template ｢list｣ list level $in-level" if $!debug;
             }
             else {
                 $rv ~= self.rendition('list', %( :0nesting, :items(@.itemlist.pop)));
-                note "At $?LINE rendering with template ｢list｣ list level $in-level" if $!debug;
+                note "Rendering with template ｢list｣ list level $in-level" if $!debug;
             }
             $top-level = @.itemlist.elems
         }
         $rv ~= self.rendition($key, %params);
-        note "At $?LINE rv is ", $rv.substr(0, 150), ("\n... (" ~ $rv.chars - 150 ~ ' more chars)' if $rv.chars > 150 )
+        note "Ending completion with rv: ", $rv.substr(0, 150), $rv.chars > 150 ?? "\n... (" ~ $rv.chars - 150 ~ ' more chars)' !! ''
             if $.debug and $.verbose;
         $rv
     }
@@ -530,21 +553,24 @@ class ProcessedPod does SetupTemplates {
         $n.contents>>.&recurse-until-str().join
     }
 
+    proto method handle(|c) {
+        note 'Node is ' ~ |c[0].^name
+            ~ (|c[0].^can('name') ?? (' with name ｢' ~ |c[0].name) ~ '｣' !! '')
+            ~ (|c[0].^can('type') ?? (' with type ｢' ~ |c[0].type) ~ '｣' !! '')
+            if $.debug;
+        {*}
+    }
+
     #| Handle processes Pod blocks, bare strings, and throws if a Nil
     multi method handle(Nil) {
         X::ProcessedPod::Unexpected-Nil.new.throw
     }
     #| handle strings within a Block, don't need to be escaped if HTML
     multi method handle(Str $node, Int $in-level, Context $context --> Str) {
-        note "At $?LINE node is Str" if $.debug;
-        $.rendition(($context ~~ HTML or ( $context ~~ InPodCode and $.no-code-escape)) ?? 'raw' !! 'escaped', %( :contents(~$node)))
+        $.rendition((($context ~~ HTML | Raw ) or ( $context ~~ InPodCode and $.no-code-escape)) ?? 'raw' !! 'escaped', %( :contents(~$node)))
     }
 
     multi method handle(Pod::Block::Code $node, Int $in-level, Context $context = InPodCode, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
-        =comment Legacy Pod::To::HTML put code for highlighting here in the main code. The design of this
-        module moves highlighting to the templating section.
-
         # first completion is to flush a retained list before the contents of the block are processed
         my $retained-list = $.completion($in-level, 'zero', %(), :$defn );
         my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, InPodCode, :$defn ) };
@@ -552,7 +578,6 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::Block::Comment $node, Int $in-level, Context $context = None, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
         $.completion($in-level, 'zero', %(), :$defn )
                 ~ $.completion($in-level, 'zero', %( :contents([~] gather for $node.contents {
             take self.handle($_, $in-level, $context, :$defn)
@@ -560,7 +585,6 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::Block::Declarator $node, Int $in-level, Context $context, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
         my $code;
         given $node.WHEREFORE {
             when Routine {
@@ -578,9 +602,8 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::Block::Named $node, Int $in-level, Context $context = None, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         my $target = $.register-toc(:1level, :text($node.name.tclc));
-        my $template = $node.config<template> // 'named';
+        my $template = $node.config<template> // 'unknown-name';
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, $template, %(
                 :name($node.name),
@@ -593,9 +616,8 @@ class ProcessedPod does SetupTemplates {
         )
     }
 
-    multi method handle(Pod::Block::Named $node where $node.name.lc eq 'pod', Int $in-level,
+    multi method handle(Pod::Block::Named $node where .name ~~ /:i ^ 'pod' | 'rakudoc' $/, Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         my $name = $.pod-file.top eq DEFAULT_TOP ?? DEFAULT_TOP !! 'pod';
         # DEFAULT_TOP, until TITLE changes it. Will fail if multiple pod without TITLE
         unless $.pod-block-processed {
@@ -612,34 +634,30 @@ class ProcessedPod does SetupTemplates {
         )
     }
     # TITLE, SUBTITLE, META blocks are not included in Body
-    multi method handle(Pod::Block::Named $node where $node.name eq 'TITLE', Int $in-level,
+    multi method handle(Pod::Block::Named $node where .name eq 'TITLE', Int $in-level,
                         Context $context, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         $.pod-file.title = recurse-until-str($node);
         $.pod-file.title-target = $.pod-file.top = $.register-toc(:1level, :text($.pod-file.title), :is-title);
         $.completion($in-level, 'zero', %($node.config), :$defn )
         # if a list before TITLE this will be needed
     }
 
-    multi method handle(Pod::Block::Named $node where $node.name eq 'SUBTITLE', Int $in-level,
+    multi method handle(Pod::Block::Named $node where .name eq 'SUBTITLE', Int $in-level,
                         Context $context, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         $.pod-file.subtitle = [~] gather for $node.contents { take self.handle($_, 0, None, :$defn) };
         $.completion(0, 'zero', %($node.config), :$defn )
         # we can't guarantee SUBTITLE will be after TITLE
     }
 
-    multi method handle(Pod::Block::Named $node where $node.name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>),
+    multi method handle(Pod::Block::Named $node where .name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>),
                         Int $in-level, Context $context, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         $.register-meta(:name($node.name.tclc), :value(recurse-until-str($node)));
         $.completion($in-level, 'zero', %(), :$defn )
         # make sure any list is correctly ended.
     }
 
-    multi method handle(Pod::Block::Named $node where $node.name eq 'Html' , Int $in-level,
+    multi method handle(Pod::Block::Named $node where $node.name.lc eq 'html' , Int $in-level,
                         Context $context = None, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, 'raw', %( :contents([~] gather for $node.contents { take self.handle($_,
                 $in-level, HTML, :$defn) }), $node.config
@@ -647,9 +665,8 @@ class ProcessedPod does SetupTemplates {
         )
     }
 
-    multi method handle(Pod::Block::Named $node where .name eq 'output', Int $in-level,
+    multi method handle(Pod::Block::Named $node where .name.lc eq 'output', Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, 'output',
             %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Output, :$defn) }),$node.config
@@ -657,9 +674,8 @@ class ProcessedPod does SetupTemplates {
         )
     }
 
-    multi method handle(Pod::Block::Named $node where .name eq 'Raw', Int $in-level,
+    multi method handle(Pod::Block::Named $node where .name.lc eq 'raw', Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, 'raw',
             %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),$node.config)
@@ -669,7 +685,6 @@ class ProcessedPod does SetupTemplates {
 
     multi method handle(Pod::Block::Named $node where .name ~~ any(@.custom), Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name } with name { $node.name // 'na' }" if $.debug;
         my $level = abs($node.config<headlevel> // 1); # no negative levels
         my $target = '';
         $target = $.register-toc(:$level, :text(recurse-until-str($node).tclc))
@@ -677,21 +692,19 @@ class ProcessedPod does SetupTemplates {
         my $template = $node.config<template> // $node.name.lc;
         my $data;
         my $name-space = $node.config<name-space> // $template // $node.name.lc;
-        if %!plugin-data{ $name-space }:exists {
-            $data = %!plugin-data{ $name-space }
-        }
+        $data = $_ with %!plugin-data{ $name-space };
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, $template,
             %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
             $node.config,
             :$target,
+            :raw-contents( [~] gather for $node.contents { take self.handle($_, $in-level, Raw, :$defn ) } ),
             "$name-space" => $data
             ), :$defn
         )
     }
 
     multi method handle(Pod::Block::Para $node, Int $in-level, Context $context where *== Output, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
         $.completion($in-level, 'zero', %(), :$defn )
                 ~ $.completion($in-level, 'raw',
             %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),$node.config)
@@ -700,7 +713,6 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::Block::Para $node, Int $in-level, Context $context, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
         note "Defn flag is $defn and context is $context" if $.verbose;
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, ($defn || $context !~~ None ) ?? 'raw' !! 'para' ,
@@ -709,7 +721,6 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::Block::Table $node, Int $in-level, Context $context, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
         my $template = $node.config<template> // 'table';
         my @headers = gather for $node.headers { take self.handle($_, $in-level, $context) };
         $.completion($in-level, 'zero', %(), :$defn)
@@ -725,7 +736,6 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::Defn $node, Int $in-level, Context $context --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
         $.completion($in-level, 'zero', %(), :defn($!in-defn-list) )
             ~ $.completion($in-level, 'defn',
                 %( :term($node.term), %( :contents([~] gather for $node.contents { take self.handle($_,
@@ -736,7 +746,6 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::Heading $node, Int $in-level, Context $context, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
         my $retained-list = $.completion($in-level, 'zero', %(), :$defn);
         # process before contents
         my $level = $node.level;
@@ -755,7 +764,6 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::Item $node, Int $in-level is copy, Context $context, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
         my $level = $node.level - 1;
         while $level < $in-level {
             --$in-level;
@@ -774,7 +782,6 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::Raw $node, Int $in-level, Context $context = None, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
         $.completion($in-level, 'zero', %(), :$defn )
                 ~ $.rendition('raw',
                 %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Context::Raw, :$defn) }),
@@ -784,28 +791,40 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::Config $node, Int $in-level, Context $context = None, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, 'comment',
             %( :contents($node.type ~ '=' ~ $node.config.raku)))
     }
-
-    multi method handle(Pod::FormattingCode $node, Int $in-level, Context $context where *== Raw, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name }" if $.debug;
-        $.completion($in-level, 'raw',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }))
-                , :$defn)
-    }
-
-    multi method handle(Pod::FormattingCode $node where .type ~~ none(<E Z X N L P V>), Int $in-level,
+    multi method handle(Pod::FormattingCode $node where .type ~~ any( <B C I K T U> ), Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) };
         my $meta = @($node.meta) // []; # by default an empty array
-        unless $node.type ~~ any(<B C I K T U>) {
-            my $rv = FC.parse( $contents );
-            $contents = ~ $rv<head>;
-            $meta.append($rv<metas><meta>».Str) if $rv<metas><meta>
+        $.completion($in-level, 'format-' ~ $node.type.lc ,
+                %( :$contents, :$meta ), :$defn
+            )
+    }
+    multi method handle(Pod::FormattingCode $node where .type ~~ none(<E Z X N L P V B C I K T U>), Int $in-level,
+                        Context $context = None, Bool :$defn = False,  --> Str) {
+        my $contents;
+        my $meta = @($node.meta) // []; # by default an empty array
+        my $rv;
+        # if contents is always a sequence. if it contains embedded PodBlocks,
+        # then there will be more than one element.
+        if +$node.contents > 1 {
+            $rv = FC.parse( $node.contents[*-1]);
+            if $rv<metas><meta> {
+                $meta.append($rv<metas><meta>».Str);
+                $contents = [~] gather for $node.contents[^ (*-1)] { take self.handle($_, $in-level, $context, :$defn) };
+                $contents ~= self.handle(~$rv<head>, $in-level, $context, :$defn) if ~$rv<head>;
+            }
+            else {
+                $contents = [~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }
+            }
+        }
+        else {
+            $rv = FC.parse( $node.contents[0]);
+            $meta.append($rv<metas><meta>».Str) if $rv<metas><meta>;
+            $contents = self.handle(~$rv<head>, $in-level, $context, :$defn);
         }
         if %.tmpl{ 'format-' ~ $node.type.lc }:exists {
             $.completion($in-level, 'format-' ~ $node.type.lc ,
@@ -816,6 +835,7 @@ class ProcessedPod does SetupTemplates {
             $.completion($in-level, 'escaped',
                 %( :contents($node.type ~ '<'
                     ~ $contents.Str
+                    ~ ($meta ?? '|' ~ $meta>>.Str !! '')
                     ~ '>')
                 ), :$defn
             )
@@ -823,14 +843,12 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'N', Int $in-level, Context $context = None, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         my $text = [~] gather for $node.contents { take $.handle($_, $in-level, $context, :$defn) };
         $.completion($in-level, 'format-n', $.register-footnote(:$text), :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'E', Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         $.completion($in-level, 'raw', %( :contents([~] $node.meta.map({
             when Int { "&#$_;" };
             when Str { "&$_;" };
@@ -839,7 +857,6 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'Z', Int $in-level, $context = None, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         $.completion($in-level, 'zero',
                 %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) })
                 ), :$defn)
@@ -847,7 +864,6 @@ class ProcessedPod does SetupTemplates {
 
     multi method handle(Pod::FormattingCode $node where .type eq 'X', Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         my Bool $header = $context ~~ Heading;
         my $text = [~] gather for $node.contents { take $.handle($_, $in-level, $context, :$defn) };
         return ' ' unless $text or +$node.meta;
@@ -859,23 +875,22 @@ class ProcessedPod does SetupTemplates {
 
     multi method handle(Pod::FormattingCode $node where .type eq 'L', Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
-        note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         my $contents = [~] gather for $node.contents { take $.handle($_, $in-level, $context) };
-        my ($target, $location) = $.register-link($node.meta eqv [] | [""] ?? $contents !! $node.meta[0], $contents);
+        my ($target, $link-label, $type, $place) = $.register-link($node.meta eqv [] | [""] ?? $contents !! $node.meta[0], $contents);
         # link handling needed here to deal with local links in global-link context
         $.completion($in-level, 'format-l',
             %( :$target,
-               :local( $location eq 'local' ),
-               :internal( $location eq 'internal' ),
-               :external( $location eq 'external' ),
-               :$contents,
+               :$link-label,
+               :local( $type eq 'local' ),
+               :internal( $type eq 'internal' ),
+               :external( $type eq 'external' ),
+               :$place
             ), :$defn
         )
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'V', Int $in-level,
                         Context $context = None, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         $.completion($in-level, 'escaped',
             %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) })
             ), :$defn
@@ -884,7 +899,6 @@ class ProcessedPod does SetupTemplates {
 
     multi method handle(Pod::FormattingCode $node where .type eq 'P', Int $in-level,
                         Context $context = None, Bool :$defn = False, --> Str) {
-        note "At $?LINE node is { $node.^name } with type { $node.type // 'na' }" if $.debug;
         my Str $link-contents = recurse-until-str($node);
         my $link = ($node.meta eqv [] | [""] ?? $link-contents !! $node.meta).Str;
         my URI $uri .= new($link);

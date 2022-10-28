@@ -2,38 +2,14 @@ use v6.d;
 use ProcessedPod;
 use RenderPod::Templating;
 use RenderPod::Exceptions;
-
-class X::ProcessedPod::HTML::InvalidCSS::NoSpec is Exception {
-    method message() {
-        "If :css-type is supplied to processor method, so must :css-src"
-    }
-}
-class X::ProcessedPod::HTML::InvalidCSS::BadSource is Exception {
-    has $.fn;
-    method message() {
-        "$.fn does not exist as a text file"
-    }
-}
-class X::ProcessedPod::HTML::InvalidCSS::BadType is Exception {
-    has $.css-type;
-    method message() {
-        "Only 'load' or 'link' acceptable, got '$.css-type'"
-    }
-}
-class X::ProcessedPod::HTML::BadFavicon is Exception {
-    has $.favicon-src;
-    method message() {
-        "The favicon source is unavailable, got '$.favicon-src'"
-    }
-}
-# class variables as they used during object instantiation.
-our $camelia-svg = %?RESOURCES<Camelia.svg>.slurp;
-our $default-css-text = '<style>' ~ %?RESOURCES<pod.css>.slurp ~ '</style>';
-our $camelia-ico = %?RESOURCES<camelia-ico.bin>.slurp;
+use RakuConfig;
+use Pod::Load;
 
 class Pod::To::HTML2 is ProcessedPod {
     # needed for HTML rendering
-    has $.def-ext is rw;
+    has $.def-ext is rw = 'html';
+    #| defaults directory
+    has $.defaults = "$*HOME/.local/share/RenderPod".IO;
 
     # Only needed for legacy P2HTML
     has $!head = '';
@@ -42,8 +18,8 @@ class Pod::To::HTML2 is ProcessedPod {
             FETCH => -> $ { $!head },
             STORE => -> $, Str:D $head {
                 $!head = $head;
-                self.modify-templates( self.templater.make-template-from-string(
-                    %( :$head,  )
+                self.modify-templates(self.templater.make-template-from-string(
+                        %( :$head,)
                     )
                 );
             }
@@ -56,19 +32,20 @@ class Pod::To::HTML2 is ProcessedPod {
             STORE => -> $, Str:D $css {
                 $!css = $css;
                 self.modify-templates(
-                    self.templater.make-template-from-string( %( :css("\<link rel=\"stylesheet\" href=\"$css>\">"), ) )
+                    self.templater.make-template-from-string(%(
+                        :css("\<link rel=\"stylesheet\" href=\"$css>\">"),))
                 )
             }
         )
     }
 
     #| render is a class method that is called by the raku compiler
-    method render($pod-tree) {
+    method render($pod-tree, :$def-dir) {
         state $rv;
         return $rv with $rv;
         # Some implementations of raku/perl6 called the classes render method twice,
         # so it's necessary to prevent the same work being done repeatedly
-        my $pp = self.new;
+        my $pp = self.new(:$def-dir);
         $pp.pod-file.name = $*PROGRAM-NAME;
         # takes the pod tree and wraps it in HTML.
         $pp.process-pod($pod-tree);
@@ -77,730 +54,63 @@ class Pod::To::HTML2 is ProcessedPod {
         # and store response so its not re-calculated
     }
 
-    #| the constructor for this object
     submethod TWEAK(
-            :$templates,
-            :$css-type,
-            :$css-src,
-            :$css-url,
-            :$favicon-src,
             :$highlight-code,
-            :$head,
-            Bool :$min-top = False,
-            Str :$type = 'rakuclosure'
-                    ) {
-        my Bool $t-loaded = False;
-        $!def-ext = 'html';
-        my $css-text = $default-css-text;
-        my $favicon-bin = $camelia-ico;
-        my $favicon;
-        self.custom = <Image>;
+            :$type = 'rakuclosure',
+            :$plugins = <simple-extras graphviz latex-render images>,
+            :$def-dir
+            # this option is for testing purposes
+        ) {
+        $!defaults = .IO.absolute.IO with $def-dir;
+        $!defaults = .IO.absolute.IO with %*ENV<RAKDEFAULTS>;
+        X::ProcessedPod::NoRenderPodDirectory.new(:$!defaults).throw unless $!defaults ~~ :e & :d;
+        # highlight code is in parent class
         self.highlight-code = $highlight-code with $highlight-code;
-        with $templates {
-            self.templates($templates);
-            $t-loaded = True;
+        my $dir;
+        # move assets if not in CWD
+        for <rakudoc-styling.css favicon.ico Camelia.svg> {
+            $dir = self.verify($_);
+            "$dir/$_".IO.copy($_) if $dir eq $!defaults
         }
-        # specified templates over-ride templates in a file in CWD
-        if ! $t-loaded and 'html-templates.raku'.IO.f {
-            self.templates('html-templates.raku');
-            $t-loaded = True;
+        # find templates and evaluate from there.
+        $dir = self.verify("html-templates-$type.raku");
+        self.templates(EVALFILE("$dir/html-templates-$type.raku"));
+        # find plugin origin for each plugin
+        for $plugins.comb(/\S+/) -> $p {
+            $dir = self.verify($p);
+            my %plugin-conf = get-config("$dir/$p");
+            self.add-plugin("$dir/$p",
+                :path("$dir/$p"),
+                :template-raku(%plugin-conf<template-raku>:delete),
+                :custom-raku(%plugin-conf<custom-raku>:delete),
+                :config(%plugin-conf)
+            );
         }
-        with $css-type {
-            X::ProcessedPod::HTML::InvalidCSS::NoSpec.new.throw and return Nil without $css-src;
-            given $css-type {
-                when 'load' {
-                    X::ProcessedPod::HTML::InvalidCSS::BadSource.new(:fn($css-src)).throw and return Nil
-                    unless $css-src.IO.f;
-                    $css-text = '<style>' ~ $css-src.IO.slurp ~ '</style>';
-                }
-                when 'link' {
-                    $css-text = '<link rel="stylesheet"  type="text/css" href="' ~ $css-src ~ '" media="screen" title="default" />'
-                }
-                default {
-                    X::ProcessedPod::HTML::InvalidCSS::BadType.new(:$css-type).throw;
-                    return Nil
-                }
-            }
+        # now the assets provided by the plugins must be gathered
+        for <gather-css gather-js-jq> -> $p {
+            my &callable = EVALFILE "$!defaults/$p/collator.raku";
+            my @assets = indir( "$!defaults/$p", { &callable(self) });
+            self.modify-templates(EVALFILE "$!defaults/$p/templates.raku" );
+            "$!defaults/$p/$_".IO.copy($_) for @assets
         }
-        with $favicon-src {
-            X::ProcessedPod::HTML::BadFavicon.new(:$favicon-src).throw
-            unless $favicon-src.IO.f;
-            $favicon-bin = $favicon-src.IO.slurp;
+        #cleanup
+        for <gather-css gather-js-jq> -> $p {
+            my &callable = EVALFILE "$!defaults/$p/cleanup.raku";
+            indir( "$!defaults/$p", { &callable() });
         }
-        $favicon = '<link href="data:image/x-icon;base64,'
-                ~ $favicon-bin
-                ~ '" rel="icon" type="image/x-icon" />';
-        self.templates(self.html-templates(:$type))
-            unless $t-loaded;
-        # modify the templates to include css, camelia, and favicon settings
-        # unless turned off by min-top
-        self.modify-templates( self.templater.make-template-from-string(
-                %( :css($css-text), :$favicon, :camelia-img($camelia-svg) )  )
-            ) unless $min-top;
-        self.css = $_ with $css-url;
-        self.head = $_ with $head;
     }
 
-    multi method html-templates(:type($) where *eq 'crotmp') {
-        %(
-            :_templater<CroTemplater>,
-            :raw('<&HTML( .contents )>'),
-            :escaped('<.contents>'),
-            :block-code(q:to/TMPL/),
-                <?.<highlight-contents>><.highlight-contents></?>
-                <!.<highlight-contents>><pre class="pod-block-code">
-                    <.contents>
-                </pre>
-                </!>
-                TMPL
-            :camelia-img(q:to/TMPL/),
-                <:sub camelia-img>
-                <camelia /></:>
-                TMPL
-            :css(q:to/TMPL/),
-                <:sub css>
-                <style>debug</style></:>
-                TMPL
-            :head(q:to/TMPL/),
-                <:sub head>
-                </:>
-                TMPL
-            :favicon(q:to/TMPL/),
-				<:sub favicon>
-                <meta>NoIcon</meta></:>
-                TMPL
-            :comment(q:to/TMPL/),
-				<&HTML('<!-- ' ~ .contents ~ ' -->')>
-                TMPL
-            :declarator(q:to/TMPL/),
-				<a name="<.target>"></a>
-                <article>
-                    <code class="pod-code-inline"><.code></code>
-                    <.contents>
-                </article>
-                TMPL
-            :defn(q:to/TMPL/),
-				<dt>
-                <.term>
-                </dt><dd>
-                <.contents>
-                </dd>
-                TMPL
-            :dlist-end('</dl>'),
-            :dlist-start('<dl>'),
-            :favicon(''),
-            :footnotes(q:to/TMPL/),
-				<?{.notes.elems > 0}><div id="_Footnotes" class="footnotes">
-                    <ul>
-                    <@notes><li id="<.fnTarget>" >
-                        <span class="footnote-number"><.fnNumber></span>
-                    <.text>
-                    <a class="footnote" href="#<.retTarget>" >« Back »</a></li>
-                    </@>
-                    </ul></div>
-                </?>
-                <!{.notes.elems > 0}>Has no elements</!>
-                TMPL
-            :format-b('<strong><.contents><strong>'),
-            :format-c('<code><.contents><code>'),
-            :format-i('<em><.contents><em>'),
-            :format-k('<kbd><.contents><kbd>'),
-            :format-l(q:to/TMPL/),
-				<a href="<?.internal>#</?><.target><?.local>.html</?>">
-                <.contents>
-                </a>
-                TMPL
-            :format-n(q:to/TMPL/),
-				<sup><a name="<.retTarget>" href="#<.fnTarget>">[<.fnNumber>]</a></sup>
-                TMPL
-            :format-p(q:to/TMPL/),
-				<div><pre>
-                <.contents>
-                </pre></div>
-                TMPL
-            :format-r('<var><.contents><var>'),
-            :format-t('<samp><.contents><samp>'),
-            :format-u('<u><.contents><u>'),
-            :format-x('<a name="<.target>"></a><?.text><span class="glossary-entry"><.text></span></?>'),
-            :glossary(q:to/TMPL/),
-				<?.glossary><div id="_Glossary" class="glossary">
-                <div class="glossary-caption">Glossary</div>
-                <div class="glossary-defn header">Term explained</div><div class="header glossary-place">In section</div>
-                    <@glossary>
-                        <div class="glossary-defn">
-                        <.text>
-                        </div>
-                        <@refs>
-                          <div class="glossary-place"><a href="#<.target>"><?.<place>><.place></?></a></div>
-                        </@>
-                    </@>
-                </div>
-                </?>
-                TMPL
-            :heading(q:to/TMPL/),
-				<:sub heading($level=1,:$close=False)>
-                <?$close>/</?>h<$level></:>
-
-                <<&heading(.level)> id="<.target>">
-                <a href="#<.top>" class="u" title="go to top of document">
-                <.text>
-                </a>
-                <<&heading(.level,:close)>>
-                TMPL
-            :image(q:to/TMPL/),
-				<img src="<.src>"<?.width> width="<.width>"</?><?.height> height="<.height>"</?><?.alt> alt="<.alt>"</?>>')
-                TMPL
-            :item('<li><.contents></li>'),
-            :list(q:to/TMPL/),
-				<ul>
-                    <@items>
-                    <.item>
-                    </@>
-                </ul>
-                TMPL
-            :meta(q:to/TMPL/),
-				<@meta: $m>
-                    <meta name="<$m.name>" value="<$m.value>" />
-                </@>
-                TMPL
-            :named(q:to/TMPL/),
-				<:sub heading($level=1,:$close=False)><?$close>/</?>h<$level></:>
-                <section>
-                    <<&heading(.level)> id="<.target>">
-                    <a href="#<.top>" class="u" title="go to top of document">
-                    <.name>
-                    </a><<&heading(.level, :close)>>
-                    <.contents><?.<tail>><.tail></?>
-                </section>
-                TMPL
-            :output('<pre class="pod-output"><.contents></pre>'),
-            :para('<p><.contents><p>'),
-            :pod(q:to/TMPL/),
-				<section name="<.name>">
-                <.contents>
-                <?.<tail>><.tail></?>
-            </section>
-            TMPL
-            :source-wrap(q:to/TMPL/),
-				<:use 'css'>
-                <:use 'favicon'>
-                <:use 'camelia-img'>
-                <:use 'head'>
-
-                <!doctype html>
-                <html lang="<?.<lang>><.lang></?><!.<lang>>en</!>">
-                    <head>
-                        <title><.title></title>
-                        <meta charset="UTF-8">
-                        <&favicon>
-                        <.metadata>
-                        <&css>
-                        <&head>
-                    </head>
-                    <body class="pod">
-                        <header>
-                            <&camelia-img>
-                            <?.<title>><h1 class="title" id="<.title-target>" ><.title></h1></?>
-                        </header>
-                        <div class="pod-content">
-                            <?{.toc or .glossary}><nav>
-                                <.toc>
-                                <.glossary>
-                            </nav>
-                            </?>
-                            <?.<title-target>><div id="<.title-target>"></div></?>
-                            <?.<subtitle>><div class="subtitle"><.subtitle></div></?>
-                            <div class="pod-body<!.<toc>> no-toc</!>">
-                                <.body>
-                            </div>
-                            <.footnotes>
-                        </div>
-                        <footer>
-                            <div>Rendered from <span class="path"><?.<path>><.path></?><!.<path>><.name></!></span></div>
-                            <div>at <span class="time"><?.renderedtime><.renderedtime></?><!.renderedtime>a moment before time began!?</!></span></div>
-                        </footer>
-                    </body>
-                </html>
-                TMPL
-            :table(q:to/TMPL/),
-				<table class="pod-table <?.<class>><.class></?>">
-                    <?.<caption>><caption><.caption></caption></?>
-                    <?.<headers>><thead><@headers>
-                        <tr>
-                            <th><@cells><$_><:separator></th><th></:></@></th>
-                        </tr>
-                    </@></thead></?>
-                    <tbody>
-                        <@rows><tr>
-                            <td><@cells><$_><:separator></td><td></:></@></td>
-                        </tr>
-                    </@></tbody>
-                </table>
-                TMPL
-            :toc(q:to/TMPL/),
-                <?.<toc>>
-                    <div id="_TOC">
-                    <table>
-                    <caption>Table of Contents</caption>
-                        <@toc>
-                        <tr class="toc-level-<.level>"><td class="toc-text"><a href="#<.target>"><.text></a></td></tr>
-                        </@>
-                    </table></div>
-                </?>
-                TMPL
-            )
-    }
-
-    #| returns a hash of keys and Raku closure template
-    multi method html-templates(:type($) where * eq 'rakuclosure') {
-        %(
-        # the following are extra for HTML files and are needed by the render (class) method
-        # in the source-wrap template.
-            '_templater' => 'RakuClosureTemplater',
-            'escaped' => sub ($s) {
-                if $s and $s ne ''
-                { $s.trans(qw｢ <    >    &     " ｣ => qw｢ &lt; &gt; &amp; &quot; ｣) }
-                else { '' }
-            },
-            'raw' => sub ( %prm, %tml ) { (%prm<contents> // '') },
-            'camelia-img' => sub ( %prm, %tml ) { '<camelia />' },
-            'css' => sub ( %prm, %tml ) { '<style>debug</style>' },
-            'head' => sub ( %prm, %tml ) { '' },
-            'favicon' => sub ( %prm, %tml ) { '<meta>NoIcon</meta>' },
-            'block-code' => sub ( %prm, %tml ) {
-                if %prm<highlighted>:exists {
-                    # a highlighter will add its own classes to the <pre> container
-                    %prm<highlighted>
-                }
-                else {
-                    '<pre class="pod-block-code">'
-                        ~ %prm<contents>
-                        ~ '</pre>'
-                }
-            },
-            'comment' => sub ( %prm, %tml ) { '<!-- ' ~ (%prm<contents> // '') ~ ' -->' },
-            'declarator' => sub ( %prm, %tml ) {
-                '<a name="' ~ %tml<escaped>(%prm<target> // '')
-                        ~ '"></a><article><code class="pod-code-inline">'
-                        ~ ( %prm<code> // '') ~ '</code>' ~ (%prm<contents> // '') ~ '</article>'
-            },
-            'dlist-start' => sub ( %prm, %tml ) { "<dl>\n" },
-            'defn' => sub ( %prm, %tml ) {
-                '<dt>'
-                        ~ %tml<escaped>(%prm<term> // '')
-                        ~ '</dt><dd>'
-                        ~ (%prm<contents> // '')
-                        ~ '</dd>'
-            },
-            'dlist-end' => sub ( %prm, %tml ) { "\n</dl>" },
-            'format-b' => sub ( %prm, %tml --> Str ) {
-				'<strong>' ~ (%prm<contents> // '') ~ '</strong>'
-			},
-            'format-c' => sub ( %prm, %tml --> Str ) {
-				'<code>' ~ (%prm<contents> // '') ~ '</code>'
-			},
-            'format-i' => sub ( %prm, %tml --> Str ) {
-				'<em>' ~ (%prm<contents> // '') ~ '</em>'
-			},
-            'format-k' => sub ( %prm, %tml --> Str ) {
-				'<kbd>' ~ (%prm<contents> // '') ~ '</kbd>'
-			},
-            'format-r' => sub ( %prm, %tml --> Str ) {
-				'<var>' ~ (%prm<contents> // '') ~ '</var>'
-			},
-            'format-t' => sub ( %prm, %tml --> Str ) {
-				'<samp>' ~ (%prm<contents> // '') ~ '</samp>'
-			},
-            'format-u' => sub ( %prm, %tml --> Str ) {
-				'<u>' ~ (%prm<contents> // '') ~ '</u>'
-			},
-            'para' => sub ( %prm, %tml --> Str ) {
-				'<p>' ~ (%prm<contents> // '') ~ '</p>'
-			},
-            'format-l' => sub ( %prm, %tml ) {
-                # transform a local file with an internal target
-                my $trg = %prm<target>;
-                if %prm<local> {
-                    if $trg ~~ / (<-[#]>+) '#' (.+) $ / {
-                        $trg = "$0\.html\#$1";
-                    }
-                    else {
-                        $trg ~= '.html'
-                    }
-                }
-                elsif %prm<internal> {
-                    $trg = "#$trg"
-                }
-                '<a href="'
-                        ~ $trg
-                        ~ '">'
-                        ~ (%prm<contents> // '')
-                        ~ '</a>'
-            },
-            'format-n' => sub ( %prm, %tml ) {
-                '<sup><a name="'
-                        ~ %tml<escaped>(%prm<retTarget>)
-                        ~ '" href="#' ~ %tml<escaped>(%prm<fnTarget>)
-                        ~ '">[' ~ %tml<escaped>(%prm<fnNumber>)
-                        ~ "]</a></sup>\n"
-            },
-            'format-p' => sub ( %prm, %tml ) {
-                '<div><pre>'
-                        ~ (%prm<contents> // '').=trans(['<pre>', '</pre>'] => ['&lt;pre&gt;', '&lt;/pre&gt;'])
-                        ~ "</pre></div>\n"
-            },
-            'format-x' => sub ( %prm, %tml ) {
-                '<a name="' ~ (%prm<target> // '') ~ '"></a>'
-                ~ ( ( %prm<text>.defined and %prm<text> ne '' ) ?? '<span class="glossary-entry">' ~ %prm<text> ~ '</span>' !! '')
-            },
-            'heading' => sub ( %prm, %tml ) {
-                '<h' ~ (%prm<level> // '1')
-                        ~ ' id="'
-                        ~ %tml<escaped>(%prm<target>)
-                        ~ '"><a href="#'
-                        ~ %tml<escaped>(%prm<top>)
-                        ~ '" class="u" title="go to top of document">'
-                        ~ (( %prm<text>.defined && %prm<text> ne '') ?? %prm<text> !! '')
-                        ~ '</a></h'
-                        ~ (%prm<level> // '1')
-                        ~ ">\n"
-            },
-            'image' => sub ( %prm, %tml ) { '<img src="' ~ (%prm<src> // 'path/to/image') ~ '"'
-                    ~ ' width="' ~ (%prm<width> // '100px') ~ '"'
-                    ~ ' height="' ~ (%prm<height> // 'auto') ~ '"'
-                    ~ ' alt="' ~ (%prm<alt> // 'XXXXX') ~ '">'
-            },
-            'item' => sub ( %prm, %tml ) { '<li>' ~ (%prm<contents> // '') ~ "</li>\n" },
-            'list' => sub ( %prm, %tml ) {
-                "<ul>\n"
-                        ~ %prm<items>.join
-                        ~ "</ul>\n"
-            },
-            'named' => sub ( %prm, %tml ) {
-                "<section>\n<h"
-                        ~ (%prm<level> // '1') ~ ' id="'
-                        ~ %tml<escaped>(%prm<target>) ~ '"><a href="#'
-                        ~ %tml<escaped>(%prm<top> // '')
-                        ~ '" class="u" title="go to top of document">'
-                        ~ (( %prm<name>.defined && %prm<name> ne '' ) ?? %prm<name> !! '')
-                        ~ '</a></h' ~ (%prm<level> // '1') ~ ">\n"
-                        ~ (%prm<contents> // '')
-                        ~ (%prm<tail> // '')
-                        ~ "\n</section>\n"
-            },
-            'output' => sub ( %prm, %tml ) { '<pre class="pod-output">' ~ (%prm<contents> // '') ~ '</pre>' },
-            'pod' => sub ( %prm, %tml ) {
-                '<section name="'
-                        ~ %tml<escaped>(%prm<name> // '') ~ '">'
-                        ~ (%prm<contents> // '')
-                        ~ (%prm<tail> // '')
-                        ~ '</section>'
-            },
-            'table' => sub ( %prm, %tml ) {
-                '<table class="pod-table'
-                        ~ ( ( %prm<class>.defined and %prm<class> ne '' ) ?? (' ' ~ %tml<escaped>(%prm<class>)) !! '')
-                        ~ '">'
-                        ~ ( ( %prm<caption>.defined and %prm<caption> ne '' ) ?? ('<caption>' ~ %prm<caption> ~ '</caption>') !! '')
-                        ~ ( ( %prm<headers>.defined and %prm<headers> ne '' ) ??
-                ("\t<thead>\n"
-                        ~ [~] %prm<headers>.map({ "\t\t<tr><th>" ~ .<cells>.join('</th><th>') ~ "</th></tr>\n"})
-                        ~ "\t</thead>"
-                ) !! '')
-                        ~ "\t<tbody>\n"
-                        ~ ( ( %prm<rows>.defined and %prm<rows> ne '' ) ??
-                [~] %prm<rows>.map({ "\t\t<tr><td>" ~ .<cells>.join('</td><td>') ~ "</td></tr>\n" })
-                !! '')
-                        ~ "\t</tbody>\n"
-                        ~ "</table>\n"
-            },
-            'top-of-page' => sub ( %prm, %tml ) {
-                if %prm<title-target>:exists and %prm<title-target> ne '' {
-                    '<div id="' ~ %tml<escaped>(%prm<title-target>) ~ '"></div>'
-                }
-                else { '' }
-            },
-            'title' => sub ( %prm, %tml) {
-                if %prm<title>:exists and %prm<title> ne '' {
-                    '<h1 class="title"'
-                     ~ ((%prm<title-target>:exists and %prm<title-target> ne '')
-                            ?? ' id="' ~ %tml<escaped>(%prm<title-target>) !! '' ) ~ '">'
-                     ~ %prm<title> ~ '</h1>'
-                }
-                else { '' }
-            },
-            'subtitle' => sub ( %prm, %tml ) {
-                if %prm<subtitle>:exists and %prm<subtitle> ne '' {
-                    '<div class="subtitle">' ~ %prm<subtitle> ~ '</div>' }
-                else { '' }
-            },
-            'source-wrap' => sub ( %prm, %tml ) {
-                "<!doctype html>\n"
-                        ~ '<html lang="' ~ ( ( %prm<lang>.defined and %prm<lang> ne '' ) ?? %tml<escaped>(%prm<lang>) !! 'en') ~ "\">\n"
-                        ~ %tml<head-block>(%prm, %tml)
-                        ~ "\t<body class=\"pod\">\n"
-                        ~ %tml<header>(%prm, %tml)
-                        ~ '<div class="pod-content">'
-                        ~ (( (%prm<toc>.defined and %prm<toc>.keys) or (%prm<glossary>.defined and %prm<glossary>.keys) ) ?? '<nav>' !! '')
-                        ~ (%prm<toc> // '')
-                        ~ (%prm<glossary> // '')
-                        ~ (( (%prm<toc>.defined and %prm<toc>.keys) or (%prm<glossary>.defined and %prm<glossary>.keys) ) ?? '</nav>' !! '')
-                        ~ %tml<top-of-page>(%prm, %tml)
-                        ~ %tml<subtitle>(%prm, %tml)
-                        ~ '<div class="pod-body' ~ (( %prm<toc>.defined and %prm<toc>.keys ) ?? '' !! ' no-toc') ~ '">'
-                        ~ (%prm<body> // '')
-                        ~ "\t\t</div>\n"
-                        ~ (%prm<footnotes> // '')
-                        ~ '</div>'
-                        ~ %tml<footer>(%prm, %tml)
-                        ~ "\n\t</body>\n</html>\n"
-            },
-            'footnotes' => sub ( %prm, %tml ) {
-                with %prm<notes> {
-                    if %prm<notes>.elems {
-                        "<div id=\"_Footnotes\" class=\"footnotes\">\n<ul>"
-                                ~ [~] .map({ '<li id="' ~ %tml<escaped>($_<fnTarget>) ~ '">'
-                                ~ ('<span class="footnote-number">' ~ ($_<fnNumber> // '') ~ '</span>')
-                                ~ ($_<text> // '')
-                                ~ '<a class="footnote" href="#'
-                                ~ %tml<escaped>($_<retTarget>)
-                                ~ "\"> « Back »</a></li>\n"
-                        })
-                                ~ "\n</ul>\n</div>\n"
-                    }
-                    else { '' }
-                }
-                else { '' }
-            },
-            'glossary' => sub ( %prm, %tml ) {
-                if %prm<glossary>.defined and %prm<glossary>.keys {
-                    '<div id="_Glossary" class="glossary">' ~ "\n"
-                            ~ '<div class="glossary-caption">Glossary</div>' ~ "\n"
-                            ~ '<div class="glossary-defn header">Term explained</div><div class="header glossary-place">In section</div>'
-                            ~ [~] %prm<glossary>.map({
-                                '<div class="glossary-defn">'
-                                ~ ($_<text> // '')
-                                ~ '</div>'
-                                ~ [~] $_<refs>.map({
-                                    '<div class="glossary-place"><a href="#'
-                                            ~ %tml<escaped>($_<target>)
-                                            ~ '">'
-                                            ~ ($_<place>.defined ?? $_<place> !! '')
-                                            ~ "</a></div>\n"
-                                })
-                        })
-                            ~ "</div>\n"
-                }
-                else { '' }
-            },
-            'meta' => sub ( %prm, %tml ) {
-                with %prm<meta> {
-                    [~] %prm<meta>.map({
-                        '<meta name="' ~ %tml<escaped>( .<name> )
-                                ~ '" value="' ~ %tml<escaped>( .<value> )
-                                ~ "\" />\n"
-                    })
-                }
-                else { '' }
-            },
-            'toc' => sub ( %prm, %tml ) {
-                if %prm<toc>.defined and %prm<toc>.keys {
-                    "<div id=\"_TOC\"><table>\n<caption>Table of Contents</caption>\n"
-                            ~ [~] %prm<toc>.map({
-                        '<tr class="toc-level-' ~ .<level> ~ '">'
-                                ~ '<td class="toc-text"><a href="#'
-                                ~ %tml<escaped>( .<target> )
-                                ~ '">'
-                                ~ %tml<escaped>(  $_<text> // '' )
-                                ~ "</a></td></tr>\n"
-                    })
-                            ~ "</table></div>\n"
-                }
-                else { '' }
-            },
-            'head-block' => sub ( %prm, %tml ) {
-                "\<head>\n"
-                        ~ '<title>' ~ %tml<escaped>(%prm<title>) ~ "\</title>\n"
-                        ~ '<meta charset="UTF-8" />' ~ "\n"
-                        ~ %tml<favicon>({}, {})
-                        ~ (%prm<metadata> // '')
-                        ~ %tml<css>( {}, {} )
-                        ~ %tml<head>( {}, {} )
-                        ~ "\</head>\n"
-            },
-            'header' => sub ( %prm,%tml) {
-                '<header>' ~ %tml<camelia-img>(%prm, %tml) ~ '<h1 class="title">' ~ %prm<title> ~ '</h1></header>'
-            },
-            'footer' => sub ( %prm, %tml ) {
-                '<footer><div>Rendered from <span class="path">'
-                        ~ ( ( %prm<path>.defined && %prm<path> ne '')
-                            ??
-                            %tml<escaped>(%prm<path>)
-                            !!
-                            %tml<escaped>(%prm<name>) )
-                        ~ '</span></div>'
-                        ~ '<div>at <span class="time">'
-                        ~ (( %prm<renderedtime>.defined && %prm<path> ne '') ?? %tml<escaped>(%prm<renderedtime>) !! 'a moment before time began!?')
-                        ~ '</span></div>'
-                        ~ '</footer>'
-            },
-        )
-    }
-
-    #| returns a hash of keys and Mustache templates
-    multi method html-templates(:type($) where * eq 'mustache') {
-        %(
-        # the following are extra for HTML files and are needed by the render (class) method
-        # in the source-wrap template.
-            '_templater' => 'MustacheTemplater',
-            'camelia-img' => '<camelia />',
-            'css' => '<style>debug</style>',
-            'head' => '',
-            'favicon' => '<meta>NoIcon</meta>',
-            # note that verbatim V<> does not have its own format because it affects what is inside it (see POD documentation)
-            :escaped('{{ contents }}'),
-            :raw('{{{ contents }}}'),
-            # a highlighter will add its own classes to the <pre> container
-            :block-code( q:to/BLOCK/
-                {{# highlighted }}{{ highlighted }}{{/ highlighted }}
-                {{^ highlighted }}<pre class="pod-block-code">{{ contents }}</pre>{{/ highlighted }}
-                BLOCK
-            ),
-            'comment' => '<!-- {{{ contents }}} -->',
-            'declarator' => '<a name="{{ target }}"></a><article><code class="pod-code-inline">{{{ code }}}</code>{{{ contents }}}</article>',
-            'dlist-start' => "<dl>\n",
-            'defn' => '<dt>{{ term }}</dt><dd>{{{ contents }}}</dd>',
-            'dlist-end' => "\n</dl>\n",
-            'format-b' => '<strong>{{{ contents }}}</strong>',
-            'format-c' => '<code>{{{ contents }}}</code>
-            ',
-            'format-i' => '<em>{{{ contents }}}</em>',
-            'format-k' => '<kbd>{{{ contents }}}</kbd>
-            ',
-            'format-l' => '<a href="{{# internal }}#{{/ internal }}{{ target }}{{# local }}.html{{/ local }}">{{{ contents }}}</a>',
-            'format-n' => '<sup><a name="{{ retTarget }}" href="#{{ fnTarget }}">[{{ fnNumber }}]</a></sup>
-            ',
-            'format-p' => -> %params {
-                %params<contents> = %params<contents>.=trans(['<pre>', '</pre>'] => ['&lt;pre&gt;', '&lt;/pre&gt;']);
-                '<div><pre>{{{ contents }}}</pre></div>'
-            },
-            'format-r' => '<var>{{{ contents }}}</var>',
-            'format-t' => '<samp>{{{ contents }}}</samp>',
-            'format-u' => '<u>{{{ contents }}}</u>',
-            'format-x' => '<a name="{{ target }}"></a>{{# text }}<span class="glossary-entry">{{{ text }}}</span>{{/ text }} ',
-            'heading' => '<h{{# level }}{{ level }}{{/ level }} id="{{ target }}"><a href="#{{ top }}" class="u" title="go to top of document">{{{ text }}}</a></h{{# level }}{{ level }}{{/ level }}>
-            ',
-            'image' => '<img src="{{# src }}{{ src }}{{/ src }}{{^ src }}path/to/image{{/ src }}"'
-                    ~ ' width="{{# width }}{{ width }}{{/ width }}{{^ width }}100px{{/ width }}"'
-                    ~ ' height="{{# height }}{{ height }}{{/ height }}{{^ height }}auto{{/ height }}"'
-                    ~ ' alt="{{# alt }}{{ alt }}{{/ alt }}{{^ alt }}XXXXX{{/ alt }}">',
-            'item' => '<li>{{{ contents }}}</li>
-            ',
-            'list' => q:to/TEMPL/,
-                <ul>
-                    {{# items }}{{{ . }}}{{/ items}}
-                </ul>
-                TEMPL
-            'named' => q:to/TEMPL/,
-                <section>
-                    <h{{ level }} id="{{ target }}"><a href="#{{ top }}" class="u" title="go to top of document">{{{ name }}}</a></h{{ level }}>
-                    {{{ contents }}}
-                </section>
-                TEMPL
-            'output' => '<pre class="pod-output">{{{ contents }}}</pre>',
-            'para' => '<p>{{{ contents }}}</p>',
-            'pod' => '<section name="{{ name }}">{{{ contents }}}{{{ tail }}}
-                </section>',
-            'subtitle' => '<div class="subtitle">{{{ subtitle }}}</div>',
-            'table' => q:to/TEMPL/,
-                <table class="pod-table{{# class }} {{ class }}{{/ class }}">
-                    {{# caption }}<caption>{{{ caption }}}</caption>{{/ caption }}
-                    {{# headers }}<thead>
-                        <tr>{{# cells }}<th>{{{ . }}}</th>{{/ cells }}</tr>
-                    </thead>{{/ headers }}
-                    <tbody>
-                        {{# rows }}<tr>{{# cells }}<td>{{{ . }}}</td>{{/ cells }}</tr>{{/ rows }}
-                    </tbody>
-                </table>
-                TEMPL
-            'title' => '<h1 class="title" id="{{ title-target }}">{{{ title }}}</h1>',
-            # templates used by output methods, eg., source-wrap, file-wrap, etc
-            'source-wrap' => q:to/TEMPL/,
-                <!doctype html>
-                <html lang="{{ lang }}">
-                    {{> head-block }}
-                    <body class="pod">
-                        {{> header }}
-                        <div class="toc-glossary">
-                        {{{ toc }}}
-                        {{{ glossary }}}
-                        </div>
-                        {{> subtitle }}
-                        <div class="pod-body{{^ toc }} no-toc{{/ toc }}">
-                            {{{ body }}}
-                        </div>
-                        {{{ footnotes }}}
-                        {{> footer }}
-                    </body>
-                </html>
-                TEMPL
-            'footnotes' => q:to/TEMPL/,
-                <div class="footnotes">
-                    <ol>{{# notes }}
-                        <li id="{{ fnTarget }}">{{{ text }}}<a class="footnote" href="#{{ retTarget }}"> « Back »</a></li>
-                        {{/ notes }}
-                    </ol>
-                </div>
-                TEMPL
-            'glossary' => q:to/TEMPL/,
-                <table id="Glossary">
-                    <caption>Glossary</caption>
-                    <tr><th>Term</th><th>Section Location</th></tr>
-                    {{# glossary }}
-                    <tr class="glossary-defn-row">
-                        <td class="glossary-defn">{{{ text }}}</td><td></td></tr>
-                        {{# refs }}<tr class="glossary-place-row"><td></td><td class="glossary-place"><a href="#{{ target }}">{{{ place }}}</a></td></tr>{{/ refs }}
-                    {{/ glossary }}
-                </table>
-                TEMPL
-            'meta' => q:to/TEMPL/,
-                {{# meta }}
-                    <meta name="{{ name }}" value="{{ value }}" />
-                {{/ meta }}
-                TEMPL
-            'toc' => q:to/TEMPL/,
-                <table id="TOC">
-                    <caption>Table of Contents</caption>
-                    {{# toc }}
-                    <tr class="toc-level-{{ level }}">
-                        <td class="toc-text"><a href="#{{ target }}">{{# counter }}<span class="toc-counter">{{ counter }}</span>{{/ counter }} {{ text }}</a></td>
-                    </tr>
-                    {{/ toc }}
-                </table>
-                TEMPL
-            'head-block' => q:to/TEMPL/,
-                <head>
-                    <title>{{ title }}</title>
-                    <meta charset="UTF-8" />
-                    {{> favicon }}
-                    {{{ metadata }}}
-                    {{> css }}
-                    {{> head }}
-                </head>
-                TEMPL
-            'header' => '<header>{{> camelia-img }}{{> title }}</header>',
-            'footer' => '<footer><div>Rendered from <span class="path">{{ path }}{{^ path }}Unknown{{/ path}}</span></div>
-                <div>at <span class="time">{{ renderedtime }}{{^ renderedtime }}a moment before time began!?{{/ renderedtime }}</span></div>
-                </footer>',
-        )
+    #| verify if the path exists in either defaults or cwd, and return where
+    method verify($asset --> Str) {
+        return ~$*CWD  if "$*CWD/$asset".IO ~~ :e;
+        return ~$.defaults if "$.defaults/$asset".IO ~~ :e;
+        X::ProcessedPod::BadDefault.new(:$asset).throw
     }
 }
-
 # All of the code below is solely to pass the legacy tests.
 
 sub get-processor {
-    my $proc = Pod::To::HTML2.new;
-    $proc.css = 'assets/pod.css';
-    $proc
+    Pod::To::HTML2.new(:plugins(), :type<mustache> );
 }
 
 #| Backwards compatibility for legacy Pod::To::HTML module
@@ -816,11 +126,6 @@ sub pod2html($pod, *%options) is export {
     my $proc = get-processor;
     with %options<templates> {
         if  "$_/main.mustache".IO.f {
-            # this indirect method is needed to pass tests as HTML2 looks for
-            # a template file in the root, which is in rakuclosure format, so
-            # this over-rides the internal mustache templates.
-            my $proc-m = Pod::To::HTML2::Mustache.new;
-            $proc.templates( $proc-m.html-templates );
             $proc.modify-templates(%( source-wrap => "$_/main.mustache".IO.slurp))
         }
         else {
@@ -829,7 +134,6 @@ sub pod2html($pod, *%options) is export {
     }
     $proc.no-glossary = True;
     # old HTML did not provide a glossary
-    #    $proc.debug = $proc.verbose = True;
     $proc.pod-file.lang = $_ with %options<lang>;
     $proc.css = $_ with %options<css-url>;
     $proc.head = $_ with %options<head>;
@@ -837,7 +141,6 @@ sub pod2html($pod, *%options) is export {
     $proc.source-wrap
 }
 
-use Pod::Load;
 multi sub render(IO::Path $file, |c) is export {
     my $x = load($file);
     pod2html($x)
