@@ -11,10 +11,10 @@ use RenderPod::Highlighting;
 sub detect-from-tests(%templates) {
     my @template-tests =
             [
-                [
-                    { %templates<format-b>.isa("Str") && %templates<format-b> ~~ / '<.contents' / },
-                    "CroTemplater"
-                ],
+#                [
+#                    { %templates<format-b>.isa("Str") && %templates<format-b> ~~ / '<.contents' / },
+#                    "CroTemplater"
+#                ],
                 [
                     { %templates<format-b>.isa("Sub") },
                     "RakuClosureTemplater"
@@ -46,51 +46,51 @@ engines (see L<RenderPod|RenderPod#Plugins>).
 
 =end pod
 
-#| Use Cro Web templates
-class CroTemplater is export {
-    use Cro::WebApp::Template::Repository::Hash;
-    has %!sources;
-    has %!dependents;
-    submethod BUILD(:%tmpl) {
-        templates-from-hash(%tmpl);
-        self.update-ancestors(%tmpl);
-    }
-    method update-ancestors(%templates) {
-        for %templates.kv -> $k, $v {
-            if $v ~~ / [ '<:use' \s+ \' ~ \' $<used> = .+? \s* '>' .+? ]+ $ / {
-                %!sources{$k} = $v;
-                %!dependents{$_} = $k for $/<used>
-            }
-        }
-    }
-    method render(Str $key, %params --> Str) {
-        return %params<contents> if $key eq 'raw';
-        render-template($key, %params, :hash)
-    }
-    method refresh(%new-templates) {
-        for %new-templates.keys {
-            with %!dependents{$_} {
-                %new-templates{$_} = %!sources{$_}
-                    unless %new-templates{$_}:exists
-            }
-        }
-        modify-template-hash(%new-templates);
-        self.update-ancestors(%new-templates);
-    }
-    method Str {
-        "CroTemplater"
-    }
-    method make-template-from-string(%strings --> Hash) {
-        my %templates;
-        for %strings.kv -> $key, $str {
-            %templates{$key} = qq:to/TMPL/
-            <:sub $key>
-            $str\</:>
-            TMPL
-        }
-        %templates
-    }
-}
+##| Use Cro Web templates
+#class CroTemplater is export {
+#    use Cro::WebApp::Template::Repository::Hash;
+#    has %!sources;
+#    has %!dependents;
+#    submethod BUILD(:%tmpl) {
+#        templates-from-hash(%tmpl);
+#        self.update-ancestors(%tmpl);
+#    }
+#    method update-ancestors(%templates) {
+#        for %templates.kv -> $k, $v {
+#            if $v ~~ / [ '<:use' \s+ \' ~ \' $<used> = .+? \s* '>' .+? ]+ $ / {
+#                %!sources{$k} = $v;
+#                %!dependents{$_} = $k for $/<used>
+#            }
+#        }
+#    }
+#    method render(Str $key, %params --> Str) {
+#        return %params<contents> if $key eq 'raw';
+#        render-template($key, %params, :hash)
+#    }
+#    method refresh(%new-templates) {
+#        for %new-templates.keys {
+#            with %!dependents{$_} {
+#                %new-templates{$_} = %!sources{$_}
+#                    unless %new-templates{$_}:exists
+#            }
+#        }
+#        modify-template-hash(%new-templates);
+#        self.update-ancestors(%new-templates);
+#    }
+#    method Str {
+#        "CroTemplater"
+#    }
+#    method make-template-from-string(%strings --> Hash) {
+#        my %templates;
+#        for %strings.kv -> $key, $str {
+#            %templates{$key} = qq:to/TMPL/
+#            <:sub $key>
+#            $str\</:>
+#            TMPL
+#        }
+#        %templates
+#    }
+#}
 
 #| The templates are sub (%prm, %tml) that act on the keys of %prm and return a Str
 #| keys 'escaped' and 'raw' take a Str as the only argument

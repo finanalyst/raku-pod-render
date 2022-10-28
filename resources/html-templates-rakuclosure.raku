@@ -6,7 +6,7 @@ use v6;
         { $s.trans(qw｢ <    >    &     " ｣ => qw｢ &lt; &gt; &amp; &quot; ｣) }
         else { '' }
     },
-    'raw' => sub ( %prm, %tml ) { (%prm<contents> // '') },
+    'raw' => sub ( %prm, %tml ) { %prm<contents> },
     'camelia-img' => sub ( %prm, %tml ) { "\n" ~ '<img id="Camelia_bug" src="Camelia.svg">' },
     'favicon' => sub ( %prm, %tml ) {
         "\n" ~ '<link href="favicon.ico" rel="icon" type="image/x-icon"' ~ "/>\n"

@@ -218,15 +218,16 @@ $processor.add-plugin($dir);
 my $must-proc = ProcessedPod.new;
 $must-proc.templates(%templates);
 $must-proc.add-plugin($dir);
-# Now force a processor with CroTemplater templates
-%templates = @templates Z=> @templates.map({ "\[beg]<.contents>$_\[end]" });
-my $cro-proc = ProcessedPod.new;
-$cro-proc.templates(%templates);
-throws-like { $cro-proc.add-plugin($dir) },
-        X::ProcessedPod::BadPluginTemplates,
-        'traps lack of CroTemplater alternative in templates',
-        message => / 'Attempted to use ｢crotemplater｣, but the plugin ｢newer-plugin｣' /
-        ;
+skip 'wait til Crotmp can be used';
+## Now force a processor with CroTemplater templates
+#%templates = @templates Z=> @templates.map({ "\[beg]<.contents>$_\[end]" });
+#my $cro-proc = ProcessedPod.new;
+#$cro-proc.templates(%templates);
+#throws-like { $cro-proc.add-plugin($dir) },
+#        X::ProcessedPod::BadPluginTemplates,
+#        'traps lack of CroTemplater alternative in templates',
+#        message => / 'Attempted to use ｢crotemplater｣, but the plugin ｢newer-plugin｣' /
+#        ;
 =begin pod
 
 Some pod
