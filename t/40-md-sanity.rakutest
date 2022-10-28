@@ -1,4 +1,4 @@
 use Test;
 plan 1;
-use-ok 'Pod::To::MarkDown:auth<zef:finanalyst>';
+use-ok 'Pod::To::MarkDown2:auth<zef:finanalyst>';
 done-testing;

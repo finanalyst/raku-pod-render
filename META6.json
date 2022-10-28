@@ -18,7 +18,8 @@
     "PrettyDump",
     "JSON::Fast",
     "RakuConfig",
-    "Pod::Load"
+    "Pod::Load",
+    "Template::Mustache"
   ],
   "build-depends": [],
   "test-depends": [
