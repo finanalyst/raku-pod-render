@@ -205,5 +205,14 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Template::Mustache" type="perl6">
+        <CLASSES />
+        <JAVADOC />
+        <SOURCES>
+          <root url="raku://1166011395:Template::Mustache!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>

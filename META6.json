@@ -66,7 +66,7 @@
     "gather-js-jq/collator.raku",
     "gather-js-jq/cleanup.raku",
     "gather-js-jq/config.raku",
-    "gather-s-q/README.rakudoc",
+    "gather-js-jq/README.rakudoc",
     "graphviz/config.raku",
     "graphviz/graphv-blocks.raku",
     "graphviz/graphv-templates.raku",
