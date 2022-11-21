@@ -104,7 +104,7 @@ Rakudoc (POD6) files contain both content and hints about how to render the cont
 
 Both a new Raku-Closure-Template system (see [RakuClosureTemplates](RakuClosureTemplates.md)) and the Template::Mustache system can be used. Essentially Raku-Closure-Templates are Raku `subs` which are compiled by Raku and the run to generate a string.
 
-Another templating engine can be added, See [Change the Templating Engine](#change-the-templating-engine).
+Another templating engine can be added, See [Change the Templating Engine](change-the-templating-engine).
 
 ## New Templates
 When a ProcessPod instance is instantiated, a templating object xxxx can be passed via the `:templates` parameter, eg.
@@ -145,7 +145,7 @@ Each template MUST return string, which may be ''.
 ## Mustache Templates - minor extension.
 The following notes are for the MustacheTemplater, because an extension of Mustache templates is used here.
 
-The Hash structure for the default RakuClosureTemplater can be found in [Raku Closure Templater](RakuClosureTemplates.md).
+The Hash structure for the default RakuClosureTemplater can be found in [RakuClosureTemplates](RakuClosureTemplates.md).
 
 ### String Template
 For example if `'escaped' =` '{{ contents }}', > is a line in a hash declaration of the templates, then the right hand side is the `Mustache` template for the `escaped` key. The template engine is called with a hash containing String data that are interpolated into the template. `contents` is provided for all keys, but some keys have more complex data.
@@ -411,9 +411,9 @@ When rendering multiple files (see [Rendering Strategy](Rendering Strategy.md)),
 This is done with the `.add-data` method, eg.
 
 ```
-$pp.add-data('name-space', $data-object)
+$pp.add-data('name-space', $data-object, :$protect-name)
 ```
-It is only permitted to write to a name-space once. An attempt to overwrite the data will throw an <X::ProcessedPod::NamespaceConflict> exception.
+Normally, it is only permitted to write to a name-space once. An attempt to overwrite the data will throw an <X::ProcessedPod::NamespaceConflict> exception unless `:protect-name` is False (default is True).
 
 # Rendering Strategy
 A rendering strategy is required for a complex task consisting of many Pod sources. A rendering strategy has to consider:
@@ -744,4 +744,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2022-10-28T16:54:51Z
+Rendered from RenderPod at 2022-11-21T10:00:21Z

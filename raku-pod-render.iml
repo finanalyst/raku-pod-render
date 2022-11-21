@@ -5,6 +5,9 @@
       <sourceFolder url="file://$MODULE_DIR$/bin" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/lib" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/t" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/test/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/.precomp" />
+      <excludeFolder url="file://$MODULE_DIR$/arc" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">

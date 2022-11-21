@@ -1,0 +1,18 @@
+=begin pod
+=TITLE Move Assets plugin for HTML2
+=SUBTITLE Some plugins need extra assets that need to be moved to the output directory
+
+=head1 Usage
+
+An HTML2 plugin that needs assets moving, eg, Font-Awesome has fonts that need transferring from
+the plugin directory to the output directory.
+
+Include a C<:asset> key in the C<config.raku> of the plugin with a value that is an Sequence of Strings.
+Each string is interpreted as the name of a file/directory relative to the plugin directory. All files
+in a directory will be transferred.
+
+=head Description
+
+The plugin collator callable returns a list of files to be transferred to the output directory.
+
+=end pod

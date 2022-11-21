@@ -7,11 +7,11 @@ use v6;
         else { '' }
     },
     'raw' => sub ( %prm, %tml ) { %prm<contents> },
-    'camelia-img' => sub ( %prm, %tml ) { "\n" ~ '<img id="Camelia_bug" src="Camelia.svg">' },
+    'camelia-img' => sub ( %prm, %tml ) { "\n" ~ '<img id="Camelia_bug" src="/asset_files/images/Camelia.svg">' },
     'favicon' => sub ( %prm, %tml ) {
-        "\n" ~ '<link href="favicon.ico" rel="icon" type="image/x-icon"' ~ "/>\n"
+        "\n" ~ '<link href="/asset_files/images/favicon.ico" rel="icon" type="image/x-icon"' ~ "/>\n"
     },
-    'css' => sub ( %prm, %tml ) { "\n" ~ '<link rel="stylesheet" href="rakudoc-styling.css">' },
+    'css' => sub ( %prm, %tml ) { "\n" ~ '<link rel="stylesheet" type="text/css" href="rakudoc-styling.css">' },
     'head' => sub ( %prm, %tml ) { '' },
     'block-code' => sub ( %prm, %tml ) {
         if %prm<highlighted>:exists {

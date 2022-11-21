@@ -221,10 +221,11 @@ class ProcessedPod does SetupTemplates {
                       :$path = $plugin-name,
                       :$template-raku = "templates.raku",
                       :$custom-raku = "blocks.raku",
-                      :%config is copy
+                      :%config is copy,
+                      :$protect-name = True
                       ) {
         X::ProcessedPod::NamespaceConflict.new(:name-space($plugin-name)).throw
-            if %!plugin-data{$plugin-name}:exists;
+            if $protect-name and %!plugin-data{$plugin-name}:exists;
         with %config {
             %config<path> = $path
         }
@@ -233,7 +234,7 @@ class ProcessedPod does SetupTemplates {
         }
         self.modify-templates( $template-raku, :$path, :plugin ) if $template-raku;
         self.add-custom( $custom-raku, :$path ) if $custom-raku;
-        self.add-data( $plugin-name, %config )
+        self.add-data( $plugin-name, %config, :$protect-name )
     }
     multi method add-custom( Str $filename, :$path = $filename ) {
         return unless "$path/$filename".IO.f;
@@ -245,10 +246,10 @@ class ProcessedPod does SetupTemplates {
     multi method add-custom( @blocks ) {
         for @blocks { @!custom.append( $_ ) if $_ ~~ Str:D };
     }
-    method add-data($name-space, $data-object ) {
+    method add-data($name-space, $data-object, :$protect-name = True ) {
         return unless $data-object;
         X::ProcessedPod::NamespaceConflict.new(:$name-space).throw
-                if %!plugin-data{$name-space}:exists;
+                if $protect-name and %!plugin-data{$name-space}:exists;
     %!plugin-data{$name-space} = $data-object
     }
     method get-data($name-space) {

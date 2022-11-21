@@ -1,0 +1,13 @@
+=begin pod
+=TITLE Styling Plugin
+=DESCRIPTION Styling plugin for HTML2
+
+Contains:
+=item favicon.ico
+=item Camelia image used in rakudoc styling css
+=item rakudoc-styling.css, and the scss files that generate it.
+
+If the plugin is copied to a local directory and its contents modified, these will be used
+in place of the defaults.
+
+=end pod

@@ -1,0 +1,64 @@
+use v6.d;
+use Test;
+use File::Directory::Tree;
+use Pod::To::HTML2;
+my $leg-dir = 'xt/leg-dir';
+rmdir $leg-dir if $leg-dir.IO ~~ :e;
+mktree $leg-dir;
+"resources/test_things/html-rakuclosure.raku".IO.copy( "$leg-dir/html-templates-rakuclosure.raku");
+"resources/test_things/multi.pod6".IO.copy( "$leg-dir/multi.pod6");
+
+chdir $leg-dir;
+
+my $r;
+plan 3;
+
+=begin foo
+some text
+=end foo
+
+$r = node2html $=pod[0];
+like $r, /
+    '<section>'
+    \s* '<h1'
+    .+ 'foo'
+    .+ '</h1>'
+    .+ '<p>'
+    \s* 'some text'
+    \s* '</p>'
+    \s*'</section>'
+    /, 'basic node2html';
+
+=begin pod
+The seven suspects are:
+
+=item  Happy
+=item  Dopey
+=item  Sleepy
+=item  Bashful
+=item  Sneezy
+=item  Grumpy
+=item  Keyser Soze
+=end pod
+
+$r = pod2html $=pod[1];
+like $r, /:s
+    '<p>' 'The seven suspects are:' '</p>'
+    '<ul>'
+        '<li>' '<p>' Happy '</p>' '</li>'
+        '<li>' '<p>' Dopey '</p>' '</li>'
+        '<li>' '<p>' Sleepy '</p>' '</li>'
+        '<li>' '<p>' Bashful '</p>' '</li>'
+        '<li>' '<p>' Sneezy '</p>' '</li>'
+        '<li>' '<p>' Grumpy '</p>' '</li>'
+        '<li>' '<p>' Keyser Soze '</p>' '</li>'
+    '</ul>'
+/ , 'list matches';
+
+my $example-path = 'multi.pod6';
+
+my $a-pod = $example-path.IO.slurp;
+my $rendered= render($example-path.IO);
+like( $rendered, /magicians/, "Is rendering the whole file" );
+
+done-testing;

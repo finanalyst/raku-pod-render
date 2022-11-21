@@ -1,11 +1,57 @@
 #!/usr/bin/env raku
 use v6.d;
 use Pod::To::HTML2;
-use ExtractPod;
+use Pod::Load;
 
-sub MAIN( Str:D $rakudoc, Str:D :$type, :$rakopts, :$plugins) {
+multi sub MAIN( Str:D $rakudoc, |c) {
     my $rak = load $rakudoc;
-    my Pod::To::HTML2 $pr .=new( :$plugins, :$type, :$rakopts );
+    my Pod::To::HTML2 $pr .=new( |c );
     $pr.render-tree($rak);
-    $pr.file-wrap;
+    $pr.file-wrap(:filename( $rakudoc.IO.basename.IO.extension('') ) );
+    say $rakudoc.IO.basename.IO.extension('html') ~ ' has been generated in the local directory.'
+}
+
+multi sub MAIN( 'Example' ) {
+    exit note("Example html file will only be created in an empty drectory")
+        if +$*CWD.dir;
+    exit note("Example file not in standard default directory: $*HOME/.local/share/PodRender/")
+        unless "$*HOME/.local/share/PodRender/Samples.rakudoc".IO ~~ :e & :f;
+    "$*HOME/.local/share/PodRender/Samples.rakudoc".IO.copy('Samples.rakudoc');
+    'asset_files'.IO.mkdir;
+    'asset_files/images'.IO.mkdir;
+    "$*HOME/.local/share/PodRender/octopus-build.gif".IO.copy('asset_files/images/octopus-build.gif');
+    MAIN( 'Samples.rakudoc');
+    say q:to/MSG/;
+        A sample Rakudoc file is in the directory with its html equivalent. Asset files, eg. a favicon,
+        and css, are in the sub-directory asset_files.
+        The Rakudoc file can be edited, run 'Rakudoc-to-html <filename>' to convert to html.
+        You will need to serve the local file in some way, perhaps by opening the file in a browser.
+        Local versions of the plugins and templates over-ride default versions.
+        Use 'Rakudoc-to-html get-local' to move plugins and templates to the local directory, where
+        they can be tweaked.
+        MSG
+}
+multi sub MAIN( 'get-local' ) {
+    my $def = "$*HOME/.local/share/PodRender";
+    exit note("Example files not in standard default directory: $def")
+        unless "$def/html-templates-rakuclosure.raku".IO ~~ :e & :f;
+    "$def/html-templates-rakuclosure.raku".IO.copy('html-templates-rakuclosure.raku');
+    my @plugins = <latex-render simple-extras styling graphviz font-awesome>;
+    my @todo = ("$def/" <<~>> @plugins )>>.IO;
+    for @todo {
+        when :e & :f {
+            .copy( .relative($def) )
+        }
+        when :e & :d {
+            .relative($def).IO.mkdir unless .relative($def).IO ~~ :e & :d;
+            @todo.append: .dir
+        }
+    }
+    say qq:to/MSG/;
+        Plugins are in directories without a '_' in the name. See this module's README.md.
+        The styling source files are in the plugin directory 'styling'.
+        The templates are in 'html-templates-rakuclosure.raku' (see RakuClosureTemplates.md for more
+        information).
+        Try tweaking the templates and running the 'Rakudoc-to-html Samples.rakudoc' again.
+        MSG
 }

@@ -1,0 +1,203 @@
+=begin pod :no-glossary :no-footnotes
+
+=TITLE New Pod Blocks
+
+These are the cool possibilities using the C<Raku::Pod::Render> distribution.
+
+(The repeated headings in the Table of Contents are deliberate, as will become clear in this text.)
+
+=head1 Assigning new classes to standard HTML templates.
+
+These effects can be found in the plugin C<simple-extras>.
+
+For example, C< <hr> >.
+
+=begin code
+=for HR :class<yellowish-dots>
+
+=for HR :class<bluish-dots>
+
+=for HR :class<greenish-dots>
+
+=end code
+
+renders as
+
+=for HR :class<yellowish-dots>
+
+=for HR :class<bluish-dots>
+
+=for HR :class<greenish-dots>
+=head1 Adding new templates for existing Pod::Blocks
+
+Suppose you want a different template to act on an existing block, like Para,
+which is coded as HTML C<<p>>. For example,
+=begin code
+I like this sonnet:
+=for para :template<quotation> :author<William Shakespeare> :citation<Sonnet 116>
+Let me not to the marriage of true minds\n
+Admit impediments; love is not love\n
+Which alters when it alteration finds,\n
+Or bends with the remover to remove.
+=end code
+
+I like this sonnet:
+=for para :template<quotation> :author<William Shakespeare> :citation<Sonnet 116>
+Let me not to the marriage of true minds\n
+Admit impediments; love is not love\n
+Which alters when it alteration finds,\n
+Or bends with the remover to remove.
+
+=head1 Plugins to keep customisation together
+
+C<Raku::Pod::Render> introduces the idea of 'plugins' to keep the CSS, templates and
+new custom block names in the same sub-directory.
+
+This mechanism also means that I<scripts> and I<CSS> for
+I<HTML> output can also be managed by plugins. There are
+plugins to gather I<CSS>, I<jQuery scripts>, I<js libraries>, and I<Images> from other
+plugins, and collate them so that they are served with each page.
+
+=head1 New Format Codes
+
+Here is an example where the format code F has been leveraged to generate B<FontAwesome> icons.
+The plugin here utilises v4.7. The API for v5 / 6 is different, so another plugin may be needed.
+
+Since Raku treats all Unicode characters the same, Chinese/Arabic/Cyrillic glyphs can now be
+specified to repeat or alias the predefined codes of C<B C I K T U E Z X N L P V >.
+
+=begin code
+Some FontAwesome icons
+
+F<fa-ambulance> Example of ambulance
+
+F<fa-automobile> Example of automobile (alias)
+
+F<fa-bicycle> Example of bicycle
+
+F<fa-bus> Example of bus
+
+F<fa-truck> Example of truck
+
+F<fa-wheelchair> Example of wheelchair
+
+F<fa-wheelchair-alt> Example of wheelchair-alt
+=end code
+
+Generates
+Some FontAwesome icons
+
+F<fa-ambulance> Example of ambulance
+
+F<fa-automobile> Example of automobile (alias)
+
+F<fa-bicycle> Example of bicycle
+
+F<fa-bus> Example of bus
+
+F<fa-truck> Example of truck
+
+F<fa-wheelchair> Example of wheelchair
+
+F<fa-wheelchair-alt> Example of wheelchair-alt
+
+FontAwesome has some other options.
+=begin code
+
+Train normal size F<fa-train> Triple size train F<fa-train|fa-3x>
+
+An animated spinner F<fa-refresh|fa-spin fa-3x fa-fw>
+=end code
+Generates
+
+Train normal size F<fa-train> Triple size train F<fa-train|fa-3x>
+
+An animated spinner F<fa-refresh|fa-spin fa-3x fa-fw>
+
+Notice how these examples leverage off the idea of meta data together with a Format Code. This
+is not standard Rakudoc (aka POD6), as this metadata is only specified for C< X<> > and C< L<> >.
+C<Raku::Pod::Render>
+allows for metadata to be added to any I<non-standard> letter used as a Format Code, and
+any Unicode thingy that Raku treats as a "character" to be made into a Format Code.
+
+=head1 Images
+
+Content files today, especially for the Web, rely on images.
+
+=begin code
+=for Image :src<asset_files/images/octopus-build.gif> :class<justify-center>
+New functionality is being developed
+
+=end code
+
+Generates an image with the text in the Table of Contents. The TOC entry
+can be eliminated with a C<:headlevel(0)>.
+
+=for Image :src<image_files/octopus-build.gif> :class<justify-center>
+New searching functionality is being developed
+
+=head1 Graphviz
+
+This block introduces a directed graph in the dot language. It is rendered into HTML as an svg using the
+dot program. Since many lines of graph data are required, only the delimited form of the block
+(starting with =begin/=end) should be used, and not the contracted C<=Graphviz> form.
+
+The following diagraph comes from the C<dot> documentation. The following Rakudoc
+=begin code
+=begin Graphviz :headlevel(0)
+    digraph G {
+        main -> parse -> execute;
+        main -> init;
+        main -> cleanup;
+        execute -> make_string;
+        execute -> printf
+        init -> make_string;
+        main -> printf;
+        execute -> compare;
+    }
+=end Graphviz
+=end code
+
+produces
+
+=begin Graphviz :headlevel(0)
+    digraph G {
+        main -> parse -> execute;
+        main -> init;
+        main -> cleanup;
+        execute -> make_string;
+        execute -> printf
+        init -> make_string;
+        main -> printf;
+        execute -> compare;
+    }
+=end Graphviz
+
+=head1 Latex
+
+This plugin block sends the Latex markup to the CodeCogs online equation editor (the html page
+needs to be served with a live internet link. For example,
+
+=begin code
+=for Latex :headlevel(0)
+\begin{align*}
+\sum_{i=1}^{k+1} i^{3}
+&= \biggl(\sum_{i=1}^{n} i^{3}\biggr) +  i^3\\
+&= \frac{k^{2}(k+1)^{2}}{4} + (k+1)^3 \\
+&= \frac{k^{2}(k+1)^{2} + 4(k+1)^3}{4}\\
+&= \frac{(k+1)^{2}(k^{2} + 4k + 4)}{4}\\
+&= \frac{(k+1)^{2}(k+2)^{2}}{4}
+\end{align*}
+=end code
+
+=for Latex :headlevel(0)
+\begin{align*}
+\sum_{i=1}^{k+1} i^{3}
+&= \biggl(\sum_{i=1}^{n} i^{3}\biggr) +  i^3\\
+&= \frac{k^{2}(k+1)^{2}}{4} + (k+1)^3 \\
+&= \frac{k^{2}(k+1)^{2} + 4(k+1)^3}{4}\\
+&= \frac{(k+1)^{2}(k^{2} + 4k + 4)}{4}\\
+&= \frac{(k+1)^{2}(k+2)^{2}}{4}
+\end{align*}
+
+=end pod

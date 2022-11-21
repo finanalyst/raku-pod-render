@@ -25,6 +25,18 @@ Several non-standard Blocks are included to show how this is done.
 
 The rationale for re-writing the whole B<Pod::To::HTML> module is in the section L<Why Reinvent the Wheel?|#Why Reinvent the Wheel?>.
 
+C<Pod::To::HTML2> implements three of the subs in C<Pod::To::HTML>, namely:
+=item node2html <pod block> # convert a string of pod to a string of html
+=item pod2html <pod tree> # converts a pod block to a string of html
+=item render # converts a file to html
+
+However, C<pod2html> and C<render> have a variety of options that are not supported by HTML2 because
+they depend on Mustache templates and the plugins for HTML2 have not yet been fully completed to work
+with Mustache templates. This is a TODO.
+
+A utility called C<Rakudoc-to-html> is included in the distribution to transform a local Rakudoc file#
+to HTML. Try C<Rakudoc-to-html Example> in an empty directory! See below for more information.
+
 =head1 Requirements for HTML
 
 To render a Rakudoc file into HTML, the following are needed:
@@ -59,13 +71,15 @@ The utility C<Rakudoc-to-html> in this distribution will render a Rakudoc file.
 
 The utility creates the following in the directory where Rakudoc-to-html was called:
 =item an html file with the same name as the Rakudoc file;
-=item a C<favicon.ico> file, if it is B<not> already present;
-=item a CSS file called C<rakudoc-styling.css> if it is B<not> already present;
-=item the file C<Camelia.svg> if it is B<not> already present
-=item a sub-directory C<assets/css> which will contain css defined for
-L<plugins|#Plugins>.
-=item a sub-directory C<assets/images> with images defined by plugins or L<user images|#Image management>.
-=item a sub-directory C<assets/js> for js and jQuery scripts defined by plugins
+=item a sub-directory C<assets_files> if not already present with:
+=item2 an C<images> subdirectory with
+=item3 C<favicon.ico> file, if it is B<not> already present;
+=item3 the file C<Camelia.svg> if it is B<not> already present;
+=item3 images defined by plugins or L<user images|#Image management>.
+=item2 a CSS subdirectory with:
+=item3 C<rakudoc-styling.css> if it is B<not> already present;
+=item3 css files defined for L<plugins|#Plugins>;
+=item2 a sub-directory C<js> for js and jQuery scripts defined by plugins.
 
 The default templates, favicon, plugins and rakudoc-styling css are installed when this
 distribution is installed into a directory called
@@ -77,13 +91,17 @@ in the current working directory, they will be used in place of the defaults
 in C<$*HOME/.local/share/RenderPod>.
 
 The recommended way to customise the templates/favicon/css/plugin files is to create an empty
-directory, copy whichever defaults are to be modified from the defaults directory
+directory, use C<Rakudoc-to-html get-local> to all plugins and templates from the default directory
 to the empty directory, modify them, then call
-C<Rakudoc-to-html> in that directory with a path to the source. The HTML file
+C<Rakudoc-to-html rakudoc-source.rakudoc> in that directory (source could include a path). The HTML file
 and its associated assets will be generated in the directory.
+
+Plugins that don't need to be modified can be deleted locally.
 
 If the Pod::To::HTML2 class is instantiated, or the Pod::To::HTML2 functions are used, then the default
 assets can be used, or taken from files in the Current Working Directory.
+
+=head1 Other templating systems
 
 Three sets of the main default templates are available for the three templating engines automatically detected
 in this distribution:
@@ -97,6 +115,13 @@ by calling C<Rakudoc-to-html> with the C<type> option set to
 =item B<mustache>, eg., C<Rakudoc-to-html --type='mustache'>.
 =item B<rakuclosure>, eg., C<Rakudoc-to-html --type='rakuclosure'>.
 
+It is possible to change the templates in a plugin to match the main templating engine. Plugins
+templates are specified for RakuClosureTemplates. But if there is a key 'RakuClosureTemplater',
+the templates will be taken from the Hash it points to. Then keys for other templating
+engines can also be included.
+
+Todo: the plan is to include templates for each templating engine in the common plugins.
+
 =head1 Usage with compiler
 
 From the terminal:
@@ -107,8 +132,7 @@ raku --doc=HTML2 input.raku > output.html
 This takes the Rakudoc (aka POD6) in the C<input.raku> file, transforms it into HTML,
 outputs a full HTML page including a Table of Contents, Glossary and Footnotes.
 As described in L<Simple Usage|#Simple Usage>, the C<favicon.ico>, C<rakudoc-styling.css>,
-image and additional CSS files are placed in the Current working directory.
-Take care that if the C<output.html> file name includes a path part, then it will not be matched with the favicon and css files.
+image and additional CSS files are placed in subdirectories of the Current working directory.
 
 This will only work with C<rakuclosure> templates.
 
@@ -146,16 +170,34 @@ For example, if only the Graphviz plugin, and no other, is required, then use
 PLUGINS='Graphviz' raku --doc=HTML2 input.raku > output.html
 =end code
 
-=head1 rakudoc-to-html
+=head1 Rakudoc-to-html
 
-This is invoked on the command line as (e
+This is invoked on the command line as
 
-    rakudoc-to-html input.rakudoc
+    Rakudoc-to-html input.rakudoc
 
 The options are mostly like those for the compiler, and are:
 =item --rakopts # like RAKOPTS
 =item --plugins # like PLUGINS
 =item --type # default is 'rakuclosure', see L<templates|#Templates>)
+
+=head2 Examples and plugins
+
+C<Rakudoc-to-html> can also be called to get an example Rakudoc file, and to get local versions
+of plugins.
+
+    Rakudoc-to-html Example
+
+will bring in the default files and a document called C<Samples.rakudoc>, which is then
+transformed to HTML.
+
+    Rakudoc-to-html get-local
+
+will move the customisable (but not the core transfer plugins) to the local directory.
+Any sub-directory without a '_' in its name is considered a plugin (hence the name
+for the asset files directory C<asset_files>).
+
+Local plugins take precedence over default plugins.
 
 =head1 Defaults and customisation
 
@@ -163,17 +205,22 @@ The directory C<$*HOME/.local/share/RenderPod> contains the following files:
 =item html-templates-rakuclosure.raku # templates in Rakuclosure form to convert Rakudoc to HTML
 =item html-templates-mustache.raku # ditto for mustache
 =item html-templates-crotmp.raku # ditto for crotmp
-=item rakudoc-styling.css # the css to be associated with the HTML (name can be changed)
-=item scss/_highlight.scss # highlights source, used by next
-=item scss/rakudoc-styling.scss # the scss source for the css file (this is not used by
-Pod::To::HTML2 but is included for ease of use). Converting scss to css can be found by
-internet searching. SASS is a good utility.
-
-=item favicon.ico # the favicon file
 =item simple-extras/ # plugin for simple additions to Rakudoc
 =item graphviz/ # plugin to allow for graphviz files
 =item latex-render/ # plugin to render math equations in Latex syntax to an image
 using a free on-line renderer.
+
+=item styling/ # a customisable plugin containing the source for the css files and
+images for styling the Rakudoc html files. The plugin directory contains the following,
+which are transferred using C<move-assets>.
+
+=item2 rakudoc-styling.css # the css to be associated with the HTML
+=item2 _highlight.scss # highlights source, used by next
+=item2 rakudoc-styling.scss # the scss source for the css file (this is not used by
+Pod::To::HTML2 but is included for ease of use). Converting scss to css can be found by
+internet searching. SASS is a good utility.
+
+=item2 favicon.ico # the favicon file
 
 =item gather-js-jq/ # a special plugin for including js and jquery scripts in plugins.
 The plugin has a README, which provides more information about the various
@@ -182,22 +229,11 @@ js/jq config keys.
 =item gather-css/ # a special plugin for including css in plugins. The plugin has a README,
 which provides more information about the various css config keys.
 
+=item move-assets/ # a core plugin for moving assets from another plugin to the C<asset_files>
+sub-directory.
+
 =item md-templates-rakuclosure.raku, etc. markdown files. They are
 not relevant for html rendering (see Pod::To::Markdown for more detail)
-
-The following are always copied to the CWD (current working directory) if not present. If
-B<already> present, they are B<not> copied.
-=item favicon.ico
-=item rakudoc-styling.css
-
-So a custom favicon in the current directory is always used, and custom css in the current directory
-is always used. It is recommended that the file in <defaults>/scss is tweaked and a css file
-generated in the local directory.
-
-The remaining files in the list above are not automatically copied to the CWD, but if they are present,
-then they are used instead of the defaults.
-By copying to CWD a template file, or a plugin directory, these will
-be used by C<Rakudoc-to-html>. So they can be tweaked locally.
 
 =head2 Template file
 

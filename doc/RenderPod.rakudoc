@@ -474,10 +474,10 @@ method, but the extra data can be added separately, eg., after other files have 
 
 This is done with the C<.add-data> method, eg.
 
-    $pp.add-data('name-space', $data-object)
+    $pp.add-data('name-space', $data-object, :$protect-name)
 
-It is only permitted to write to a name-space once. An attempt to overwrite the data will
-throw an <X::ProcessedPod::NamespaceConflict> exception.
+Normally, it is only permitted to write to a name-space once. An attempt to overwrite the data will
+throw an <X::ProcessedPod::NamespaceConflict> exception unless C<:protect-name> is False (default is True).
 
 =head1 Rendering Strategy
 

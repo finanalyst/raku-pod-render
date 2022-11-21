@@ -1,13 +1,15 @@
 
 =begin pod
-=TITLE Gather CSS Plugin for Collection
-=DESCRIPTION Plugin manages the css, either local or remote, provided by other plugins. It must be
-after all such other plugins in the plugins-required configuration of the Mode.
+=TITLE Gather CSS Plugin for HTML2
+=DESCRIPTION Plugin manages the css, either local or remote, provided by other plugins. Adapted from
+Collection plugin of same name.
 
 =head1 Useage
 
 This plugin looks at all the namespaces in the B<ProcessedPod> object's plugin-data area and seeks
 C<css>, C<add-css> or C<css-link> keys in the other plugin's config.
+
+The plugin's collator callable returns a list of files to be transferred to the C<css_assets> directory.
 
 =head2 Local css files
 
@@ -32,7 +34,7 @@ C< <link rel=\"stylesheet\" $_ /> >, with C<$_> being the value I<some reference
 
 Plugin provides or generates
 =item a callable that interogates the C<ProcessedPod> object it is passed and find
-add-csss/css/css-link keys.
+add-css/css/css-link keys.
 
 =item a template for C<css>.
 

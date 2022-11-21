@@ -9,7 +9,7 @@ class Pod::To::HTML2 is ProcessedPod {
     # needed for HTML rendering
     has $.def-ext is rw = 'html';
     #| defaults directory
-    has $.defaults = "$*HOME/.local/share/RenderPod".IO;
+    has $.defaults = "$*HOME/.local/share/PodRender".IO;
 
     # Only needed for legacy P2HTML
     has $!head = '';
@@ -57,7 +57,7 @@ class Pod::To::HTML2 is ProcessedPod {
     submethod TWEAK(
             :$highlight-code,
             :$type = 'rakuclosure',
-            :$plugins = <simple-extras graphviz latex-render images>,
+            :$plugins = <styling simple-extras graphviz latex-render images font-awesome>,
             :$def-dir
             # this option is for testing purposes
         ) {
@@ -67,11 +67,6 @@ class Pod::To::HTML2 is ProcessedPod {
         # highlight code is in parent class
         self.highlight-code = $highlight-code with $highlight-code;
         my $dir;
-        # move assets if not in CWD
-        for <rakudoc-styling.css favicon.ico Camelia.svg> {
-            $dir = self.verify($_);
-            "$dir/$_".IO.copy($_) if $dir eq $!defaults
-        }
         # find templates and evaluate from there.
         $dir = self.verify("html-templates-$type.raku");
         self.templates(EVALFILE("$dir/html-templates-$type.raku"));
@@ -87,11 +82,18 @@ class Pod::To::HTML2 is ProcessedPod {
             );
         }
         # now the assets provided by the plugins must be gathered
-        for <gather-css gather-js-jq> -> $p {
+        my $d = 'asset_files';
+        $d.IO.mkdir unless $d.IO ~~ :e & :d;
+        for <gather-css gather-js-jq move-assets> -> $p {
             my &callable = EVALFILE "$!defaults/$p/collator.raku";
             my @assets = indir( "$!defaults/$p", { &callable(self) });
+            # a collator callable returns an array of [target, file]
             self.modify-templates(EVALFILE "$!defaults/$p/templates.raku" );
-            "$!defaults/$p/$_".IO.copy($_) for @assets
+            for @assets {
+                my $path = ("$d/" ~ .[0]).IO;
+                $path.dirname.IO.mkdir unless $path.dirname.IO ~~ :e & :d;
+                .[1].IO.copy( $path.Str );
+            }
         }
         #cleanup
         for <gather-css gather-js-jq> -> $p {
@@ -110,7 +112,7 @@ class Pod::To::HTML2 is ProcessedPod {
 # All of the code below is solely to pass the legacy tests.
 
 sub get-processor {
-    Pod::To::HTML2.new(:plugins(), :type<mustache> );
+    Pod::To::HTML2.new(:plugins());
 }
 
 #| Backwards compatibility for legacy Pod::To::HTML module
@@ -124,19 +126,20 @@ sub node2html($pod) is export {
 #| Function provided by legacy Pod::To::HTML module to encapsulate a pod-tree in a file
 sub pod2html($pod, *%options) is export {
     my $proc = get-processor;
-    with %options<templates> {
-        if  "$_/main.mustache".IO.f {
-            $proc.modify-templates(%( source-wrap => "$_/main.mustache".IO.slurp))
-        }
-        else {
-            note "$_ does not contain required templates. Using default.";
-        }
-    }
+#    with %options<templates> {
+#        if  "$_/main.mustache".IO.f {
+#            $proc.modify-templates(%( source-wrap => "$_/main.mustache".IO.slurp))
+#        }
+#        else {
+#            note "$_ does not contain required templates. Using default.";
+#        }
+#    }
+    note "HTML2 does not recognise legacy options" if %options.elems;
     $proc.no-glossary = True;
     # old HTML did not provide a glossary
-    $proc.pod-file.lang = $_ with %options<lang>;
-    $proc.css = $_ with %options<css-url>;
-    $proc.head = $_ with %options<head>;
+#    $proc.pod-file.lang = $_ with %options<lang>;
+#    $proc.css = $_ with %options<css-url>;
+#    $proc.head = $_ with %options<head>;
     $proc.render-tree($pod);
     $proc.source-wrap
 }

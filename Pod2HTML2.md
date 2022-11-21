@@ -5,10 +5,12 @@
 ## Table of Contents
 [Requirements for HTML](#requirements-for-html)  
 [Simple usage](#simple-usage)  
+[Other templating systems](#other-templating-systems)  
 [Usage with compiler](#usage-with-compiler)  
 [Component options](#component-options)  
 [Plugins options](#plugins-options)  
-[rakudoc-to-html](#rakudoc-to-html)  
+[Rakudoc-to-html](#rakudoc-to-html)  
+[Examples and plugins](#examples-and-plugins)  
 [Defaults and customisation](#defaults-and-customisation)  
 [Template file](#template-file)  
 [Plugins](#plugins)  
@@ -35,9 +37,21 @@ A Pod-tree consists of Pod::Blocks. The contents and metadata associated with ea
 
 Templates are stored separately from the code in `Pod::To::HTML2` and so can be tweaked by the user.
 
-Rakudoc can be customised by creating new named blocks and FormatCodes (see Raku documentation on POD6). The `Pod::To::HTML2` class enables the creation of new blocks and FormatCodes via [plugins](#plugins). Several non-standard Blocks are included to show how this is done.
+Rakudoc can be customised by creating new named blocks and FormatCodes (see Raku documentation on POD6). The `Pod::To::HTML2` class enables the creation of new blocks and FormatCodes via [plugins](plugins). Several non-standard Blocks are included to show how this is done.
 
-The rationale for re-writing the whole **Pod::To::HTML** module is in the section [Why Reinvent the Wheel?](#why-reinvent-the-wheel?).
+The rationale for re-writing the whole **Pod::To::HTML** module is in the section [Why Reinvent the Wheel?](why-reinvent-the-wheel?).
+
+`Pod::To::HTML2` implements three of the subs in `Pod::To::HTML`, namely:
+
+*  node2html <pod block> # convert a string of pod to a string of html
+
+*  pod2html <pod tree> # converts a pod block to a string of html
+
+*  render # converts a file to html
+
+However, `pod2html` and `render` have a variety of options that are not supported by HTML2 because they depend on Mustache templates and the plugins for HTML2 have not yet been fully completed to work with Mustache templates. This is a TODO.
+
+A utility called `Rakudoc-to-html` is included in the distribution to transform a local Rakudoc file# to HTML. Try `Rakudoc-to-html Example` in an empty directory! See below for more information.
 
 # Requirements for HTML
 To render a Rakudoc file into HTML, the following are needed:
@@ -75,26 +89,35 @@ The utility creates the following in the directory where Rakudoc-to-html was cal
 
 *  an html file with the same name as the Rakudoc file;
 
-*  a `favicon.ico` file, if it is **not** already present;
+*  a sub-directory `assets_files` if not already present with:
 
-*  a CSS file called `rakudoc-styling.css` if it is **not** already present;
+	*  an `images` subdirectory with
 
-*  the file `Camelia.svg` if it is **not** already present
+		*  `favicon.ico` file, if it is **not** already present;
 
-*  a sub-directory `assets/css` which will contain css defined for [plugins](#plugins).
+		*  the file `Camelia.svg` if it is **not** already present;
 
-*  a sub-directory `assets/images` with images defined by plugins or [user images](#image-management).
+		*  images defined by plugins or [user images](image-management).
 
-*  a sub-directory `assets/js` for js and jQuery scripts defined by plugins
+	*  a CSS subdirectory with:
 
-The default templates, favicon, plugins and rakudoc-styling css are installed when this distribution is installed into a directory called `$*HOME/.local/share/RenderPod`. (See [Defaults and customisation](#defaults-and-customisation) for more detail.)
+		*  `rakudoc-styling.css` if it is **not** already present;
 
-If files for html (See [Default and customisation](#default-and-customisation)) are present in the current working directory, they will be used in place of the defaults in `$*HOME/.local/share/RenderPod`.
+		*  css files defined for [plugins](plugins);
 
-The recommended way to customise the templates/favicon/css/plugin files is to create an empty directory, copy whichever defaults are to be modified from the defaults directory to the empty directory, modify them, then call `Rakudoc-to-html` in that directory with a path to the source. The HTML file and its associated assets will be generated in the directory.
+	*  a sub-directory `js` for js and jQuery scripts defined by plugins.
+
+The default templates, favicon, plugins and rakudoc-styling css are installed when this distribution is installed into a directory called `$*HOME/.local/share/RenderPod`. (See [Defaults and customisation](defaults-and-customisation) for more detail.)
+
+If files for html (See [Default and customisation](default-and-customisation)) are present in the current working directory, they will be used in place of the defaults in `$*HOME/.local/share/RenderPod`.
+
+The recommended way to customise the templates/favicon/css/plugin files is to create an empty directory, use `Rakudoc-to-html get-local` to all plugins and templates from the default directory to the empty directory, modify them, then call `Rakudoc-to-html rakudoc-source.rakudoc` in that directory (source could include a path). The HTML file and its associated assets will be generated in the directory.
+
+Plugins that don't need to be modified can be deleted locally.
 
 If the Pod::To::HTML2 class is instantiated, or the Pod::To::HTML2 functions are used, then the default assets can be used, or taken from files in the Current Working Directory.
 
+# Other templating systems
 Three sets of the main default templates are available for the three templating engines automatically detected in this distribution:
 
 *  `RakuClosure` template system, (default choice)
@@ -111,6 +134,10 @@ The templating engine can be selected by calling `Rakudoc-to-html` with the `typ
 
 *  **rakuclosure**, eg., `Rakudoc-to-html --type='rakuclosure'`.
 
+It is possible to change the templates in a plugin to match the main templating engine. Plugins templates are specified for RakuClosureTemplates. But if there is a key 'RakuClosureTemplater', the templates will be taken from the Hash it points to. Then keys for other templating engines can also be included.
+
+Todo: the plan is to include templates for each templating engine in the common plugins.
+
 # Usage with compiler
 From the terminal:
 
@@ -118,7 +145,7 @@ From the terminal:
 raku --doc=HTML2 input.raku > output.html
 
 ```
-This takes the Rakudoc (aka POD6) in the `input.raku` file, transforms it into HTML, outputs a full HTML page including a Table of Contents, Glossary and Footnotes. As described in [Simple Usage](#simple-usage), the `favicon.ico`, `rakudoc-styling.css`, image and additional CSS files are placed in the Current working directory. Take care that if the `output.html` file name includes a path part, then it will not be matched with the favicon and css files.
+This takes the Rakudoc (aka POD6) in the `input.raku` file, transforms it into HTML, outputs a full HTML page including a Table of Contents, Glossary and Footnotes. As described in [Simple Usage](simple-usage), the `favicon.ico`, `rakudoc-styling.css`, image and additional CSS files are placed in subdirectories of the Current working directory.
 
 This will only work with `rakuclosure` templates.
 
@@ -153,11 +180,11 @@ For example, if only the Graphviz plugin, and no other, is required, then use
 PLUGINS='Graphviz' raku --doc=HTML2 input.raku > output.html
 
 ```
-# rakudoc-to-html
-This is invoked on the command line as (e
+# Rakudoc-to-html
+This is invoked on the command line as
 
 ```
-rakudoc-to-html input.rakudoc
+Rakudoc-to-html input.rakudoc
 ```
 The options are mostly like those for the compiler, and are:
 
@@ -165,7 +192,22 @@ The options are mostly like those for the compiler, and are:
 
 *  --plugins # like PLUGINS
 
-*  --type # default is 'rakuclosure', see [templates](#templates))
+*  --type # default is 'rakuclosure', see [templates](templates))
+
+## Examples and plugins
+`Rakudoc-to-html` can also be called to get an example Rakudoc file, and to get local versions of plugins.
+
+```
+Rakudoc-to-html Example
+```
+will bring in the default files and a document called `Samples.rakudoc`, which is then transformed to HTML.
+
+```
+Rakudoc-to-html get-local
+```
+will move the customisable (but not the core transfer plugins) to the local directory. Any sub-directory without a '_' in its name is considered a plugin (hence the name for the asset files directory `asset_files`).
+
+Local plugins take precedence over default plugins.
 
 # Defaults and customisation
 The directory `$*HOME/.local/share/RenderPod` contains the following files:
@@ -176,35 +218,29 @@ The directory `$*HOME/.local/share/RenderPod` contains the following files:
 
 *  html-templates-crotmp.raku # ditto for crotmp
 
-*  rakudoc-styling.css # the css to be associated with the HTML (name can be changed)
-
-*  scss/_highlight.scss # highlights source, used by next
-
-*  scss/rakudoc-styling.scss # the scss source for the css file (this is not used by Pod::To::HTML2 but is included for ease of use). Converting scss to css can be found by internet searching. SASS is a good utility.
-
-*  favicon.ico # the favicon file
-
 *  simple-extras/ # plugin for simple additions to Rakudoc
 
 *  graphviz/ # plugin to allow for graphviz files
 
 *  latex-render/ # plugin to render math equations in Latex syntax to an image using a free on-line renderer.
 
+*  styling/ # a customisable plugin containing the source for the css files and images for styling the Rakudoc html files. The plugin directory contains the following, which are transferred using `move-assets`.
+
+	*  rakudoc-styling.css # the css to be associated with the HTML
+
+	*  _highlight.scss # highlights source, used by next
+
+	*  rakudoc-styling.scss # the scss source for the css file (this is not used by Pod::To::HTML2 but is included for ease of use). Converting scss to css can be found by internet searching. SASS is a good utility.
+
+	*  favicon.ico # the favicon file
+
 *  gather-js-jq/ # a special plugin for including js and jquery scripts in plugins. The plugin has a README, which provides more information about the various js/jq config keys.
 
 *  gather-css/ # a special plugin for including css in plugins. The plugin has a README, which provides more information about the various css config keys.
 
+*  move-assets/ # a core plugin for moving assets from another plugin to the `asset_files` sub-directory.
+
 *  md-templates-rakuclosure.raku, etc. markdown files. They are not relevant for html rendering (see Pod::To::Markdown for more detail)
-
-The following are always copied to the CWD (current working directory) if not present. If **already** present, they are **not** copied.
-
-*  favicon.ico
-
-*  rakudoc-styling.css
-
-So a custom favicon in the current directory is always used, and custom css in the current directory is always used. It is recommended that the file in <defaults>/scss is tweaked and a css file generated in the local directory.
-
-The remaining files in the list above are not automatically copied to the CWD, but if they are present, then they are used instead of the defaults. By copying to CWD a template file, or a plugin directory, these will be used by `Rakudoc-to-html`. So they can be tweaked locally.
 
 ## Template file
 A template file must contain the minimum number of templates (see [RenderPod](RenderPod.md) for more detail).
@@ -273,7 +309,7 @@ The default plugins provide examples.
 # Standalone usage mixing Pod and code
 'Standalone ... mixing' means that the program itself contains pod definitions (some examples are given below). This functionality is mainly for tests, but can be adapted to render other pod sources.
 
-`Pod::To::HTML2` is a subclass of `PodProcessed`, which contains the code for a generic Pod Render. `Pod::To::HTML2` provides a default set of templates and minimal css (see [Templates](#templates)). It also exports some routines (not documented here) to pass the tests of the legacy `Pod::To::HTML2` module (see below for the rationale for choosing a different API).
+`Pod::To::HTML2` is a subclass of `PodProcessed`, which contains the code for a generic Pod Render. `Pod::To::HTML2` provides a default set of templates and minimal css (see [templates](templates)). It also exports some routines (not documented here) to pass the tests of the legacy `Pod::To::HTML2` module (see below for the rationale for choosing a different API).
 
 `Pod::To::HTML2` also allows, as covered below, for a customised css file to be included, for individual template components to be changed on the fly, and also to provide a different set of templates.
 
@@ -492,4 +528,4 @@ This module deal with these problems as follows:
 
 
 ----
-Rendered from Pod2HTML2 at 2022-10-28T16:54:47Z
+Rendered from Pod2HTML2 at 2022-11-21T09:59:19Z

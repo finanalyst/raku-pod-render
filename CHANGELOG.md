@@ -271,17 +271,28 @@ change testing
 
 		*  If so, the templates pointed to by `.templater.Str` in the plugin's templates are used, and if not present, then an Exception is thrown.
 
-		*  If not, the plugin is using Rakuclosuer templates, so if `.templater.Str` is not `RakuClosureTemplater` then an Exception is thrown
+		*  If not, the plugin is using Rakuclosure templates, so if `.templater.Str` is not `RakuClosureTemplater` then an Exception is thrown
 
 *  remove ExtractPod as Pod::Load is Raku canonical
 
-TODO - test legacy API - test Highlighting separately
+# 2022-11-15 v4.1.0
 
 
+*  allow for data object to be rewritten by add-plugin. Use case: the name-space for a plugin needs to be available for the plugin's callables, as it contains config data needed by plugin callables
+
+*  Created a Samples.rakudoc file for Rakudoc-to-html Example
+
+*  rewrote sample plugins for HTML2 from Collection variants.
+
+*  wrote new core plugin move-assets for HTML2 to mimic Collection render milestone functionality
+
+*  rewrote BUILD.pm to copy all plugins from resources to a local default directory
+
+*  basic node2html and pod2html options tested. Uses Rakuclosure, so no mustache options.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-10-28T16:54:53Z
+Rendered from CHANGELOG at 2022-11-21T09:59:01Z

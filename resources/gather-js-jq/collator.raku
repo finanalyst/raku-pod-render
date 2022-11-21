@@ -4,7 +4,7 @@ sub ( $pp --> Positional ) {
     my @js-bottom;
     my %own-config = EVALFILE 'config.raku';
     for $pp.plugin-datakeys -> $plug {
-        next if $plug eq 'js-collator' ;
+        next if $plug eq 'gather-js-jq' ;
         my $data = $pp.get-data($plug);
         next unless $data ~~ Associative;
         for $data.keys {
@@ -61,7 +61,7 @@ sub ( $pp --> Positional ) {
         if $loadjq-lib;
     my @move-dest;
     my $elem;
-    for @js.sort({.[2]}) -> ($file, $plug, $order ){
+    for @js.sort({.[2]}) -> ($file, $plug, $ ){
         FIRST {
             $template ~= 'js => sub (%prm, %tml) {' ;
             $elem = 0;
@@ -71,12 +71,12 @@ sub ( $pp --> Positional ) {
         }
         $template ~= ( $elem ?? '~ ' !! '' )
                 ~ '\'<script '
-                ~ ( $plug ?? 'src="/assets/scripts/' !! '' )
+                ~ ( $plug ?? 'src="/asset_files/js/' !! '' )
                 ~ $file
                 ~ ( $plug ?? '"' !! '' )
                 ~ ">\</script>'\n";
         ++$elem;
-        @move-dest.append( $file ) if $plug
+        @move-dest.push( ("js/$file", $file) ) if $plug
     }
     for @js-bottom.sort({.[2]}) -> ($file, $plug ){
         FIRST {
@@ -86,9 +86,9 @@ sub ( $pp --> Positional ) {
         LAST {
             $template ~= "},\n"
         }
-        $template ~= ( $elem ?? '~ ' !! '' ) ~ '\'<script src="/assets/scripts/' ~ $file ~ "\"\>\</script>'\n";
+        $template ~= ( $elem ?? '~ ' !! '' ) ~ '\'<script src="/asset_files/js/' ~ $file ~ "\"\>\</script>'\n";
         ++$elem;
-        @move-dest.append( $file )
+        @move-dest.push( ("js/$file", $file) )
     }
     $template ~= ")\n";
     "templates.raku".IO.spurt($template);

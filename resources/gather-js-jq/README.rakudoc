@@ -1,5 +1,5 @@
 =begin pod
-=TITLE Documentation on gather-js-jq plugin for Collection
+=TITLE Documentation on gather-js-jq plugin for HTML2
 
 =DESCRIPTION Looks for C<script>/C<script-link> & C<jquery>/<jquery-link> key in other plugins.
 Creates template entries that are referenced in the generic source-wrap template.
@@ -11,6 +11,8 @@ This plugin takes those files/links and deals with them so that they can be serv
 content files. This requires modification of the templates, and js files in the plugin directory
 will need to be copied to the correct
 output directory.
+
+The HTML2 plugin returns a list of files that must be copied to the C< /js_assets/> sub-directory
 
 In addition, the order in which JS / ECMA libraries are loaded may be important, eg., leaflet-providers.js must
 load after the leaflet library. This is enabled by supplying an ordering parameter.

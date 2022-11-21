@@ -1,5 +1,5 @@
 use v6;
-
+use File::Directory::Tree;
 unit class Build;
 sub set-highlight-basedir( --> Str ) {
     my $basedir = $*HOME;
@@ -14,20 +14,26 @@ sub test-highlighter( Str $hilite-path --> Bool ) {
 }
 
 method build($dist-path) {
-    my $def = "$*HOME/.local/share/PodRender";
-    note "Creating $def";
-    my @todo = "$dist-path/resources".IO, ;
-    while @todo {
-        for @todo.pop.dir -> $path {
-            next if $path ~~ m/<[_]>/ ;
-            my $b = $path.basename;
-            my $part-d = $path.dirname.subst(/ ^ "$dist-path/resources" \/? /, '');
-            if $path.d {
-                "$def/$part-d/$b".IO.cleanup.mkdir;
-                @todo.push: $path
-            }
-            else {
-                $path.copy("$def/$part-d/$b".IO.cleanup.Str);
+    my $dest = "$*HOME/.local/share/PodRender";
+    if $dest.IO ~~ :e & :d {
+        empty-directory $dest;
+        note "Updating default plugin source directory: $dest";
+    }
+    else {
+        mktree $dest;
+        note "Creating default plugin source directory: $dest";
+    }
+    my $src = "$dist-path/resources";
+    my @todo = $src.IO, ;
+    for @todo {
+        when :e & :f {
+            .copy( "$dest/" ~ .relative($src) )
+        }
+        when :e & :d {
+            unless .Str ~~ m/<[_]>/ {
+                ("$dest/" ~ .relative($src)).IO.mkdir
+                    unless ("$dest/" ~ .relative($src)).IO ~~ :e & :d;
+                @todo.append: .dir
             }
         }
     }

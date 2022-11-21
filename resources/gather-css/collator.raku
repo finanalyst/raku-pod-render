@@ -13,30 +13,32 @@ sub ($pp --> Positional) {
             @links.append($data<css-link>)
         }
         elsif $data<add-css>:exists and $data<add-css> ~~ Str:D {
-            @adds.push( ($_ , $data<add-css>) )
+            @adds.push( ($data<path> , $data<add-css>) )
+        }
+        elsif $data<add-css>:exists and $data<add-css> ~~ Positional {
+            @adds.append( ($data<path> , $_ ) ) for $data<add-css>.list
         }
     }
-    return () unless $css or +@adds or +@links;
-    my $template = q:to/TEMP/;
-        %( css => sub (%prm, %tml) {
-        "\n" ~ '<link rel="stylesheet" href="rakudoc-styling.css">'
-        TEMP
+    my $template = '%( css => sub (%prm, %tml) {' ~ "\n";
+    my $ln-st = '~ \'<link rel="stylesheet" type="text/css"';
+    my $ln-end = '/>\' ~ "\n"' ~ "\n";
+    my $dir-pre = 'asset_files';
+    my $dir-post = 'css';
     my @move-dest;
     if $css {
         # remove any .ccs.map references in text as these are not loaded
         $css.subst-mutate(/ \n \N+ '.css.map' .+? $$/, '', :g);
         my $fn = 'rakudoc-extra.css';
         $fn.IO.spurt($css);
-        $template ~= "\n" ~ '~ "\n" ~ ' ~ "'<link rel=\"stylesheet\" href=\"$fn\">'";
-        @move-dest.append: $fn
+        $template ~= "$ln-st href=\"$dir-pre/$dir-post/$fn\" $ln-end" ;
+        @move-dest.push: ( "$dir-post/$fn","$*CWD/$fn" );
     }
-    else { $template ~= ' "" ' } # Template is describing a subroutine that emits a string, which must be started by css
     for @adds {
-        $template ~= "\n" ~ '~ "\n" ~ ' ~ "'<link rel=\"stylesheet\" href=\"/assets/css/{ $_[1] }\"/>'";
-        @move-dest.append: $_[1]
+        $template ~= "$ln-st href=\"$dir-pre/$dir-post/$_[1]\" $ln-end" ;
+        @move-dest.push: ( "$dir-post/$_[1]", $_[0] ~ '/' ~ $_[1])
     }
     for @links {
-        $template ~= "\n" ~ '~ "\n" ~ ' ~ "'<link rel=\"stylesheet\" $_ />'";
+        $template ~= "$ln-st href=\"$_\" $ln-end";
     }
     $template ~= "\n" ~ '~ "\n" },)';
     "templates.raku".IO.spurt: $template;

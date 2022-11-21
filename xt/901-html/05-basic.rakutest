@@ -53,9 +53,9 @@ while @todo {
 chdir ~$tar-dir;
 lives-ok { $processor = Pod::To::HTML2.new(:$def-dir) }, 'instantiates with defaults';
 isa-ok $processor, 'Pod::To::HTML2', 'correct return type';
-ok 'favicon.ico'.IO ~~ :e & :f, 'Favicon is transfered from defaults';
-ok 'rakudoc-styling.css'.IO ~~ :e & :f, 'CSS transfered';
-ok 'rakudoc-extra.css'.IO ~~ :e & :f, 'Plugin CSS transferred';
+ok 'asset_files/images/favicon.ico'.IO ~~ :e & :f, 'Favicon is transfered from defaults';
+ok 'asset_files/css/rakudoc-styling.css'.IO ~~ :e & :f, 'CSS transfered';
+ok 'asset_files/css/rakudoc-extra.css'.IO ~~ :e & :f, 'Plugin CSS transferred';
 $processor.process-pod($=pod[$pn++]);
 $rv = $processor.source-wrap;
 like $rv,

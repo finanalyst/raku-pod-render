@@ -4,11 +4,8 @@
 		"finanalyst",
 	),
 	:custom-raku(),
-	:information<template-raku>,
 	:license<Artistic-2.0>,
 	:name<gather-css>,
-	:render<css-collator.raku>,
 	:template-raku<css-templates.raku>,
-	:transfer<cleanup.raku>,
-	:version<0.2.0>,
+	:version<0.1.0>,
 )

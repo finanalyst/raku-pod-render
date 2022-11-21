@@ -4,15 +4,9 @@
 		"finanalyst",
 	),
 	:custom-raku(),
-	:information(
-		"template-raku",
-		"jquery-lib",
-	),
 	:jquery-lib<https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js>,
 	:license<Artistic-2.0>,
 	:name<gather-js-jq>,
-	:render<js-collator.raku>,
 	:template-raku<js-templates.raku>,
-	:transfer<cleanup.raku>,
-	:version<0.2.0>,
+	:version<0.1.0>,
 )
