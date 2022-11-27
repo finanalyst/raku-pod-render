@@ -226,4 +226,9 @@ callables
 =item rewrote BUILD.pm to copy all plugins from resources to a local default directory
 =item basic node2html and pod2html options tested. Uses Rakuclosure, so no mustache options.
 
+=head1 2022-11-27 v4.1.1
+=item improve unknown-name default template
+=item improve default templates
+=correct Samples.rakudoc for image
+
 =end pod

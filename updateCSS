@@ -1,2 +1,0 @@
-#!/bin/bash
-sass "/home/richard/development/raku-pod-render/scss/pod.scss":"/home/richard/development/raku-pod-render/resources/pod.css"

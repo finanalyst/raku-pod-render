@@ -1,7 +1,7 @@
 {
   "name": "Raku::Pod::Render",
   "description": "A generic Pod6 Renderer with custom Pod::Blocks, FormatCodes for one or more files using templates, provides HTML and MarkDown.",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "perl": "6.d",
   "authors": [
     "Richard Hainsworth"
@@ -36,8 +36,6 @@
     "RenderPod::Test-Templates": "lib/RenderPod/Test-Templates.rakumod"
   },
   "resources": [
-    "Samples.rakudoc",
-    "html-templates-rakuclosure.raku",
     "html-templates-mustache.raku",
     "html-templates-crotmp.raku",
     "md-templates-mustache.raku",
@@ -88,10 +86,8 @@
     "move-assets/README.rakudoc",
     "styling/config.raku",
     "styling/_highlights.scss",
-    "styling/rakudoc-styling.scss",
     "styling/images/Camelia.svg",
     "styling/images/favicon.ico",
-    "styling/rakudoc-styling.css",
     "styling/README.rakudoc",
     "font-awesome/config.raku",
     "font-awesome/fa-assets.raku",
@@ -133,7 +129,8 @@
     "font-awesome/fonts/fontawesome-webfont.svg",
     "font-awesome/fonts/fontawesome-webfont.eot",
     "font-awesome/font-awesome-4.7.0/less/font-awesome.less",
-    "font-awesome/font-awesome-4.7.0/less/path.less"
+    "font-awesome/font-awesome-4.7.0/less/path.less",
+    "Samples.rakudoc"
   ],
   "support": {
     "bugtracker": "https://github.com/finanalyst/raku-pod-render/issues",

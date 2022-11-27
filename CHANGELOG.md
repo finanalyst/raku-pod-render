@@ -276,8 +276,6 @@ change testing
 *  remove ExtractPod as Pod::Load is Raku canonical
 
 # 2022-11-15 v4.1.0
-
-
 *  allow for data object to be rewritten by add-plugin. Use case: the name-space for a plugin needs to be available for the plugin's callables, as it contains config data needed by plugin callables
 
 *  Created a Samples.rakudoc file for Rakudoc-to-html Example
@@ -290,9 +288,20 @@ change testing
 
 *  basic node2html and pod2html options tested. Uses Rakuclosure, so no mustache options.
 
+# 2022-11-27 v4.1.1
+*  improve unknown-name default template
+
+*  improve default templates
+
+# correct
+
+Samples.rakudoc for image
+
+
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-11-21T09:59:01Z
+Rendered from CHANGELOG at 2022-11-27T11:45:19Z

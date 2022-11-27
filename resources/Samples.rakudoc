@@ -6,7 +6,7 @@ These are the cool possibilities using the C<Raku::Pod::Render> distribution.
 
 (The repeated headings in the Table of Contents are deliberate, as will become clear in this text.)
 
-=head1 Assigning new classes to standard HTML templates.
+=head1 Assigning classes to HTML containers.
 
 These effects can be found in the plugin C<simple-extras>.
 
@@ -133,7 +133,7 @@ New functionality is being developed
 Generates an image with the text in the Table of Contents. The TOC entry
 can be eliminated with a C<:headlevel(0)>.
 
-=for Image :src<image_files/octopus-build.gif> :class<justify-center>
+=for Image :src<asset_files/images/octopus-build.gif> :class<justify-center>
 New searching functionality is being developed
 
 =head1 Graphviz
@@ -199,5 +199,22 @@ needs to be served with a live internet link. For example,
 &= \frac{(k+1)^{2}(k^{2} + 4k + 4)}{4}\\
 &= \frac{(k+1)^{2}(k+2)^{2}}{4}
 \end{align*}
+
+head1 Errors
+
+If a block is used in a Rakudoc document that is misspelt or a Custom plugin has not been correctly
+defined, then the C<ProcessedPod> renderer will render the block as an Unknown Name with an error
+message. For example, suppose 'head' is misspelt as 'header'.
+
+=begin code
+=header1 This should be a header
+
+This is some text
+=end code
+
+renders as:
+=header1 This should be a header
+
+This is some text
 
 =end pod

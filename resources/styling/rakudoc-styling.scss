@@ -197,3 +197,24 @@ footer {
     border-color: blue;
     border-radius: 1em;
 }
+
+
+.RakudocError {
+  border-style: solid;
+  border-color: red;
+  border-radius: 0.5em;
+  border-width: 1px;
+  margin: 0.5em -0.5em -0.5em;
+  legend {
+    color: red;
+    font-size: small;
+  }
+  fieldset {
+    display: flex;
+    border-style: solid;
+    border-color: blue;
+    border-radius: 0.5em;
+    border-width: 1px;
+    legend { color: blue; }
+  }
+}
