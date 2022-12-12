@@ -197,8 +197,16 @@ footer {
     border-color: blue;
     border-radius: 1em;
 }
-
-
+.RakudocNoFormatCode {
+	border-width: 1px;
+	border-style: inset;
+	border-color: chocolate;
+	border-radius: 5px;
+	span:nth-of-type(1) {
+	    color: red;
+	    font-weight: bold;
+	}
+}
 .RakudocError {
   border-style: solid;
   border-color: red;

@@ -5,6 +5,7 @@
 ## Table of Contents
 [Creating a Renderer](#creating-a-renderer)  
 [Pod Source Configuration](#pod-source-configuration)  
+[Configuration](#configuration)  
 [Templates](#templates)  
 [New Templates](#new-templates)  
 [Additional Templates](#additional-templates)  
@@ -99,6 +100,31 @@ The rendering of page components can be explicitly turned off by setting `no-toc
 
 
 ```
+# Configuration
+The Rakudoc (aka POD6) original specification defines the `=config` directive. This has the form
+
+```
+    =config block-name :metadata<some-value>
+
+```
+`=config` directives apply from the time they are encountered until the end of the enclosing Pod-block.
+
+The data is provided to each template in the parameter `config`. `config` is a hash whose keys are the name of the block, eg., head1, item1, code. The values associated with a key are also hashes, containing the pair values of the metadata.
+
+RenderPod also provides the following data:
+
+*  name => basename of the Rakudoc file (without extension)
+
+*  path => relative url to file from root of collection (with extension)
+
+*  lang => language (or En by default)
+
+*  all metadata associated with the outer `=begin rakudoc` or `=begin pod` block is considered Config data too.
+
+Config information is different to the metadata provided with a block. The metadata set with a block is provided only to the template of the block being processed. Config data is available to all templates in the lexical scope of the `=config` directive.
+
+It is up to the template to access and use the Config data.
+
 # Templates
 Rakudoc (POD6) files contain both content and hints about how to render the content. The aim of this module is to separate the output completely from processing the Rakudoc (POD6).
 
@@ -744,4 +770,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2022-11-21T10:00:21Z
+Rendered from RenderPod at 2022-12-12T21:37:10Z

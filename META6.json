@@ -1,7 +1,7 @@
 {
   "name": "Raku::Pod::Render",
   "description": "A generic Pod6 Renderer with custom Pod::Blocks, FormatCodes for one or more files using templates, provides HTML and MarkDown.",
-  "version": "4.1.1",
+  "version": "4.2.0",
   "perl": "6.d",
   "authors": [
     "Richard Hainsworth"
@@ -46,7 +46,6 @@
     "test_things/badfile.txt",
     "test_things/disclaimer.txt",
     "test_things/rend-test-file.raku",
-    "test_things/html-rakuclosure.raku",
     "test_things/md-mustache.raku",
     "test_things/multi.pod6",
     "simple-extras/simple-extras.scss",

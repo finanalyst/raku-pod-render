@@ -476,6 +476,17 @@ footer {
   border-radius: 1em;
 }
 
+.RakudocNoFormatCode {
+  border-width: 1px;
+  border-style: inset;
+  border-color: chocolate;
+  border-radius: 5px;
+}
+.RakudocNoFormatCode span:nth-of-type(1) {
+  color: red;
+  font-weight: bold;
+}
+
 .RakudocError {
   border-style: solid;
   border-color: red;
@@ -497,5 +508,3 @@ footer {
 .RakudocError fieldset legend {
   color: blue;
 }
-
-/*# sourceMappingURL=rakudoc-styling.css.map */

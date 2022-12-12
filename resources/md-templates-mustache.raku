@@ -92,5 +92,5 @@ use v6;
         {{/ toc }}
         TEMPL
     'header' => '',
-    'footer' => '{{# name }}Rendered from {{ name }}{{/ name }}{{# renderedtime }} at {{ renderedtime }}{{/ renderedtime }}{{# path }}{{/ path }}'
+    'footer' => 'Rendered from {{ config.path }} at {{ renderedtime }}'
 );

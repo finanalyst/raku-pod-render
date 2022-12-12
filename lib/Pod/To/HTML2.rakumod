@@ -58,6 +58,7 @@ class Pod::To::HTML2 is ProcessedPod {
             :$highlight-code,
             :$type = 'rakuclosure',
             :$plugins = <styling simple-extras graphviz latex-render images font-awesome>,
+            :$add-plugins = '',
             :$def-dir
             # this option is for testing purposes
         ) {
@@ -71,7 +72,7 @@ class Pod::To::HTML2 is ProcessedPod {
         $dir = self.verify("html-templates-$type.raku");
         self.templates(EVALFILE("$dir/html-templates-$type.raku"));
         # find plugin origin for each plugin
-        for $plugins.comb(/\S+/) -> $p {
+        for "$plugins $add-plugins".comb(/\S+/) -> $p {
             $dir = self.verify($p);
             my %plugin-conf = get-config("$dir/$p");
             self.add-plugin("$dir/$p",

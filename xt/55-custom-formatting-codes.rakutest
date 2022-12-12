@@ -37,8 +37,8 @@ This text has a F<fa-snowflake-o> icon
 $rv = $processor.render-block($=pod[$pc++]);
 like $rv,
         /
-        'F<FA-SNOWFLAKE-O>'
-        /, 'no special rendering of F a fa';
+        '<unknown-name>FA-SNOWFLAKE-O</unknown-name>'
+        /, 'unknown format F';
 
 $processor.modify-templates( %(
     :format-f( sub (%prm, %tmpl) { "<i class=\"fa { %prm<contents> }\"></i>" }),

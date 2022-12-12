@@ -231,4 +231,17 @@ callables
 =item improve default templates
 =correct Samples.rakudoc for image
 
+=head1 2022-12-08 v4.2.0
+=item make sure all necessary Pod-blocks can take :template & :name-space meta-data,
+and pass name-space data to template. Previously this was only done for named blocks.
+
+=item implementing =config directive.
+=item2 C<=config> metadata is provided to all templates as the C<config> parameter.
+=item2 metadata for the outermost C<=pod> or C<=rakudoc> blocks is included in the C<=config> data
+=item change 'unknown-name' template so that we can format unknown format codes properly
+=item change handler of FormatCode so that 'unknown-name' is called with :format-code.
+=item default templates for footer needs changing to generate a time
+=item default navigation template to remove tags if no TOC or Glossary.
+=item include C<add-plugins> to P2HTML2 so that new plugins can added to the distributed ones.
+
 =end pod

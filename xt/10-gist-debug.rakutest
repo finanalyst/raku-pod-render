@@ -12,7 +12,7 @@ sub gen-closure-template (Str $tag) is export {
 }
 my ProcessedPod $p .= new;
 
-plan 3;
+plan 4;
 
 like $p.pod-file.gist,
         /
@@ -43,6 +43,7 @@ This is C<format-code C>.
 definite article
 
 =end pod
+lives-ok { $p.process-pod( $=pod[0] )}, 'processing works';
 $p.debug = True;
 stderr-like { $p.process-pod($=pod[0]) },
     /

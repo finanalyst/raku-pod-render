@@ -297,11 +297,30 @@ change testing
 
 Samples.rakudoc for image
 
+# 2022-12-08 v4.2.0
 
+
+*  make sure all necessary Pod-blocks can take :template & :name-space meta-data, and pass name-space data to template. Previously this was only done for named blocks.
+
+*  implementing =config directive.
+
+	*  `=config` metadata is provided to all templates as the `config` parameter.
+
+	*  metadata for the outermost `=pod` or `=rakudoc` blocks is included in the `=config` data
+
+*  change 'unknown-name' template so that we can format unknown format codes properly
+
+*  change handler of FormatCode so that 'unknown-name' is called with :format-code.
+
+*  default templates for footer needs changing to generate a time
+
+*  default navigation template to remove tags if no TOC or Glossary.
+
+*  include `add-plugins` to P2HTML2 so that new plugins can added to the distributed ones.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-11-27T11:45:19Z
+Rendered from CHANGELOG at 2022-12-12T21:37:03Z

@@ -44,7 +44,7 @@ grammar FC {
 constant DEFAULT_TOP = '___top';
 
 class PodFile {
-    # Variable relating to a specific pod file
+    # Variables relating to a specific pod file
 
     #| Text between =TITLE and first header, this is used to refer for textual placenames
     has Str $.front-matter is rw = 'preface';
@@ -177,6 +177,11 @@ class ProcessedPod does SetupTemplates {
     #| used to register state when processing a definition list
     has Bool $!in-defn-list = False;
 
+    #| the Config stack
+    has @.config-stack ;
+    multi method config { @.config-stack[ *-1 ].clone }
+    multi method config( %extra ) { for %extra.kv { @.config-stack[ *-1 ]{ $^a } = $^b } }
+
     my enum Context <None Heading HTML Raw Output InPodCode>;
 
     submethod TWEAK(:$rakopts) {
@@ -261,6 +266,11 @@ class ProcessedPod does SetupTemplates {
     #| process the pod block or tree passed to it, and concatenates it to previous pod tree
     #| returns a string representation of the tree in the required format
     method process-pod($pod --> Str) {
+        @!config-stack = [ %(
+            :name($!pod-file.name),
+            :lang($!pod-file.lang),
+            :path($!pod-file.path),
+        ), ];
         $!pod-body = [~] gather for $pod.list { take self.handle($_, 0 , Context::None ) };
         # returns accumulated pod-bodies
         $!body ~= $!pod-body;
@@ -311,18 +321,15 @@ class ProcessedPod does SetupTemplates {
         $!pod-file.renderedtime = now.DateTime.utc.truncated-to('seconds').Str;
         self.render-structures;
         self.rendition('source-wrap', {
-            :name($!pod-file.name),
             :title($!pod-file.title),
             :title-target($!pod-file.title-target),
             :subtitle($!pod-file.subtitle),
-            :page-config($!pod-file.pod-config-data),
             :$!metadata,
-            :lang($!pod-file.lang),
             :$!toc,
             :$!glossary,
             :$!footnotes,
             :$!body,
-            :path($!pod-file.path),
+            :config(self.config),
             :renderedtime($!pod-file.renderedtime),
         })
     }
@@ -339,6 +346,7 @@ class ProcessedPod does SetupTemplates {
         # if no headers in pod, then no need to include a TOC
         return '' if (!?$!pod-file.raw-toc or $.no-toc or $.pod-file.pod-config-data<no-toc>);
         my @filtered = $!pod-file.raw-toc.grep({ !(.<is-title>) });
+        return '' unless +@filtered;
         self.rendition('toc', %( :toc([@filtered])));
     }
 
@@ -347,6 +355,7 @@ class ProcessedPod does SetupTemplates {
         return '' if (!?$!pod-file.raw-glossary.keys or $.no-glossary or $.pod-file.pod-config-data<no-glossary>);
         #No render without any keys
         my @filtered = [gather for $!pod-file.raw-glossary.sort { take %(:text(.key), :refs([.value.sort])) }];
+        return '' unless +@filtered;
         self.rendition('glossary', %( :glossary(@filtered)))
     }
 
@@ -559,7 +568,10 @@ class ProcessedPod does SetupTemplates {
             ~ (|c[0].^can('name') ?? (' with name ｢' ~ |c[0].name) ~ '｣' !! '')
             ~ (|c[0].^can('type') ?? (' with type ｢' ~ |c[0].type) ~ '｣' !! '')
             if $.debug;
-        {*}
+        @.config-stack.push: $.config;
+        my $rv = {*}
+        @.config-stack.pop;
+        $rv
     }
 
     #| Handle processes Pod blocks, bare strings, and throws if a Nil
@@ -575,7 +587,11 @@ class ProcessedPod does SetupTemplates {
         # first completion is to flush a retained list before the contents of the block are processed
         my $retained-list = $.completion($in-level, 'zero', %(), :$defn );
         my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, InPodCode, :$defn ) };
-        $retained-list ~ $.completion($in-level, 'block-code', %( :$contents ), :$defn );
+        my $template = $node.config<template> // 'block-code';
+        my $name-space = $node.config<name-space> // $template;
+        my $data = $_ with %!plugin-data{ $name-space };
+
+        $retained-list ~ $.completion($in-level, 'block-code', %( :$contents, "$name-space" => $data, :config(self.config), ), :$defn );
     }
 
     multi method handle(Pod::Block::Comment $node, Int $in-level, Context $context = None, Bool :$defn = False,  --> Str) {
@@ -605,13 +621,18 @@ class ProcessedPod does SetupTemplates {
     multi method handle(Pod::Block::Named $node, Int $in-level, Context $context = None, Bool :$defn = False,  --> Str) {
         my $target = $.register-toc(:1level, :text($node.name.tclc));
         my $template = $node.config<template> // 'unknown-name';
+        my $name-space = $node.config<name-space> // $template // $node.name.lc;
+        my $data = $_ with %!plugin-data{ $name-space };
+
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, $template, %(
                 :name($node.name),
+                "$name-space" => $data,
                 :$target,
                 :1level,
                 :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn ) }),
                 :top($.pod-file.top),
+                :config(self.config),
                 $node.config
             ), :$defn
         )
@@ -623,12 +644,18 @@ class ProcessedPod does SetupTemplates {
         # DEFAULT_TOP, until TITLE changes it. Will fail if multiple pod without TITLE
         unless $.pod-block-processed {
             $.pod-file.pod-config-data = $node.config;
+            $.config( $node.config );
             $.pod-block-processed = True;
             note "Processing first pod declaration in file { $.pod-file.path }" if $.debug;
         }
         my $template = $node.config<template> // 'pod';
+        my $name-space = $node.config<name-space> // $template;
+        my $data = $_ with %!plugin-data{ $name-space };
+
         $.completion($in-level, $template, %(
             :$name,
+            "$name-space" => $data,
+            :config(self.config),
             :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
             :tail($.completion( 0, 'zero', %(), :$defn ))
             ), :$defn
@@ -691,24 +718,25 @@ class ProcessedPod does SetupTemplates {
         $target = $.register-toc(:$level, :text(recurse-until-str($node).tclc))
             if +$level;
         my $template = $node.config<template> // $node.name.lc;
-        my $data;
         my $name-space = $node.config<name-space> // $template // $node.name.lc;
-        $data = $_ with %!plugin-data{ $name-space };
+        my $data = $_ with %!plugin-data{ $name-space };
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, $template,
             %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
             $node.config,
             :$target,
             :raw-contents( [~] gather for $node.contents { take self.handle($_, $in-level, Raw, :$defn ) } ),
-            "$name-space" => $data
+            "$name-space" => $data,
+            :config(self.config),
             ), :$defn
         )
     }
 
     multi method handle(Pod::Block::Para $node, Int $in-level, Context $context where *== Output, Bool :$defn = False, --> Str) {
         $.completion($in-level, 'zero', %(), :$defn )
-                ~ $.completion($in-level, 'raw',
-            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),$node.config)
+            ~ $.completion($in-level, 'raw',
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
+               $node.config, :config(self.config),)
                 , :$defn)
 
     }
@@ -717,7 +745,8 @@ class ProcessedPod does SetupTemplates {
         note "Defn flag is $defn and context is $context" if $.verbose;
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, ($defn || $context !~~ None ) ?? 'raw' !! 'para' ,
-            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) }),$node.config)
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) }),
+               $node.config, :config(self.config), )
             , :$defn)
     }
 
@@ -731,7 +760,7 @@ class ProcessedPod does SetupTemplates {
                 :rows([gather for $node.contents -> @r {
                     take %( :cells([gather for @r { take $.handle($_, $in-level, $context, :$defn) }]))
                 }])
-                ,$node.config
+                ,$node.config, :config(self.config),
                 ), :$defn
             )
     }
@@ -740,7 +769,7 @@ class ProcessedPod does SetupTemplates {
         $.completion($in-level, 'zero', %(), :defn($!in-defn-list) )
             ~ $.completion($in-level, 'defn',
                 %( :term($node.term), %( :contents([~] gather for $node.contents { take self.handle($_,
-                $in-level, :defn, $context) })),$node.config
+                $in-level, :defn, $context) })),$node.config, :config(self.config),
                 ),
                 :defn
             )
@@ -759,7 +788,8 @@ class ProcessedPod does SetupTemplates {
             :$text,
             :$target,
             :top($.pod-file.top),
-            $node.config
+            $node.config,
+            :config(self.config),
             }, :$defn
         )
     }
@@ -768,14 +798,15 @@ class ProcessedPod does SetupTemplates {
         my $level = $node.level - 1;
         while $level < $in-level {
             --$in-level;
-            $.itemlist[$in-level] ~= $.rendition('list', %( :items($.itemlist.pop)))
+            $.itemlist[$in-level] ~= $.rendition('list', %( :items($.itemlist.pop), :config(self.config),))
         }
         while $level >= $in-level {
             $.itemlist[$in-level] = [] unless $.itemlist[$in-level]:exists;
             ++$in-level
         }
         $.itemlist[$in-level - 1].push: $.rendition('item',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) }),$node.config)
+                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) }),
+                   $node.config, :config(self.config),)
                 );
         return ''
         # explicitly return an empty string because callers expecting a Str
@@ -786,22 +817,21 @@ class ProcessedPod does SetupTemplates {
         $.completion($in-level, 'zero', %(), :$defn )
                 ~ $.rendition('raw',
                 %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Context::Raw, :$defn) }),
-                   $node.config
+                   $node.config, :config(self.config),
                 ), :$defn
         )
     }
 
     multi method handle(Pod::Config $node, Int $in-level, Context $context = None, Bool :$defn = False, --> Str) {
+        $.config( $node.type => $node.config );
         $.completion($in-level, 'zero', %(), :$defn )
-            ~ $.completion($in-level, 'comment',
-            %( :contents($node.type ~ '=' ~ $node.config.raku)))
     }
     multi method handle(Pod::FormattingCode $node where .type ~~ any( <B C I K T U> ), Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
         my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) };
         my $meta = @($node.meta) // []; # by default an empty array
         $.completion($in-level, 'format-' ~ $node.type.lc ,
-                %( :$contents, :$meta ), :$defn
+                %( :$contents, :$meta, :config(self.config), ), :$defn
             )
     }
     multi method handle(Pod::FormattingCode $node where .type ~~ none(<E Z X N L P V B C I K T U>), Int $in-level,
@@ -829,15 +859,12 @@ class ProcessedPod does SetupTemplates {
         }
         if %.tmpl{ 'format-' ~ $node.type.lc }:exists {
             $.completion($in-level, 'format-' ~ $node.type.lc ,
-                %( :$contents, :$meta ), :$defn
+                %( :$contents, :$meta, :config(self.config), ), :$defn
             )
         }
         else {
-            $.completion($in-level, 'escaped',
-                %( :contents($node.type ~ '<'
-                    ~ $contents.Str
-                    ~ ($meta ?? '|' ~ $meta>>.Str !! '')
-                    ~ '>')
+            $.completion($in-level, 'unknown-name',
+                %( :$contents, :$meta, :format-code($node.type),
                 ), :$defn
             )
         }
@@ -854,12 +881,13 @@ class ProcessedPod does SetupTemplates {
             when Int { "&#$_;" };
             when Str { "&$_;" };
             $_
-        }))), :$defn)
+        })), :config(self.config),), :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'Z', Int $in-level, $context = None, Bool :$defn = False,  --> Str) {
         $.completion($in-level, 'zero',
-                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) })
+                %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
+                 :config(self.config),
                 ), :$defn)
     }
 
@@ -871,7 +899,7 @@ class ProcessedPod does SetupTemplates {
         # ignore if there is nothing that can be an entry
         my $target = $.register-glossary($text, $node.meta, $header);
         #s/recurse-until-str($node).join /$text/
-        $.completion($in-level, 'format-x', %( :$text, :$target, :$header), :$defn)
+        $.completion($in-level, 'format-x', %( :$text, :$target, :$header, :config(self.config),), :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'L', Int $in-level,
@@ -885,7 +913,8 @@ class ProcessedPod does SetupTemplates {
                :local( $type eq 'local' ),
                :internal( $type eq 'internal' ),
                :external( $type eq 'external' ),
-               :$place
+               :$place,
+               :config(self.config),
             ), :$defn
         )
     }
@@ -893,7 +922,8 @@ class ProcessedPod does SetupTemplates {
     multi method handle(Pod::FormattingCode $node where .type eq 'V', Int $in-level,
                         Context $context = None, Bool :$defn = False, --> Str) {
         $.completion($in-level, 'escaped',
-            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) })
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
+             :config(self.config),
             ), :$defn
         )
     }
@@ -938,6 +968,6 @@ class ProcessedPod does SetupTemplates {
         $html = so $contents ~~ / '<html' .+ '</html>'/;
         $contents = ~$/ if $html;
         # eliminate any chars outside the <html> container if there is one
-        $.completion($in-level, 'format-p', %( :$contents, :$html), :$defn)
+        $.completion($in-level, 'format-p', %( :$contents, :$html, :config(self.config),), :$defn)
     }
 }

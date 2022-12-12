@@ -20,13 +20,12 @@ some text
 $r = node2html $=pod[0];
 like $r, /
     '<section>'
-    \s* '<h1'
+    .+ '<h1'
     .+ 'foo'
     .+ '</h1>'
     .+ '<p>'
     \s* 'some text'
     \s* '</p>'
-    \s*'</section>'
     /, 'basic node2html';
 
 =begin pod

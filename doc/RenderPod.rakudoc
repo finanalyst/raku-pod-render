@@ -85,6 +85,33 @@ C<no-glossary>, C<no-footnotes>, or C<no-meta> in the config of pod. eg
 
 =end code
 
+=head1 Configuration
+
+The Rakudoc (aka POD6) original specification defines the C<=config> directive. This has the form
+
+=begin code
+    =config block-name :metadata<some-value>
+=end code
+
+C<=config> directives apply from the time they are encountered until the end of the enclosing Pod-block.
+
+The data is provided to each template in the parameter C<config>. C<config> is a hash whose keys are the name
+of the block, eg., head1, item1, code. The values associated with a key are also hashes,
+containing the pair values of the metadata.
+
+RenderPod also provides the following data:
+=item name => basename of the Rakudoc file (without extension)
+=item path => relative url to file from root of collection (with extension)
+=item lang => language (or En by default)
+=item all metadata associated with the outer C<=begin rakudoc> or C<=begin pod> block is considered
+Config data too.
+
+Config information is different to the metadata provided with a block. The metadata set with a block is
+provided only to the template of the block being processed. Config data is available to all templates
+in the lexical scope of the C<=config> directive.
+
+It is up to the template to access and use the Config data.
+
 =head1 Templates
 
 Rakudoc (POD6) files contain both content and hints about how to render the content. The aim of this module is to separate the
