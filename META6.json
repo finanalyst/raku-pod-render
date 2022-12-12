@@ -47,6 +47,7 @@
     "test_things/disclaimer.txt",
     "test_things/rend-test-file.raku",
     "test_things/md-mustache.raku",
+    "test_things/html-rakuclosure.raku",
     "test_things/multi.pod6",
     "simple-extras/simple-extras.scss",
     "simple-extras/config.raku",
