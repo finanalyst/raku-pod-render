@@ -317,15 +317,18 @@ Samples.rakudoc for image
 *  include `add-plugins` to P2HTML2 so that new plugins can added to the distributed ones.
 
 # 2022-12-14 v4.2.1
-
-
 *  add attribute to PodFile for final output so that it can be accessed later.
 
 	*  use case: Collection plugin 'secondaries' that needs the text following a chosen header so that it can be inserted into another file.
+
+# 2022-12-15 v4.2.2
+
+
+*  fix error - namespace not in header handler.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-12-14T21:40:02Z
+Rendered from CHANGELOG at 2022-12-14T23:27:11Z

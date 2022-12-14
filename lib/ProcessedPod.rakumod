@@ -729,7 +729,7 @@ class ProcessedPod does SetupTemplates {
             $node.config,
             :$target,
             :raw-contents( [~] gather for $node.contents { take self.handle($_, $in-level, Raw, :$defn ) } ),
-            "$name-space" => $data,
+            $name-space => $data,
             :config(self.config),
             ), :$defn
         )
@@ -783,6 +783,8 @@ class ProcessedPod does SetupTemplates {
         # process before contents
         my $level = $node.level;
         my $template = $node.config<template> // 'heading';
+        my $name-space = $node.config<name-space> // $template;
+        my $data = $_ with %!plugin-data{ $name-space };
         my $target = $.register-toc(:$level, :text(recurse-until-str($node).join.trim));
         # must register toc before processing content!!
         my $text = trim([~] gather for $node.contents { take $.handle($_, $in-level, Heading, :$defn) });
@@ -791,6 +793,7 @@ class ProcessedPod does SetupTemplates {
             :$text,
             :$target,
             :top($.pod-file.top),
+            $name-space => $data,
             $node.config,
             :config(self.config),
             }, :$defn
