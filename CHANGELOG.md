@@ -298,8 +298,6 @@ change testing
 Samples.rakudoc for image
 
 # 2022-12-08 v4.2.0
-
-
 *  make sure all necessary Pod-blocks can take :template & :name-space meta-data, and pass name-space data to template. Previously this was only done for named blocks.
 
 *  implementing =config directive.
@@ -318,9 +316,16 @@ Samples.rakudoc for image
 
 *  include `add-plugins` to P2HTML2 so that new plugins can added to the distributed ones.
 
+# 2022-12-14 v4.2.1
+
+
+*  add attribute to PodFile for final output so that it can be accessed later.
+
+	*  use case: Collection plugin 'secondaries' that needs the text following a chosen header so that it can be inserted into another file.
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-12-12T21:37:03Z
+Rendered from CHANGELOG at 2022-12-14T21:40:02Z

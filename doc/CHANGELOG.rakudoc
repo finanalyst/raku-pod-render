@@ -244,4 +244,9 @@ and pass name-space data to template. Previously this was only done for named bl
 =item default navigation template to remove tags if no TOC or Glossary.
 =item include C<add-plugins> to P2HTML2 so that new plugins can added to the distributed ones.
 
+=head1 2022-12-14 v4.2.1
+=item add attribute to PodFile for final output so that it can be accessed later.
+=item2 use case: Collection plugin 'secondaries' that needs the text following a chosen header
+so that it can be inserted into another file.
+
 =end pod

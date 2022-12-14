@@ -87,6 +87,8 @@ class PodFile {
     #| the templates used to render this file, copied from Templates role
     #| so that a record can be kept per pod-file, and per run
     has %.templates-used is rw;
+    #| a copy of the output generated for the pod file
+    has $.pod-output is rw;
     multi method gist(PodFile:U: ) { 'Undefined PodFile' }
     multi method gist(PodFile:D: ) {
         my $temps-u = 'No templates used, has a render method been invoked?';
@@ -296,6 +298,7 @@ class ProcessedPod does SetupTemplates {
     method emit-and-renew-processed-state( --> PodFile ) {
         my PodFile $old = $!pod-file;
         $old.templates-used = %($.templs-used);
+        $old.pod-output = $!body;
         $!pod-file .= new;
 
         #clean out the variables, whilst keeping the Templating engine cache.
