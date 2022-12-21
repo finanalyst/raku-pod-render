@@ -90,7 +90,7 @@ class PodFile {
     #| a copy of the output generated for the pod file
     has $.pod-output is rw;
     multi method gist(PodFile:U: ) { 'Undefined PodFile' }
-    multi method gist(PodFile:D: ) {
+    multi method gist(PodFile:D: Int :$output = 175 ) {
         my $temps-u = 'No templates used, has a render method been invoked?';
         if +%.templates-used.keys {
             $temps-u = "Hash=<{ %.templates-used.sort( *.value ).reverse.map( {.key ~ ': ' ~ .value } ).join(', ') }>"
@@ -120,6 +120,7 @@ class PodFile {
                 :indent('  '), :post-separator-spacing("\n  ") )  }
             targets => <｢{ $.targets.keys.join('｣, ｢') }｣>
             templates-used => { $temps-u }
+            pod-output => { with $!pod-output  { .substr(0, $output) ~ ( .chars > $output ?? "\n... (" ~ .chars - $output ~ ' more chars)' !! '') } }
         GIST
     }
 }
@@ -256,8 +257,8 @@ class ProcessedPod does SetupTemplates {
     method add-data($name-space, $data-object, :$protect-name = True ) {
         return unless $data-object;
         X::ProcessedPod::NamespaceConflict.new(:$name-space).throw
-                if $protect-name and %!plugin-data{$name-space}:exists;
-    %!plugin-data{$name-space} = $data-object
+            if $protect-name and %!plugin-data{$name-space}:exists;
+        %!plugin-data{$name-space} = $data-object
     }
     method get-data($name-space) {
         return Nil unless %!plugin-data{$name-space}:exists;

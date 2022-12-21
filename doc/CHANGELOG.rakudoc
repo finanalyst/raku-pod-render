@@ -252,4 +252,9 @@ so that it can be inserted into another file.
 =head1 2022-12-15 v4.2.2
 =item fix error - namespace not in header handler.
 
+=head1 2022-12-17 v4.2.3
+=item add pod-output to PodFile.gist
+=item add optional length to GIST for amount of pod-output printed
+=item2 add test to check this.
+
 =end pod

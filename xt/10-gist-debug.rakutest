@@ -12,7 +12,7 @@ sub gen-closure-template (Str $tag) is export {
 }
 my ProcessedPod $p .= new;
 
-plan 4;
+plan 5;
 
 like $p.pod-file.gist,
         /
@@ -64,5 +64,9 @@ like $pf.gist,
         ':target("A_title"),'
         \s+ ':text("A title")'
     /, 'reasonable PodFile gist';
+$pf.gist ~~ / \( $<rem> = (\d+) ' more chars' /;
+my $rem = +$<rem>;
+$pf.gist(:170output) ~~ / \( $<rem> = (\d+) ' more chars' /;
+is $<rem>, $rem + 5, 'change number of output chars';
 
 done-testing;
