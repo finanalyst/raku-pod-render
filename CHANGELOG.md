@@ -331,18 +331,21 @@ Samples.rakudoc for image
 
 	*  add test to check this.
 
-# 2022-12-17 v4.3.0
-
-
+# 2022-12-31 v4.3.0
 *  add ability to remember previous templates.
 
 	*  works and tests ok for RakuClosure. Does not work for Mustache, perhaps Binding needs adding to LinkedVals Hash???
 
 	*  So LinkedVals Hash is only used for RakuClosures.
 
+# 2023-01-01 v4.3.1
+
+
+*  handle end of linked list better. prior returns Nil not .cell
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-12-31T07:58:33Z
+Rendered from CHANGELOG at 2022-12-31T20:24:06Z

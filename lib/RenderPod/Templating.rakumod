@@ -114,7 +114,11 @@ class LinkedVals does Associative {
             %!fields{$key} = LinkedList.new( :cell($new), :prior( Nil ))
         }
     }
-    method prior($key) { %!fields{$key}.prior.cell }
+    method prior($key) {
+        with %!fields{$key}.prior
+            { .cell }
+        else { Nil }
+    }
     method kv(LinkedVals:D: --> Seq:D) {
         %!fields.list>>.map( { .key, .value.cell } ).flat
     }
