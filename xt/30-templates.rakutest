@@ -10,10 +10,7 @@ sub gen-closure-template (Str $tag) is export {
         $start ~ (%prm<contents> // '') ~ $end;
     }
 }
-plan 8;
-
-my $tmpl-fn = 'xt/newtemplates.raku';
-$tmpl-fn.IO.unlink if $tmpl-fn.IO.f;
+plan 9;
 
 my $processor;
 
@@ -49,14 +46,30 @@ is $processor.templater.Str, 'RakuClosureTemplater', 'Stringify templater yields
 like $processor.rendition('format-b', %(:contents('Hello world'))),
         / '<format-b>' 'Hello world' '</format-b>' /, 'basic interpolation correct';
 
-$processor.modify-templates( %( format-b => -> %params, % { '#' x %params<level> ~ ' ' ~ %params<text> ~ "\n" }));
-
+$processor.modify-templates( %(
+    format-b => -> %params, % { '#' x %params<level> ~ ' ' ~ %params<text> ~ "\n" }
+));
 like $processor.rendition('format-b', %(:text('Hello World'), :level(5) )),
         / \# **5 \s* 'Hello World' /, 'template replaced, and pointy routine accepted as a template';
 
-$processor.modify-templates( %(:newone(-> %prm, %tml { '<container>' ~ %prm<contents> ~ '</container>'}),
-                       :format-b( -> %prm, %tml { %tml<newone>(%prm,%tml)  ~  ' is wrapped'} ) ) );
+$processor.modify-templates( %(
+    :newone(-> %prm, %tml { '<container>' ~ %prm<contents> ~ '</container>'}),
+    :format-b( -> %prm, %tml { %tml<newone>(%prm,%tml)  ~  ' is wrapped'} ),
+) );
 like $processor.rendition('format-b', %(:contents('Hello world'))),
         / '<container>' 'Hello world' '</container> is wrapped' /, 'interpolation with partials correct';
+
+# test the ability to access previous template value
+$processor.modify-templates( %(
+    format-b => sub ( %prm, %tml) {
+        'new stuff, then old ' ~
+        %tml.prior('format-b').( %prm, %tml )
+    }
+));
+like $processor.rendition('format-b', %(:contents('Hello world'))),
+        /
+        'new stuff, then old ' \s*
+        '<container>' 'Hello world' '</container> is wrapped'
+        /, 'got new and interpolation with partials';
 
 done-testing;

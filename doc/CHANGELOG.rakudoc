@@ -257,4 +257,10 @@ so that it can be inserted into another file.
 =item add optional length to GIST for amount of pod-output printed
 =item2 add test to check this.
 
+=head1 2022-12-17 v4.3.0
+=item add ability to remember previous templates.
+=item2 works and tests ok for RakuClosure. Does not work for Mustache, perhaps Binding needs adding
+to LinkedVals Hash???
+=item2 So LinkedVals Hash is only used for RakuClosures.
+
 =end pod

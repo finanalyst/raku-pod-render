@@ -322,13 +322,27 @@ Samples.rakudoc for image
 	*  use case: Collection plugin 'secondaries' that needs the text following a chosen header so that it can be inserted into another file.
 
 # 2022-12-15 v4.2.2
-
-
 *  fix error - namespace not in header handler.
+
+# 2022-12-17 v4.2.3
+*  add pod-output to PodFile.gist
+
+*  add optional length to GIST for amount of pod-output printed
+
+	*  add test to check this.
+
+# 2022-12-17 v4.3.0
+
+
+*  add ability to remember previous templates.
+
+	*  works and tests ok for RakuClosure. Does not work for Mustache, perhaps Binding needs adding to LinkedVals Hash???
+
+	*  So LinkedVals Hash is only used for RakuClosures.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-12-14T23:27:11Z
+Rendered from CHANGELOG at 2022-12-31T07:58:33Z

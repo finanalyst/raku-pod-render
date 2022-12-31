@@ -4,9 +4,7 @@ use ProcessedPod;
 use RenderPod::Templating;
 plan 7;
 skip-rest 'waiting til Crotmp templates can be used';
-#
-#my $tmpl-fn = 'xt/newtemplates.raku';
-#$tmpl-fn.IO.unlink if $tmpl-fn.IO.f;
+
 #
 #my ProcessedPod $processor .= new;
 #

@@ -155,8 +155,14 @@ $p.modify-templates(:templates( xxxx ) );
 C<xxxx> may be a Hash or a Str, in which case it is taken to be a path to a Raku program that evaluates to
 a Hash.
 
-The keys of the (resultant) Hash are added to the existing templates. Any previously existing templates are
-over-ridden.
+The keys of the (resultant) Hash are added to the existing templates.
+
+The previous value of existing templates can be stored depending on how the Engine Wrapper in Templating
+is written. For Mustache, the previous template is over-written. For RakuClosure, the previous value can
+be accessed. This allows for Plugins to provide a template that uses the result of the previous template.
+
+The use case for this is to allow for plugins that obtain data from, eg., headings, but to generate
+output that is provided by the heading that has gone before.
 
 =head2 Raku Closure Templates
 
@@ -169,6 +175,18 @@ the other templates expect the signature C<( %prm, %tml? )>. C<%prm> contains th
 C<%tml> is the array of templates.
 
 Each template MUST return string, which may be ''.
+
+Since %tml is an object of type LinkedVals, it is possible to access the template previously existing at the
+same spot. For example, in some new template,
+
+    %(
+        heading => sub (%prm, %tml) {
+            %tml.prior('heading').( %prm, %tml )
+        },
+    )
+
+the new template (after modify-templates) will access the value from the previous template of the same
+name. But all templates are available.
 
 =head2 Mustache Templates - minor extension.
 

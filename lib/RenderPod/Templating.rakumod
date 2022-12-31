@@ -91,11 +91,44 @@ engines (see L<RenderPod|RenderPod#Plugins>).
 #        %templates
 #    }
 #}
+#| Simple linked-list
+class LinkedList {
+    has $.cell is rw;
+    has $.prior;
+}
+#| A hash that remembers previous values
+class LinkedVals does Associative {
+    has %.fields handles < push EXISTS-KEY iterator list keys values>;
+    multi method AT-KEY ($key) is rw { %!fields{$key }.cell }
+    multi method DELETE-KEY ($key) {
+        with %!fields{$key}.prior {
+            %!fields{ $key } = $_
+        }
+        else { %!fields{$key}:delete }
+    }
+    multi method ASSIGN-KEY (::?CLASS:D: $key, $new) {
+        if %!fields{$key}:exists {
+            %!fields{$key} = LinkedList.new( :cell($new), :prior( %!fields{$key} ))
+        }
+        else {
+            %!fields{$key} = LinkedList.new( :cell($new), :prior( Nil ))
+        }
+    }
+    method prior($key) { %!fields{$key}.prior.cell }
+    method kv(LinkedVals:D: --> Seq:D) {
+        %!fields.list>>.map( { .key, .value.cell } ).flat
+    }
+    method STORE (::?CLASS:D: \values, :$INITIALIZE) {
+        %!fields = Empty;
+        for values.list { self.ASSIGN-KEY( .key , .value )};
+        self
+    }
+}
 
 #| The templates are sub (%prm, %tml) that act on the keys of %prm and return a Str
 #| keys 'escaped' and 'raw' take a Str as the only argument
 class RakuClosureTemplater is export {
-    has %!tmpl;
+    has %!tmpl is LinkedVals;
     submethod BUILD(:%!tmpl) {}
     #| maps the key to template and emits the result of the closure
     method render(Str $key, %params --> Str) {

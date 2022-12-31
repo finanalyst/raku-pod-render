@@ -159,7 +159,11 @@ $p.modify-templates(:templates( xxxx ) );
 ```
 `xxxx` may be a Hash or a Str, in which case it is taken to be a path to a Raku program that evaluates to a Hash.
 
-The keys of the (resultant) Hash are added to the existing templates. Any previously existing templates are over-ridden.
+The keys of the (resultant) Hash are added to the existing templates.
+
+The previous value of existing templates can be stored depending on how the Engine Wrapper in Templating is written. For Mustache, the previous template is over-written. For RakuClosure, the previous value can be accessed. This allows for Plugins to provide a template that uses the result of the previous template.
+
+The use case for this is to allow for plugins that obtain data from, eg., headings, but to generate output that is provided by the heading that has gone before.
 
 ## Raku Closure Templates
 This system was introduced to speed up processing. The Pod Rendering engine generates a set of keys and parameters. It calls the method `rendition` with the key and the parameters, and expects a string back with the parameters interpolated into the output.
@@ -167,6 +171,17 @@ This system was introduced to speed up processing. The Pod Rendering engine gene
 In addition, templates may call templates. With the exception of the key 'escaped', which expects a string only, all the other templates expect the signature `( %prm, %tml? )`. `%prm` contains the parameters to be interpolated, `%tml` is the array of templates.
 
 Each template MUST return string, which may be ''.
+
+Since %tml is an object of type LinkedVals, it is possible to access the template previously existing at the same spot. For example, in some new template,
+
+```
+%(
+    heading => sub (%prm, %tml) {
+        %tml.prior('heading').( %prm, %tml )
+    },
+)
+```
+the new template (after modify-templates) will access the value from the previous template of the same name. But all templates are available.
 
 ## Mustache Templates - minor extension.
 The following notes are for the MustacheTemplater, because an extension of Mustache templates is used here.
@@ -770,4 +785,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2022-12-12T21:37:10Z
+Rendered from RenderPod at 2022-12-31T07:58:29Z
