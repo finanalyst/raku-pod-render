@@ -5,10 +5,19 @@ use ProcessedPod;
 plan 13;
 
 my ProcessedPod $processor .= new;
-
+# A helper sub for RakuClosureTemplates
+sub gen-closure-template (Str $tag) is export {
+    my $start = '<' ~ $tag ~ '>';
+    my $end = '</' ~ $tag ~ '>';
+    return sub (%prm, %tml? --> Str) {
+        $start ~ (%prm<contents> // '') ~ $end;
+    }
+}
 my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
         item list meta unknown-name output para pod raw source-wrap table toc >;
+my %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
+%templates<escaped> = sub ($s) { $s };
 
 # the following pod creates Footnotes, Meta, TOC and Glossary structures, which will only render minimally as above,
 # Actual rendering will be tested in html tests.
@@ -45,8 +54,6 @@ But X<|an entry can exist> without the text being marked.
 
 An empty X<> is ignored.
 =end rakudoc
-
-my %templates  = @templates Z=> ( "\<$_>\{\{\{ contents }}}\</$_>" for @templates );
 
 $processor.templates(%templates);
 

@@ -94,7 +94,7 @@ engines (see L<RenderPod|RenderPod#Plugins>).
 #| Simple linked-list
 class LinkedList {
     has $.cell is rw;
-    has $.prior;
+    has LinkedList $.prior;
 }
 #| A hash that remembers previous values
 class LinkedVals does Associative {
@@ -132,7 +132,7 @@ class LinkedVals does Associative {
 #| The templates are sub (%prm, %tml) that act on the keys of %prm and return a Str
 #| keys 'escaped' and 'raw' take a Str as the only argument
 class RakuClosureTemplater is export {
-    has %!tmpl is LinkedVals;
+    has %.tmpl is LinkedVals;
     submethod BUILD(:%!tmpl) {}
     #| maps the key to template and emits the result of the closure
     method render(Str $key, %params --> Str) {
@@ -148,9 +148,7 @@ class RakuClosureTemplater is export {
             %!tmpl{$key}(%params, %!tmpl)
         }
     }
-    method refresh(%new-templates) {
-        { %!tmpl{$^a} = $^b } for %new-templates.kv;
-    }
+    method refresh { }
     # no op for RakuClosure
     method Str {
         "RakuClosureTemplater"
@@ -171,11 +169,10 @@ class MustacheTemplater is export {
     require Template::Mustache;
     # templating parameters. }}}
     has $!engine;
-    has %!tmpl;
+    has %.tmpl is LinkedVals;
     submethod BUILD(:%!tmpl) {}
 
-    method refresh(%new-templates) {
-        { %!tmpl{$^a} = $^b } for %new-templates.kv;
+    method refresh {
         $!engine = Nil;
     }
     # templating engines like mustache do not handle logic or loops, which some Pod formats require.
@@ -187,13 +184,13 @@ class MustacheTemplater is export {
     method render(Str $key, %params --> Str) {
         $!engine = Template::Mustache.new without $!engine;
         my $interpolate = %!tmpl{$key} ~~ Block
-                ?? %!tmpl{$key}(%params)
-                # if the template is a block, then run as sub and pass in the params
-                !! %!tmpl{$key};
+            ?? %!tmpl{$key}(%params)
+            # if the template is a block, then run as sub and pass in the params
+            !! %!tmpl{$key};
         $!engine.render(
-                $interpolate,
-                %params, :from(%!tmpl)
-                )
+            $interpolate,
+            %params, :from( %( %!tmpl.kv )) # Mustache is expecting an ordinary Hash
+        )
     }
     method Str {
         "MustacheTemplater"
@@ -224,6 +221,7 @@ role SetupTemplates does Highlighting {
     #| previous keys.
     method modify-templates($templates, :$path = '.', :$plugin = False)
     {
+        X::ProcessedPod::MissingTemplates.new.throw unless $.templates-loaded;
         # no action for blank string or empty Hash
         return unless $templates;
         my %new-templates;
@@ -254,19 +252,20 @@ role SetupTemplates does Highlighting {
             X::ProcessedPod::BadPluginTemplates.new(:$path, :$template-type).throw
                 unless $got-ts
         }
-        { %.tmpl{$^a} = $^b } for %new-templates.kv;
-        $!templater.refresh(%new-templates)
+        for %new-templates.kv { $!templater.tmpl{$^a} = $^b } ;
+        $!templater.refresh
     }
     #| accepts a string filename that must evaluate to a hash
     #| or a hash of templates
     #| the keys must be a superset of the required templates
     multi method templates($templates, :$path = '.') {
+        my %input-templates;
         given $templates {
-            when Hash { %.tmpl = $templates }
+            when Hash { %input-templates = $templates }
             when Str {
                 # a string should be a filename with a compilable file
                 try {
-                    %.tmpl = indir($path, { EVALFILE $templates });
+                    %input-templates = indir($path, { EVALFILE $templates });
                     CATCH {
                         default {
                             X::ProcessedPod::TemplateFailure.new(:error(.message)).throw
@@ -276,12 +275,13 @@ role SetupTemplates does Highlighting {
             }
         }
 
-        X::ProcessedPod::MissingTemplates.new(:missing((@.required (-) %.tmpl.keys).keys.flat)).throw
-        unless %.tmpl.keys (>=) @.required;
+        X::ProcessedPod::MissingTemplates.new(:missing((@.required (-) %input-templates.keys).keys.flat)).throw
+        unless %input-templates.keys (>=) @.required;
         # the keys on the RHS above are required in %.tmpl. To throw here, the templates supplied are not
         # a superset of the required keys.
+        self.set-engine(%input-templates);
+        %!tmpl := $!templater.tmpl;
         $.templates-loaded = True;
-        self.set-engine
     }
     #| rendition takes a key and parameters and calls the template for the key
     method rendition(Str $key, %params --> Str) {
@@ -303,19 +303,19 @@ role SetupTemplates does Highlighting {
     #| Detects which template engine is to be used with the templates provided
     #| First looks for the key '_templater', which if it exists, should contain the templater class name
     #| Second tries to run the autodetect test, first test returning True defines the templater
-    method set-engine {
-        with %!tmpl<_templater> {
+    method set-engine( %input-templates ) {
+        with %input-templates<_templater> {
             try {
-                $!templater  = ::(%!tmpl<_templater>).new(:%!tmpl);
+                $!templater  = ::(%input-templates<_templater>).new(:tmpl(%input-templates));
                 CATCH {
                     X::ProcessedPod::UnknownTemplatingEngine
-                        .new(:attempted(%!tmpl<_templater>))
+                        .new(:attempted(%input-templates<_templater>))
                         .throw
                 }
             }
         }
         else {
-            $!templater = ::(detect-from-tests(%!tmpl)).new(:%!tmpl)
+            $!templater = ::(detect-from-tests(%input-templates)).new(:tmpl(%input-templates))
         }
         X::ProcessedPod::NoTemplateEngine.new.throw
             unless $!templater;

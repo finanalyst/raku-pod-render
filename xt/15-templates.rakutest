@@ -10,7 +10,7 @@ sub gen-closure-template (Str $tag) is export {
         $start ~ (%prm<contents> // '') ~ $end;
     }
 }
-plan 9;
+plan 13;
 
 my $processor;
 
@@ -42,15 +42,19 @@ throws-like { $processor.templates(%templates) }, X::ProcessedPod::MissingTempla
 $processor.verbose = True;
 stderr-like { $processor.templates(%templates) }, / 'Using RakuClosureTemplater' /, 'full set of RakuClosure templates';
 is $processor.templater.Str, 'RakuClosureTemplater', 'Stringify templater yields its type';
-
+isa-ok $processor.tmpl<format-b>, Callable, 'Got a Callable in first place';
+is $processor.tmpl.prior('format-b'), Nil, 'Linked list last is Nil';
 like $processor.rendition('format-b', %(:contents('Hello world'))),
         / '<format-b>' 'Hello world' '</format-b>' /, 'basic interpolation correct';
 
 $processor.modify-templates( %(
-    format-b => -> %params, % { '#' x %params<level> ~ ' ' ~ %params<text> ~ "\n" }
-));
+        format-b => sub ( %params, %tml ) { '#' x %params<level> ~ ' ' ~ %params<text> ~ "\n" },
+    ));
+isa-ok $processor.tmpl<format-b>, Callable, 'Got a Callable in first place';
+isa-ok $processor.tmpl.prior('format-b'), Callable, 'Next item in linked list is now Callable';
+
 like $processor.rendition('format-b', %(:text('Hello World'), :level(5) )),
-        / \# **5 \s* 'Hello World' /, 'template replaced, and pointy routine accepted as a template';
+        / \# **5 \s* 'Hello World' /, 'template replaced';
 
 $processor.modify-templates( %(
     :newone(-> %prm, %tml { '<container>' ~ %prm<contents> ~ '</container>'}),

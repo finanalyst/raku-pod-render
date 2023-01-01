@@ -266,4 +266,9 @@ to LinkedVals Hash???
 =head1 2023-01-01 v4.3.1
 =item handle end of linked list better. prior returns Nil not .cell
 
+=head1 2023-01-01 v4.3.2
+=item refactor Templating to eliminate two copies of tmpl
+=item include tests for remembering prior formats
+=item fix Mustache renderer to work with memory variant
+
 =end pod

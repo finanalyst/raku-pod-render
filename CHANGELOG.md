@@ -339,13 +339,20 @@ Samples.rakudoc for image
 	*  So LinkedVals Hash is only used for RakuClosures.
 
 # 2023-01-01 v4.3.1
-
-
 *  handle end of linked list better. prior returns Nil not .cell
+
+# 2023-01-01 v4.3.2
+
+
+*  refactor Templating to eliminate two copies of tmpl
+
+*  include tests for remembering prior formats
+
+*  fix Mustache renderer to work with memory variant
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2022-12-31T20:24:06Z
+Rendered from CHANGELOG at 2023-01-01T09:18:01Z
