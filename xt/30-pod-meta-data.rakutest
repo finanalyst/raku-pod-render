@@ -10,10 +10,11 @@ multi sub gen-closure-template (Str $tag) is export {
         $start ~ (%prm<contents> // '') ~ $end;
     }
 }
-plan 4;
+plan 8;
 
 my $processor = ProcessedPod.new;
 my $pv = 0;
+my $rv;
 
 my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
@@ -27,10 +28,12 @@ my %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
     ~ '</meta>'
 };
 %templates<source-wrap> = sub (%prm, %tml ) { "<file><body>{ %prm<body> }</body>{ %prm<metadata> }</file>"};
-
+%templates<heading> = sub (%prm, %tml) {
+    "<config>" ~ %prm<text> ~ %prm<config>.sort.fmt("%s=>%s") ~ '</config>'
+};
 $processor.templates(%templates);
 
-=begin pod  :kind("Language") :subkind("Language") :category("fundamental")
+=begin pod  :kind("Language") :subkind("Language") :category("fundamental") :content-columns
 
 =TITLE testing
 
@@ -38,11 +41,19 @@ $processor.templates(%templates);
 
 Stuff
 
+=head1 first
+
 =end pod
 
-$processor.render-block( $=pod[$pv++] );
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv, /
+    'category=>fundamental'
+    .+ 'content-columns=>True'
+    .+ 'kind=>Language'
+    .+ 'subkind=>Language'
+/, 'got configs';
 
-is-deeply-relaxed $processor.pod-file.pod-config-data, %( :kind<Language>, :subkind<Language>, :category<fundamental>), 'got pod config data';
+is-deeply-relaxed $processor.pod-file.pod-config-data, %( :kind<Language>, :subkind<Language>, :category<fundamental>, :content-columns ), 'got pod config data';
 
 =begin pod  :different<This is different> :difficult<shouldnt be>
 
@@ -52,30 +63,50 @@ is-deeply-relaxed $processor.pod-file.pod-config-data, %( :kind<Language>, :subk
 
 Stuff and Nonsense
 
-=end pod
+=config head1 :temporary
 
-$processor.render-block( $=pod[$pv]) ;
-isnt-deeply-relaxed $processor.pod-file.pod-config-data, %( :different<This is different>, :difficult<shouldnt be> ), 'only first config data allowed';
+=head1 second
+
+=end pod
+$rv = $processor.render-block( $=pod[$pv]) ;
+unlike $rv, /
+    'difficult=>shouldnt be'
+/, 'second pod does not change the configs';
+like $rv, /
+    "head1=>temporary\tTrue"
+    /, 'but config directive does affect the configs';
+
+isnt-deeply-relaxed $processor.pod-file.pod-config-data, %( :different<This is different>, :difficult<shouldnt be> ),
+        'only first pod config data included';
 
 $processor.emit-and-renew-processed-state;
 
-$processor.render-block( $=pod[$pv]) ;
-is-deeply-relaxed $processor.pod-file.pod-config-data, %( :different("This is different"), :difficult("shouldnt be") ), 'second block config data accepted';
+$rv = $processor.render-block( $=pod[$pv]) ;
+is-deeply-relaxed
+        $processor.pod-file.pod-config-data,
+        %( :different("This is different"), :difficult("shouldnt be") ),
+        'second block config data now file config data because of reset';
 
 =begin pod
 =AUTHOR A.N. Writer
 =SUMMARY Some summarised remarks
 
 Stuff
+=config head1 :this<is one> :that<is another>
+=head1 third
 
 =end pod
 
 $processor.emit-and-renew-processed-state;
-$processor.render-tree( $=pod[++$pv] );
+$rv = $processor.render-tree( $=pod[++$pv] );
+like $rv, /
+    "head1=>that\tis another"
+    \s* "this\tis one"
+/, 'got multiple attributes in config directive';
+
 like $processor.source-wrap,
         /
         '<file><body>'
-        .+ 'Stuff'
         .+ '</body>'
         '<meta>'
         [ \s* 'Author=A.N. Writer' | \s* 'Summary=Some summarised remarks' ] **2

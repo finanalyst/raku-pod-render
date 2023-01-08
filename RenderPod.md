@@ -100,6 +100,8 @@ The rendering of page components can be explicitly turned off by setting `no-toc
 
 
 ```
+Configuration data provided with the first `pod` declaration differs from configuration data provided by a `=config` directive, see below, inside the lexical scope of the pod container. Data declared with the `pod` header is included as configuration for the file and stored with the file. Data in a `=config` directive, even if it affects the `pod`'s lexical scope is not stored as file configuration data.
+
 # Configuration
 The Rakudoc (aka POD6) original specification defines the `=config` directive. This has the form
 
@@ -121,7 +123,7 @@ RenderPod also provides the following data:
 
 *  all metadata associated with the outer `=begin rakudoc` or `=begin pod` block is considered Config data too.
 
-Config information is different to the metadata provided with a block. The metadata set with a block is provided only to the template of the block being processed. Config data is available to all templates in the lexical scope of the `=config` directive.
+Config information is different to the metadata provided with a block. The metadata set with a block is provided only to the template of the block being processed. Config data is available to all templates in the lexical scope of, and after, the `=config` directive.
 
 It is up to the template to access and use the Config data.
 
@@ -785,4 +787,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2022-12-31T07:58:29Z
+Rendered from RenderPod at 2023-01-08T15:32:04Z

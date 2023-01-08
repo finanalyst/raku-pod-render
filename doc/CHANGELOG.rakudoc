@@ -271,4 +271,9 @@ to LinkedVals Hash???
 =item include tests for remembering prior formats
 =item fix Mustache renderer to work with memory variant
 
+=head1 2023-01-08 v4.3.3
+=item guarantee empty contents when format-code has zero content, eg., C<D<>>.
+=item fix C<=config> directive to alter lexical level, not its own.
+=item add tests for config params sent to templates
+
 =end pod

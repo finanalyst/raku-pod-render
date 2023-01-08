@@ -85,6 +85,12 @@ C<no-glossary>, C<no-footnotes>, or C<no-meta> in the config of pod. eg
 
 =end code
 
+Configuration data provided with the first C<pod> declaration differs from configuration data
+provided by a C<=config> directive, see below, inside the lexical scope of the pod container.
+Data declared with the C<pod> header is included as configuration for the file and stored with the file.
+Data in a C<=config> directive, even if it affects the C<pod>'s lexical scope is not stored as file configuration
+data.
+
 =head1 Configuration
 
 The Rakudoc (aka POD6) original specification defines the C<=config> directive. This has the form
@@ -108,7 +114,7 @@ Config data too.
 
 Config information is different to the metadata provided with a block. The metadata set with a block is
 provided only to the template of the block being processed. Config data is available to all templates
-in the lexical scope of the C<=config> directive.
+in the lexical scope of, and after, the C<=config> directive.
 
 It is up to the template to access and use the Config data.
 

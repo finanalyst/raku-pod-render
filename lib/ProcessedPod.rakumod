@@ -182,8 +182,19 @@ class ProcessedPod does SetupTemplates {
 
     #| the Config stack
     has @.config-stack ;
+    #| contains the configuration for the outer pod/rakudoc block
     multi method config { @.config-stack[ *-1 ].clone }
     multi method config( %extra ) { for %extra.kv { @.config-stack[ *-1 ]{ $^a } = $^b } }
+    multi method config( %extra, :$lexical! ) {
+        return unless $lexical;
+        if @!config-stack.elems {
+            my $index = @!config-stack.elems eq 1 ?? 0 !! @!config-stack.elems - 2;
+            for %extra.kv { @!config-stack[ $index ]{ $^a } = $^b }
+        }
+        else {
+            @!config-stack[0] = %extra
+        }
+    }
 
     my enum Context <None Heading HTML Raw Output InPodCode>;
 
@@ -269,11 +280,11 @@ class ProcessedPod does SetupTemplates {
     #| process the pod block or tree passed to it, and concatenates it to previous pod tree
     #| returns a string representation of the tree in the required format
     method process-pod($pod --> Str) {
-        @!config-stack = [ %(
+        $.config( %(
             :name($!pod-file.name),
             :lang($!pod-file.lang),
             :path($!pod-file.path),
-        ), ];
+        ), :lexical );
         $!pod-body = [~] gather for $pod.list { take self.handle($_, 0 , Context::None ) };
         # returns accumulated pod-bodies
         $!body ~= $!pod-body;
@@ -659,7 +670,7 @@ class ProcessedPod does SetupTemplates {
         $.completion($in-level, $template, %(
             :$name,
             "$name-space" => $data,
-            :config(self.config),
+            :config( $.config ),
             :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
             :tail($.completion( 0, 'zero', %(), :$defn ))
             ), :$defn
@@ -830,7 +841,7 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::Config $node, Int $in-level, Context $context = None, Bool :$defn = False, --> Str) {
-        $.config( $node.type => $node.config );
+        $.config( $node.type => $node.config, :lexical );
         $.completion($in-level, 'zero', %(), :$defn )
     }
     multi method handle(Pod::FormattingCode $node where .type ~~ any( <B C I K T U> ), Int $in-level,
@@ -860,9 +871,12 @@ class ProcessedPod does SetupTemplates {
             }
         }
         else {
-            $rv = FC.parse( $node.contents[0]);
-            $meta.append($rv<metas><meta>».Str) if $rv<metas><meta>;
-            $contents = self.handle(~$rv<head>, $in-level, $context, :$defn);
+            $contents = ''; # guarantee at least an empty string
+            if $node.contents[0] {
+                $rv = FC.parse( $node.contents[0] );
+                $meta.append($rv<metas><meta>».Str) if $rv<metas><meta>;
+                $contents = self.handle(~$rv<head>, $in-level, $context, :$defn);
+            }
         }
         if %.tmpl{ 'format-' ~ $node.type.lc }:exists {
             $.completion($in-level, 'format-' ~ $node.type.lc ,

@@ -342,17 +342,24 @@ Samples.rakudoc for image
 *  handle end of linked list better. prior returns Nil not .cell
 
 # 2023-01-01 v4.3.2
-
-
 *  refactor Templating to eliminate two copies of tmpl
 
 *  include tests for remembering prior formats
 
 *  fix Mustache renderer to work with memory variant
 
+# 2023-01-08 v4.3.3
+
+
+*  guarantee empty contents when format-code has zero content, eg., `D<>`.
+
+*  fix `=config` directive to alter lexical level, not its own.
+
+*  add tests for config params sent to templates
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2023-01-01T09:18:01Z
+Rendered from CHANGELOG at 2023-01-08T15:32:00Z
