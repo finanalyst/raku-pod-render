@@ -349,17 +349,22 @@ Samples.rakudoc for image
 *  fix Mustache renderer to work with memory variant
 
 # 2023-01-08 v4.3.3
-
-
 *  guarantee empty contents when format-code has zero content, eg., `D<>`.
 
 *  fix `=config` directive to alter lexical level, not its own.
 
 *  add tests for config params sent to templates
 
+# 2023-01-08 v4.3.4
+
+
+*  add config output when verbose is on.
+
+*  ensure file config available for source-wrap
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2023-01-08T15:32:00Z
+Rendered from CHANGELOG at 2023-01-08T18:57:41Z

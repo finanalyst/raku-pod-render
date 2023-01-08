@@ -276,4 +276,8 @@ to LinkedVals Hash???
 =item fix C<=config> directive to alter lexical level, not its own.
 =item add tests for config params sent to templates
 
+=head1 2023-01-08 v4.3.4
+=item add config output when verbose is on.
+=item ensure file config available for source-wrap
+
 =end pod

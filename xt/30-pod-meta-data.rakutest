@@ -10,7 +10,7 @@ multi sub gen-closure-template (Str $tag) is export {
         $start ~ (%prm<contents> // '') ~ $end;
     }
 }
-plan 8;
+plan 9;
 
 my $processor = ProcessedPod.new;
 my $pv = 0;
@@ -27,7 +27,9 @@ my %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
     ~ %prm<meta>.map( { $_<name> ~ '=' ~ $_<value> ~ "\n"} )
     ~ '</meta>'
 };
-%templates<source-wrap> = sub (%prm, %tml ) { "<file><body>{ %prm<body> }</body>{ %prm<metadata> }</file>"};
+%templates<source-wrap> = sub (%prm, %tml ) {
+    "<file><file-conf>\n{ %prm<config>.sort.fmt("%s=>%s") }\n</file-conf>\n<body>{ %prm<body> }</body>{ %prm<metadata> }</file>"
+};
 %templates<heading> = sub (%prm, %tml) {
     "<config>" ~ %prm<text> ~ %prm<config>.sort.fmt("%s=>%s") ~ '</config>'
 };
@@ -53,7 +55,9 @@ like $rv, /
     .+ 'subkind=>Language'
 /, 'got configs';
 
-is-deeply-relaxed $processor.pod-file.pod-config-data, %( :kind<Language>, :subkind<Language>, :category<fundamental>, :content-columns ), 'got pod config data';
+is-deeply-relaxed $processor.pod-file.pod-config-data,
+        %( :kind<Language>, :subkind<Language>, :category<fundamental>, :content-columns ),
+        'got pod config data';
 
 =begin pod  :different<This is different> :difficult<shouldnt be>
 
@@ -69,15 +73,15 @@ Stuff and Nonsense
 
 =end pod
 $rv = $processor.render-block( $=pod[$pv]) ;
-unlike $rv, /
+like $rv, /
     'difficult=>shouldnt be'
-/, 'second pod does not change the configs';
+/, 'second pod change the lexical configs';
 like $rv, /
     "head1=>temporary\tTrue"
-    /, 'but config directive does affect the configs';
+    /, 'so does config directive';
 
 isnt-deeply-relaxed $processor.pod-file.pod-config-data, %( :different<This is different>, :difficult<shouldnt be> ),
-        'only first pod config data included';
+        'only first pod config data included in file configs';
 
 $processor.emit-and-renew-processed-state;
 
@@ -87,7 +91,7 @@ is-deeply-relaxed
         %( :different("This is different"), :difficult("shouldnt be") ),
         'second block config data now file config data because of reset';
 
-=begin pod
+=begin pod :file-content :something<else>
 =AUTHOR A.N. Writer
 =SUMMARY Some summarised remarks
 
@@ -98,18 +102,27 @@ Stuff
 =end pod
 
 $processor.emit-and-renew-processed-state;
+$processor.pod-file.path = 'test-file';
 $rv = $processor.render-tree( $=pod[++$pv] );
 like $rv, /
     "head1=>that\tis another"
     \s* "this\tis one"
 /, 'got multiple attributes in config directive';
-
-like $processor.source-wrap,
+$rv = $processor.source-wrap;
+like $rv,
         /
-        '<file><body>'
-        .+ '</body>'
+        '<file>'
+        .+
         '<meta>'
         [ \s* 'Author=A.N. Writer' | \s* 'Summary=Some summarised remarks' ] **2
         \s* '</meta></file>'
         /, 'Got meta data structure';
+like $rv, /
+    '<file-conf>'
+    .+ 'file-content' .+ 'True'
+    .+ 'path' .+ 'test-file'
+    .+ 'something' .+ 'else'
+    .+ '</file-conf>'
+/, 'got file config';
+
 done-testing;

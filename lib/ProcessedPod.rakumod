@@ -315,6 +315,7 @@ class ProcessedPod does SetupTemplates {
 
         #clean out the variables, whilst keeping the Templating engine cache.
         $!metadata = $!toc = $!glossary = $!footnotes = $!body = Nil;
+        @!config-stack = Nil;
         $!pod-block-processed = False;
         $.reset-used; # provided by Role
         $old
@@ -344,7 +345,7 @@ class ProcessedPod does SetupTemplates {
             :$!glossary,
             :$!footnotes,
             :$!body,
-            :config(self.config),
+            :config( $.config ),
             :renderedtime($!pod-file.renderedtime),
         })
     }
@@ -584,6 +585,7 @@ class ProcessedPod does SetupTemplates {
             ~ (|c[0].^can('type') ?? (' with type ｢' ~ |c[0].type) ~ '｣' !! '')
             if $.debug;
         @.config-stack.push: $.config;
+        note 'Config data is ' ~ $.config.raku if $.verbose;
         my $rv = {*}
         @.config-stack.pop;
         $rv
@@ -659,10 +661,11 @@ class ProcessedPod does SetupTemplates {
         # DEFAULT_TOP, until TITLE changes it. Will fail if multiple pod without TITLE
         unless $.pod-block-processed {
             $.pod-file.pod-config-data = $node.config;
-            $.config( $node.config );
+            $.config( $node.config, :lexical );
             $.pod-block-processed = True;
             note "Processing first pod declaration in file { $.pod-file.path }" if $.debug;
         }
+        $.config( $node.config );
         my $template = $node.config<template> // 'pod';
         my $name-space = $node.config<name-space> // $template;
         my $data = $_ with %!plugin-data{ $name-space };
