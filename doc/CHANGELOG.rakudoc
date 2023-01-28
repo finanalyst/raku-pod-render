@@ -280,4 +280,10 @@ to LinkedVals Hash???
 =item add config output when verbose is on.
 =item ensure file config available for source-wrap
 
+=head1 2023-01-22 v4.4.0
+=item add debug information to Templating
+=item add separate template debug flag
+=item fixing link error - external flag not being set properly
+=item2 Provide parameter type to template with values internal, external, local
+
 =end pod

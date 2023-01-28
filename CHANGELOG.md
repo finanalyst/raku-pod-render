@@ -356,15 +356,24 @@ Samples.rakudoc for image
 *  add tests for config params sent to templates
 
 # 2023-01-08 v4.3.4
-
-
 *  add config output when verbose is on.
 
 *  ensure file config available for source-wrap
+
+# 2023-01-22 v4.4.0
+
+
+*  add debug information to Templating
+
+*  add separate template debug flag
+
+*  fixing link error - external flag not being set properly
+
+	*  Provide parameter type to template with values internal, external, local
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2023-01-08T18:57:41Z
+Rendered from CHANGELOG at 2023-01-28T11:48:20Z

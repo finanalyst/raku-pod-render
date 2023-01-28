@@ -183,6 +183,14 @@ class MustacheTemplater is export {
     #| maps the key to template and renders the bloc
     method render(Str $key, %params --> Str) {
         $!engine = Template::Mustache.new without $!engine;
+        # quick hack to fix L<>. Should use mustach lambda
+        if $key eq 'format-l' {
+            given %params<type> {
+                when 'internal' { %params<internal> = True }
+                when 'external' { %params<external> = True }
+                when 'local' { %params<local> = True }
+            }
+        }
         my $interpolate = %!tmpl{$key} ~~ Block
             ?? %!tmpl{$key}(%params)
             # if the template is a block, then run as sub and pass in the params
@@ -213,6 +221,8 @@ role SetupTemplates does Highlighting {
     has %.tmpl;
     #| a variable to collect which templates have been used for trace and debugging
     has BagHash $.templs-used is rw .= new;
+    #| debug flag to show which templates are loaded
+    has $.template-debug is rw = False;
     #| allows for templates to be replaced during pod processing
     #| repeatedly generating the template engine is expensive
     #| $templates may be either a Hash of templates, or
@@ -228,6 +238,7 @@ role SetupTemplates does Highlighting {
         given $templates {
             when Associative { %new-templates = $templates }
             when Str {
+                note "modifying templates from ｢$templates｣ in ｢$path｣" if $.template-debug;
                 %new-templates = indir($path, { EVALFILE $templates });
             }
         }
@@ -252,7 +263,10 @@ role SetupTemplates does Highlighting {
             X::ProcessedPod::BadPluginTemplates.new(:$path, :$template-type).throw
                 unless $got-ts
         }
-        for %new-templates.kv { $!templater.tmpl{$^a} = $^b } ;
+        for %new-templates.kv {
+            $!templater.tmpl{$^a} = $^b;
+        } ;
+        note( "modifying keys: " ~ %new-templates.keys.join(',') ) if $!template-debug;
         $!templater.refresh
     }
     #| accepts a string filename that must evaluate to a hash
@@ -264,6 +278,7 @@ role SetupTemplates does Highlighting {
             when Hash { %input-templates = $templates }
             when Str {
                 # a string should be a filename with a compilable file
+                note "loading initial templates from ｢$templates｣ in ｢$path｣" if $.template-debug;
                 try {
                     %input-templates = indir($path, { EVALFILE $templates });
                     CATCH {

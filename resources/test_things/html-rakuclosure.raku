@@ -64,15 +64,15 @@ use v6;
         '<p>' ~ (%prm<contents> // '') ~ '</p>'
     },
     'format-l' => sub ( %prm, %tml ) {
-        # local: <link-label> -> <target>.html#<place> | <target>.html
-        # internal: <link-label> -> #<place>
-        # external: <link-label> -> <target>
-        my $trg = %prm<target>;
-        if %prm<local> {
+        # type = local: <link-label> -> <target>.html#<place> | <target>.html
+        # type = internal: <link-label> -> #<place>
+        # type = external: <link-label> -> <target>
+        my $trg = %prm<target>; # defaults to external type
+        if %prm<type> eq 'local' {
             $trg ~= '.html';
             $trg ~= '#' ~ %prm<place> if %prm<place>
         }
-        elsif %prm<internal> {
+        elsif %prm<type> eq 'internal' {
             $trg = '#' ~ %prm<place>
         }
         '<a href="'

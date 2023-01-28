@@ -27,7 +27,7 @@ use v6;
     'format-i' => '<em>{{{ contents }}}</em>',
     'format-k' => '<kbd>{{{ contents }}}</kbd>
     ',
-    'format-l' => '<a href="{{# external }}{{{ target }}}{{/ target }}{{# internal }}#{{ place }}{{/ internal }}{{# local }}{{ target }}.html{{# place }}#{{ place }}{{/ place}}{{/ local }}">{{{ link-label }}}</a>',
+    'format-l' => '<a href="{{# external }}{{{ target }}}{{/ external }}{{# internal }}#{{ place }}{{/ internal }}{{# local }}{{ target }}.html{{# place }}#{{ place }}{{/ place}}{{/ local }}">{{{ link-label }}}</a>',
     'format-n' => '<sup><a name="{{ retTarget }}" href="#{{ fnTarget }}">[{{ fnNumber }}]</a></sup>
     ',
     'format-p' => -> %params {

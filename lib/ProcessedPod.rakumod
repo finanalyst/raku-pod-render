@@ -934,9 +934,7 @@ class ProcessedPod does SetupTemplates {
         $.completion($in-level, 'format-l',
             %( :$target,
                :$link-label,
-               :local( $type eq 'local' ),
-               :internal( $type eq 'internal' ),
-               :external( $type eq 'external' ),
+               :$type,
                :$place,
                :config(self.config),
             ), :$defn
