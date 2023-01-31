@@ -127,7 +127,7 @@ Only sanity tests are under the `t/` directory. Extensive tests are under `xt/`.
 Some tests require an online connection. The tests can be run offline by setting the environment variable TEST_OFFLINE, eg. `TEST_OFFLINE=1 prove6 -I. xt/`.
 
 # More Information
-See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md) for information about the HTML specific module ``Pod::To::HTML2``. ``Pod::To::Markdown``, see [MarkDown](MarkDown.md), follows ``Pod::To::HTML2`` mostly.
+See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md) for information about the HTML specific module ``Pod::To::HTML2``. ``Pod::To::Markdown``, see [MarkDown2](MarkDown2.md), follows ``Pod::To::HTML2`` mostly.
 
 
 
