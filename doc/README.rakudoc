@@ -136,6 +136,6 @@ environment variable TEST_OFFLINE, eg. C<TEST_OFFLINE=1 prove6 -I. xt/>.
 
 See L<RenderPod> for the generic module and L<Pod2HTML> for
 information about the HTML 
-specific module `Pod::To::HTML2`. `Pod::To::Markdown`, see L<MarkDown>, follows `Pod::To::HTML2` mostly.
+specific module `Pod::To::HTML2`. `Pod::To::Markdown2`, see L<MarkDown2>, follows `Pod::To::HTML2` mostly.
 
 =end pod

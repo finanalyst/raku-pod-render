@@ -1,4 +1,3 @@
-![github-tests-passing-badge](https://github.com/finanalyst/raku-pod-render/actions/workflows/test.yaml/badge.svg)
 # Generic Pod Renderer
 >Transforms POD in a Raku module/pod to other format such as HTML or MarkDown.
 
@@ -127,7 +126,7 @@ Only sanity tests are under the `t/` directory. Extensive tests are under `xt/`.
 Some tests require an online connection. The tests can be run offline by setting the environment variable TEST_OFFLINE, eg. `TEST_OFFLINE=1 prove6 -I. xt/`.
 
 # More Information
-See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md) for information about the HTML specific module ``Pod::To::HTML2``. ``Pod::To::Markdown``, see [MarkDown](MarkDown.md), follows ``Pod::To::HTML2`` mostly.
+See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md) for information about the HTML specific module ``Pod::To::HTML2``. ``Pod::To::Markdown2``, see [MarkDown2](MarkDown2.md), follows ``Pod::To::HTML2`` mostly.
 
 
 
@@ -136,4 +135,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2022-10-28T16:54:15Z
+Rendered from README at 2023-02-01T12:26:43Z
