@@ -38,7 +38,7 @@ sub MAIN is export {
     chdir $hilite-path;
     for <highlight-filename-from-stdin.coffee package.json> -> $fn {
         "$hilite-path/$fn".IO.spurt:
-                %?RESOURCES{"highlights/$fn"}.slurp;
+                %?RESOURCES{"highlight_files/$fn"}.slurp;
     }
     my $git-run;
     if 'atom-language-perl6'.IO.d {
