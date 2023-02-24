@@ -361,8 +361,6 @@ Samples.rakudoc for image
 *  ensure file config available for source-wrap
 
 # 2023-01-22 v4.4.0
-
-
 *  add debug information to Templating
 
 *  add separate template debug flag
@@ -371,9 +369,14 @@ Samples.rakudoc for image
 
 	*  Provide parameter type to template with values internal, external, local
 
+# 2023-02-24 v4.4.1
+
+
+*  fix highlight resource name
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2023-01-28T11:48:20Z
+Rendered from CHANGELOG at 2023-02-24T09:14:41Z
