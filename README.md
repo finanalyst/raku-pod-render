@@ -15,6 +15,7 @@
 [Testing tool](#testing-tool)  
 [HTML highlighting](#html-highlighting)  
 [Tests](#tests)  
+[Tutorial](#tutorial)  
 [More Information](#more-information)  
 
 ----
@@ -125,6 +126,9 @@ Only sanity tests are under the `t/` directory. Extensive tests are under `xt/`.
 
 Some tests require an online connection. The tests can be run offline by setting the environment variable TEST_OFFLINE, eg. `TEST_OFFLINE=1 prove6 -I. xt/`.
 
+# Tutorial
+A short tutorial is included to show how a new Format Code can be created. It was written for the Advent Calendar in 2022. See the `tutorial/` directory.
+
 # More Information
 See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md) for information about the HTML specific module ``Pod::To::HTML2``. ``Pod::To::Markdown2``, see [MarkDown2](MarkDown2.md), follows ``Pod::To::HTML2`` mostly.
 
@@ -135,4 +139,4 @@ See [RenderPod](RenderPod.md) for the generic module and [Pod2HTML](Pod2HTML.md)
 
 
 ----
-Rendered from README at 2023-02-01T12:26:43Z
+Rendered from README at 2023-03-17T10:40:15Z

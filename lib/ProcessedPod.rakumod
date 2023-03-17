@@ -446,8 +446,9 @@ class ProcessedPod does SetupTemplates {
         $target
     }
 
-    method register-link(Str $entry, Str $link-label --> Positional ) {
-        return $.pod-file.links{$entry}<target link-label type place> if $.pod-file.links{$entry}:exists;
+    method register-link(Str $entry, Str $link-label ) {
+        return ($.pod-file.links{$entry}<target type place>, $link-label).flat
+            if $.pod-file.links{$entry}:exists;
         # just return target if it exists
         # A link may be
         # - internal to the document so the target may need to be rewritten depending on output format
@@ -500,7 +501,7 @@ class ProcessedPod does SetupTemplates {
                 )
             }
         }
-        $.pod-file.links{$entry}<target link-label type place>
+        $.pod-file.links{$entry}<target type place link-label>.flat
     }
 
     # A footnote structure is created storing both the target anchor (with the footnote text)
@@ -929,7 +930,7 @@ class ProcessedPod does SetupTemplates {
     multi method handle(Pod::FormattingCode $node where .type eq 'L', Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
         my $contents = [~] gather for $node.contents { take $.handle($_, $in-level, $context) };
-        my ($target, $link-label, $type, $place) = $.register-link($node.meta eqv [] | [""] ?? $contents !! $node.meta[0], $contents);
+        my ($target, $type, $place, $link-label) = $.register-link($node.meta eqv [] | [""] ?? $contents !! $node.meta[0], $contents);
         # link handling needed here to deal with local links in global-link context
         $.completion($in-level, 'format-l',
             %( :$target,

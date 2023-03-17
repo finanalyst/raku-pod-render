@@ -370,13 +370,18 @@ Samples.rakudoc for image
 	*  Provide parameter type to template with values internal, external, local
 
 # 2023-02-24 v4.4.1
-
-
 *  fix highlight resource name
+
+# 2023-03-17 v4.4.2
+
+
+*  add tutorial text and directory based on Advent Calendar code.
+
+*  fix error when parsing two L<> items with the same link but different texts
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2023-02-24T09:14:41Z
+Rendered from CHANGELOG at 2023-03-17T10:40:14Z

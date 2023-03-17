@@ -1,0 +1,7 @@
+=begin pod
+=TITLE Test D
+
+This is some text to test a new format code. For example, D<function moveover( $x, $y, $z) { ... } | Not expected to work in Rakudo-H >
+should have a highlight and a deprecation string.
+
+=end pod

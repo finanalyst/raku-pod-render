@@ -122,7 +122,7 @@ use v6;
     },
     'unknown-name' => sub ( %prm, %tml ) {
         with %prm<format-code> {
-            '<span class="RakudocNoFormatCode">'
+            "\n" ~ '<span class="RakudocNoFormatCode">'
             ~ "<span>unknown format-code $_\</span>\&lt;\<span>{ %prm<contents> }\</span>|\<span>{ %prm<meta> }\</span>"
             ~ '&gt;</span>'
         }
@@ -143,7 +143,7 @@ use v6;
     },
     'output' => sub ( %prm, %tml ) { '<pre class="pod-output">' ~ (%prm<contents> // '') ~ '</pre>' },
     'pod' => sub ( %prm, %tml ) {
-        '<section name="'
+        "\n<section name=\""
                 ~ %tml<escaped>(%prm<name> // '') ~ '">'
                 ~ (%prm<contents> // '')
                 ~ (%prm<tail> // '')

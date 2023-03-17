@@ -289,4 +289,8 @@ to LinkedVals Hash???
 =head1 2023-02-24 v4.4.1
 =item fix highlight resource name
 
+=head1 2023-03-17 v4.4.2
+=item add tutorial text and directory based on Advent Calendar code.
+=item fix error when parsing two V< L<> > items with the same link but different texts
+
 =end pod

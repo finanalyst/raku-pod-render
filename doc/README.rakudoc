@@ -132,6 +132,11 @@ Only sanity tests are under the C<t/> directory. Extensive tests are under C<xt/
 Some tests require an online connection. The tests can be run offline by setting the
 environment variable TEST_OFFLINE, eg. C<TEST_OFFLINE=1 prove6 -I. xt/>.
 
+=head1 Tutorial
+
+A short tutorial is included to show how a new Format Code can be created. It was written for the Advent
+Calendar in 2022. See the C<tutorial/> directory.
+
 =head1 More Information
 
 See L<RenderPod> for the generic module and L<Pod2HTML> for

@@ -1,0 +1,120 @@
+# How to clarify which parts of Raku Documentation change
+>Creating a Custom FormatCode to attach developer notation strings to spans.
+
+
+Using `Pod::To::HTML2` a new custom FormatCode, `D<> ` (D for developer notification), can be made to help with the Raku Documentation process. The new FormatCode should show a span of documentation that is deprecated in some way. This happens a lot when Rakudo is being upgraded. However, people using older versions of Rakudo need to understand what has changed, as well as what has been added. So it is not a good idea to delete older information, but it is not efficient to re-generate the entire Documentation suite for each new version of Rakudo.
+
+Perhaps it would be good for a span of words to be highlighted in some way, and then for a deprecation string to appear when a mouse hovers over it.
+
+For example D<function moveover( $x, $y, $z) { ... } | Not expected to work in Rakudo-H > would be used to cover the function definition, and the deprecation string is after the `|`.
+
+First install the module using `zef install Raku::Pod::Render` which will install `Pod::To:HTML2`. You will need at least version 4.2.0. A default directory is created with some distribution plugins. To see examples of the distribution plugins, type `Rakudoc-to-html Example` in an empty directory. Then serve the file `Samples.html` using some html serving system.
+
+However, this is about making a bespoke plugin to implement a new Formatting Code. `Pod::To::HTML2` interprets specified local sub-directories whose name does not contain the character _ after the first character of the name to contain plugin information.
+
+`Pod::To::HTML2` is a sub-class of `ProcessedPod`, so below I shall mention instances of `ProcessedPod`, though possibly I should be saying instances of `Pod::To::HTML2`.
+
+Lets start with an empty directory 'test' (this article is written for Ubuntu linux, apologies for those on other systems that differ significantly).
+
+Now we enter the directory and create a Rakudoc file (eg. 'tutorial-d.rakudoc') with the following text:
+
+```
+    =begin pod
+
+    This is some text to test a new format code. For example, D<function moveover( $x, $y, $z) { ... } | Not expected to work in Rakudo-H >
+    should have a highlight and a deprecation string.
+
+    =end pod
+
+```
+Now if you run `Rakudoc-to-html tutorial-d.rakudoc` in the `test/` directory you will get an html file `tutorial-d.html` together with a directory `asset_files` containing some CSS files and the icon images. Note how 'asset_files' has a '_' in it so that it will not be interpreted in the future as a plugin.
+
+The file `tutorial-d.html` can be served to a browser. I have the excellent Comma IDE, which allows a project-root-directory file to be served to a brower simply by opening it in that browser. I am sure everyone reading this article will have some favourite way of serving a file.
+
+The FormatCode is not known to the Renderer, so the `unknown-name` template is triggered for a FormatCode.
+
+To create a plugin, we need to:
+
+*  tell the renderer that a custom Block is available. However, the Pod-Block for a FormatCode already exists, so we only need to provide a template for D. (I wrote about this in case you want to experiment with new Custom Blocks).
+
+*  tell the renderer what HTML needs to be created for the FormatCode-D, that is provide a template.
+
+*  provide `Pod::To::HTML2` with a name for the CSS to be associated with the HTML containers, which we need to get the highlighting effect.
+
+We create a sub-directory of `tutorial/` called `dev-note-span`. The name is not too important but it contains a '-' rather than '_', though a name without '-' is possible.
+
+Inside `dev-note-span` we create a file called `config.raku`. The name is important and a plugin must have a `config.raku` file. A `config.raku` is a Raku program that ends with a hash value. The following is a possible minimal content
+
+```
+%(
+    :custom-raku(), # this key is mandatory, so we need it to exist and have Nil value
+    :template-raku<dev-note-template.raku>,
+    #:add-css<dev-note-span.css>,
+)
+
+```
+You will see that this a hash in Raku idiom. One could call it RakuON by analogy with JSON. But you will also see that because it is normal Raku code, we can include comments as well. I have also commented-out the CSS line, as we will discuss CSS below.
+
+The template is provided by 'dev-note-template.raku'.
+
+Although multiple templating engines, such as RakuClosure and Mustache, can also be used with `ProcessedPod`, I have not yet had enough time to develop the HTML2 plugins to use more than one. So I will use the default `RakuClosureTemplates` system here.
+
+Basically all RakuClosure templates are contained in a Raku program that returns a Hash (like config.raku). The keys of the Hash are the names of the Pod-Block. The values for the keys are closures, viz., a `sub` that accepts two Hash parameters (conventionally `%prm` and `%tml`). The first (%prm) contains all the parameters passed by `ProcessedPod` to the template, and the second (%tml) contains all the templates known to ProcessedPod. So any template can call any template. (Currently, circularity is not detected). The sub must return a Str, which is inserted into the final html file. Plugins create a template Hash whose keys (new templates) are added to the default keys.
+
+The `ProcessedPod` renderer passes (at least) two parameters to a template for a FormatCode in the `%prm` hash. These are `contents`, which is the first part of the FormatCode, and `meta`, which is the part after the `|`.
+
+So we create a file called `dev-note-template.raku` with the following contents:
+
+```
+%(
+    format-d => sub (%prm, %tml) { # note that the format letter is lower case
+        '<span class="raku-dev-note" title="' ~ %prm<meta> ~ '">'
+        ~ %prm<contents>
+        ~ '</span>'
+    },
+)
+
+```
+We also have to tell <Rakudoc-to-html> that there is a new plugin, so we run
+
+```
+Rakudoc-to-html --add-plugins='dev-note-span' tutorial-test.rakudoc
+```
+(_add-plugins_ can take a space delimited list of plugins)
+
+Now we have the correct text without an error, and if we put a mouse over the word 'function', we will get the deprecation string. In order to highlight the span so that the user can be prompted to hover a mouse over the text, we need to have some CSS.
+
+By way of example, put the following CSS in the file `dev-note-span.css` (remember the HTML class _raku-dev-note_ was included in the template):
+
+```
+.raku-dev-note {
+	background-color: bisque;
+	border-block-color: blue;
+	border-width: 1px;
+	border-style: dashed;
+	border-radius: 5px;
+}
+
+```
+We need to uncomment the `:add-css` line in `config.raku`. `dev-note-span.css` is assumed to be a valid CSS file and it will be transferred to `tutorial/asset_files/css/` by `Pod::To::HTML2`. `Pod::To::HTML2` also creates the stylesheet reference in the HTML header so that it is served too.
+
+Run the file again
+
+```
+Rakudoc-to-html --add-plugins='dev-note-span' tutorial-d.rakudoc
+```
+and the CSS has been added. Obviously, many more CSS tricks could be played, but this is a minimal set to show some CSS.
+
+There is much more to the plugin process, including the ability to add JQuery and images. In order to examine copies of the distributed plugins into your local test directory, run the following in the local, eg., `tutorial/`, directory.
+
+```
+Rakudoc-to-html get-local
+```
+
+
+
+
+
+
+----
+Rendered from tutorial at 2023-03-17T09:13:51Z
