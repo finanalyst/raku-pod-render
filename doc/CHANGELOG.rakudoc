@@ -293,4 +293,8 @@ to LinkedVals Hash???
 =item add tutorial text and directory based on Advent Calendar code.
 =item fix error when parsing two V< L<> > items with the same link but different texts
 
+=head1 2023-04-23 v4.5.0
+=item add flag to glossary entry if the target is in a heading, so that the entries can be
+filtered out by the template if desired.
+
 =end pod

@@ -373,15 +373,18 @@ Samples.rakudoc for image
 *  fix highlight resource name
 
 # 2023-03-17 v4.4.2
-
-
 *  add tutorial text and directory based on Advent Calendar code.
 
 *  fix error when parsing two L<> items with the same link but different texts
+
+# 2023-04-23 v4.5.0
+
+
+*  add flag to glossary entry if the target is in a heading, so that the entries can be filtered out by the template if desired.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2023-03-17T10:40:14Z
+Rendered from CHANGELOG at 2023-04-23T09:18:14Z

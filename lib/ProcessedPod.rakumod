@@ -401,47 +401,26 @@ class ProcessedPod does SetupTemplates {
 
     method register-glossary(Str $text, @entries, Bool $is-header --> Str) {
         my $target;
-        # The following was written so that titles would only have one ingoing link
-        # But legacy P2HTML requires two, one for the glossary, one for the toc.
-        # So checking the TOC is not needed.
-        #        if $is-header
-        #        {
-        #            if +@.pod-file.raw-toc
-        #            {
-        #                $target = @.pod-file.raw-toc[*- 1]<target>
-        #                # the last header to be added to the toc will have the url we want
-        #            }
-        #            else
-        #            {
-        #                $target = $!pod-file.front-matter
-        #                # if toc not initiated, then before 1st header
-        #            }
-        #        }
-        #        else
-        #        {
-        # there must be something in either text or entries[0] to get here
-        # the following target function is so complex solely in order to match
-        # the requirements of legacy P2HTML
         $target = ('index-entry'
                 ~ (@entries ?? '-' !! '') ~ @entries.join('-')
                 ~ ($text ?? '-' !! '') ~ $text
         ).subst('_', '__', :g).subst(' ', '_', :g);
         $target = self.rewrite-target($target, :unique);
-        #        } #from else
         # Place information is needed when a glossary is constructed without a return anchor reference,
         # so the most recent header is used
+        # Add is-header flag to glossary entry
         my $place = +$.pod-file.raw-toc ?? $.pod-file.raw-toc[*- 1]<text> !! $!pod-file.front-matter;
         if @entries {
             for @entries {
                 $.pod-file.raw-glossary{.[0]} = Array unless $.pod-file.raw-glossary{.[0]}:exists;
-                if .elems > 1 { $.pod-file.raw-glossary{.[0]}.push: %(:$target, :place(.[1])) }
-                else { $.pod-file.raw-glossary{.[0]}.push: %(:$target, :$place) }
+                if .elems > 1 { $.pod-file.raw-glossary{.[0]}.push: %(:$target, :place(.[1]), :$is-header) }
+                else { $.pod-file.raw-glossary{.[0]}.push: %(:$target, :$place, :$is-header) }
             }
         }
         else {
             # if no entries, then there must be $text to get here
             $.pod-file.raw-glossary{$text} = Array unless $.pod-file.raw-glossary{$text}:exists;
-            $.pod-file.raw-glossary{$text}.push: %(:$target, :$place);
+            $.pod-file.raw-glossary{$text}.push: %(:$target, :$place, :$is-header);
         }
         $target
     }
