@@ -903,7 +903,7 @@ class ProcessedPod does SetupTemplates {
         # ignore if there is nothing that can be an entry
         my $target = $.register-glossary($text, $node.meta, $header);
         #s/recurse-until-str($node).join /$text/
-        $.completion($in-level, 'format-x', %( :$text, :$target, :$header, :config(self.config),), :$defn)
+        $.completion($in-level, 'format-x', %( :$text, :$target, :$header, :meta($node.meta):config(self.config),), :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'L', Int $in-level,
@@ -917,6 +917,7 @@ class ProcessedPod does SetupTemplates {
                :$type,
                :$place,
                :config(self.config),
+               :meta( $node.meta ),
             ), :$defn
         )
     }
@@ -970,6 +971,11 @@ class ProcessedPod does SetupTemplates {
         $html = so $contents ~~ / '<html' .+ '</html>'/;
         $contents = ~$/ if $html;
         # eliminate any chars outside the <html> container if there is one
-        $.completion($in-level, 'format-p', %( :$contents, :$html, :config(self.config),), :$defn)
+        $.completion($in-level, 'format-p', %(
+            :$contents,
+            :$html,
+            :config(self.config),
+            :meta( $node.meta ),
+        ), :$defn)
     }
 }

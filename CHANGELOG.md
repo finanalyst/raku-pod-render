@@ -378,13 +378,18 @@ Samples.rakudoc for image
 *  fix error when parsing two L<> items with the same link but different texts
 
 # 2023-04-23 v4.5.0
-
-
 *  add flag to glossary entry if the target is in a heading, so that the entries can be filtered out by the template if desired.
+
+# 2023-04-23 v4.5.1
+
+
+*  add meta to format-x, format-l and format-p to be available for template.
+
+*  change META6 for fez review
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2023-04-23T09:18:14Z
+Rendered from CHANGELOG at 2023-04-24T20:30:35Z

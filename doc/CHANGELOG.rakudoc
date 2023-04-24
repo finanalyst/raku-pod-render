@@ -297,4 +297,8 @@ to LinkedVals Hash???
 =item add flag to glossary entry if the target is in a heading, so that the entries can be
 filtered out by the template if desired.
 
+=head1 2023-04-23 v4.5.1
+=item add meta to format-x, format-l and format-p to be available for template.
+=item change META6 for fez review
+
 =end pod

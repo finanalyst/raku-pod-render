@@ -1,7 +1,7 @@
 {
   "name": "Raku::Pod::Render",
   "description": "A generic Pod6 Renderer with custom Pod::Blocks, FormatCodes for one or more files using templates, provides HTML and MarkDown.",
-  "version": "4.5.0",
+  "version": "4.5.1",
   "perl": "6.d",
   "authors": [
     "Richard Hainsworth"
@@ -9,21 +9,23 @@
   "auth": "zef:finanalyst",
   "depends": [
     "URI",
-    "LibCurl",
-    "Test::Deeply::Relaxed",
-    "File::Directory::Tree",
-    "Test::Output",
+    "LibCurl::Easy",
     "File::Temp",
-    "Test::META",
     "PrettyDump",
     "JSON::Fast",
     "RakuConfig",
     "Pod::Load",
     "Template::Mustache"
   ],
-  "build-depends": [],
+  "build-depends": [
+    "File::Directory::Tree"
+  ],
   "test-depends": [
-    "Test"
+    "Test",
+    "Test::META",
+    "File::Directory::Tree",
+    "Test::Deeply::Relaxed",
+    "Test::Output"
   ],
   "provides": {
     "InstallAtomHighlighter": "lib/InstallAtomHighlighter.rakumod",
