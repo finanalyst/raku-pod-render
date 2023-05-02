@@ -508,3 +508,17 @@ footer {
 .RakudocError fieldset legend {
   color: blue;
 }
+
+.pod-output {
+  font-family: "Lucida Console", "Courier New", monospaced;
+  font-weight: 600;
+}
+
+.pod-input {
+  font-family: "Monaco", "Lucida Console", "Courier New", monospaced;
+  font-weight: 300;
+}
+
+.pod-nested {
+  margin: 0.25rem 0 0.25rem 1rem;
+}

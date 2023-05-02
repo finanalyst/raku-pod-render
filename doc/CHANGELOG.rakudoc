@@ -300,5 +300,11 @@ filtered out by the template if desired.
 =head1 2023-04-23 v4.5.1
 =item add meta to format-x, format-l and format-p to be available for template.
 =item change META6 for fez review
+=item change doc.perl.org to docs.raku.org in test
+=item change id processing X in headers
+
+=head1 2023-05-02 v4.6.0
+=item added C<=input> C<=nested> blocks to match Pod documentation.
+=item refactored tests to take the required templates from the SetupTemplates role.
 
 =end pod

@@ -130,6 +130,8 @@ use v6;
             <.contents><?.<tail>><.tail></?>
         </section>
         TMPL
+    :nested('<pre class="pod-nested"><.contents></pre>'),
+    :input('<pre class="pod-input"><.contents></pre>'),
     :output('<pre class="pod-output"><.contents></pre>'),
     :para('<p><.contents><p>'),
     :pod(q:to/TMPL/),

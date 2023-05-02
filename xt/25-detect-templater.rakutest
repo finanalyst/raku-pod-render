@@ -8,9 +8,8 @@ skip-rest 'waiting til Crotmp templates can be used';
 #
 #my ProcessedPod $processor .= new;
 #
-#my @templates = <block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
-#        format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
-#        item list meta unknown-name output para pod raw source-wrap table toc >;
+#my @templates = SetupTemplates.new.required;
+
 #
 ## test for Cro Templates
 #my %templates = @templates Z=> ( "\[beg]<.contents>$_\[end]" for @templates );

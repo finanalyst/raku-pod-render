@@ -26,7 +26,7 @@ plan 2;
     P<file:disclaimer.txt>
 
     =DOCUMENTS
-    P<https://doc.perl6.org>
+    P<https://docs.raku.org>
 
 =end pod
 

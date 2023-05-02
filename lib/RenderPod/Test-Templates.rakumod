@@ -57,6 +57,8 @@ module Test-Templates {
             :name('Str'),
             :contents('Str')
         ),
+        nested => %( :contents('Str') ),
+        input => %( :contents('Str') ),
         output => %( :contents('Str') ),
         pod => %(
             :name('Str'),

@@ -196,7 +196,7 @@ class ProcessedPod does SetupTemplates {
         }
     }
 
-    my enum Context <None Heading HTML Raw Output InPodCode>;
+    my enum Context <None Heading HTML Raw Preformatted InPodCode>;
 
     submethod TWEAK(:$rakopts) {
         with %*ENV<RAKOPTS> // $rakopts {
@@ -402,7 +402,7 @@ class ProcessedPod does SetupTemplates {
     method register-glossary(Str $text, @entries, Bool $is-header --> Str) {
         my $target;
         $target = ('index-entry'
-                ~ (@entries ?? '-' !! '') ~ @entries.join('-')
+                ~ (@entries and ! $is-header ?? ( '-' ~ @entries.join('-') ) !! '')
                 ~ ($text ?? '-' !! '') ~ $text
         ).subst('_', '__', :g).subst(' ', '_', :g);
         $target = self.rewrite-target($target, :unique);
@@ -695,7 +695,25 @@ class ProcessedPod does SetupTemplates {
                         Context $context = None, Bool :$defn = False,  --> Str) {
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, 'output',
-            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Output, :$defn) }),$node.config
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Preformatted, :$defn) }),$node.config
+            ), :$defn
+        )
+    }
+
+    multi method handle(Pod::Block::Named $node where .name.lc eq 'nested', Int $in-level,
+                        Context $context = None, Bool :$defn = False,  --> Str) {
+        $.completion($in-level, 'zero', %(), :$defn )
+            ~ $.completion($in-level, 'nested',
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Preformatted, :$defn) }),$node.config
+            ), :$defn
+        )
+    }
+
+    multi method handle(Pod::Block::Named $node where .name.lc eq 'input', Int $in-level,
+                        Context $context = None, Bool :$defn = False,  --> Str) {
+        $.completion($in-level, 'zero', %(), :$defn )
+            ~ $.completion($in-level, 'input',
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Preformatted, :$defn) }),$node.config
             ), :$defn
         )
     }
@@ -730,7 +748,7 @@ class ProcessedPod does SetupTemplates {
         )
     }
 
-    multi method handle(Pod::Block::Para $node, Int $in-level, Context $context where *== Output, Bool :$defn = False, --> Str) {
+    multi method handle(Pod::Block::Para $node, Int $in-level, Context $context where *== Preformatted, Bool :$defn = False, --> Str) {
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, 'raw',
             %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),

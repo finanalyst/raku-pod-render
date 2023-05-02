@@ -208,11 +208,11 @@ class MustacheTemplater is export {
     }
 }
 
-role SetupTemplates does Highlighting {
+role SetupTemplates is export does Highlighting {
     #| the following are required to render pod. Extra templates, such as head-block and header can be added by a subclass
     has @.required = < block-code comment declarator defn dlist-end dlist-start escaped footnotes format-b format-c
         format-i format-k format-l format-n format-p format-r format-t format-u format-x glossary heading
-        item list meta unknown-name output para pod raw source-wrap table toc >;
+        item list meta unknown-name nested input output para pod raw source-wrap table toc>;
     #| must have templates. Generically, no templates loaded.
     has Bool $.templates-loaded is rw = False;
     #| the object containing the templater engine

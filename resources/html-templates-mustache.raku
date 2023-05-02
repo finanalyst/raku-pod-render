@@ -57,6 +57,8 @@ use v6;
             {{{ contents }}}
         </section>
         TEMPL
+    'nested' => '<div class="pod-nested">{{{ contents }}}</div>',
+    'input' => '<pre class="pod-input">{{{ contents }}}</pre>',
     'output' => '<pre class="pod-output">{{{ contents }}}</pre>',
     'para' => '<p>{{{ contents }}}</p>',
     'pod' => '<section name="{{ name }}">{{{ contents }}}{{{ tail }}}

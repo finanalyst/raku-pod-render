@@ -381,15 +381,24 @@ Samples.rakudoc for image
 *  add flag to glossary entry if the target is in a heading, so that the entries can be filtered out by the template if desired.
 
 # 2023-04-23 v4.5.1
-
-
 *  add meta to format-x, format-l and format-p to be available for template.
 
 *  change META6 for fez review
+
+*  change doc.perl.org to docs.raku.org in test
+
+*  change id processing X in headers
+
+# 2023-05-02 v4.6.0
+
+
+*  added `=input` `=nested` blocks to match Pod documentation.
+
+*  refactored tests to take the required templates from the SetupTemplates role.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2023-04-24T20:30:35Z
+Rendered from CHANGELOG at 2023-05-02T22:18:01Z

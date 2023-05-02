@@ -164,15 +164,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="LibCurl" type="perl6">
-        <CLASSES />
-        <JAVADOC />
-        <SOURCES>
-          <root url="raku://1166011426:LibCurl!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library name="Test::Output" type="perl6">
         <CLASSES />
         <JAVADOC />
@@ -214,6 +205,15 @@
         <JAVADOC />
         <SOURCES>
           <root url="raku://1166011426:JSON::Fast!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="LibCurl::Easy" type="perl6">
+        <CLASSES />
+        <JAVADOC />
+        <SOURCES>
+          <root url="raku://1166011426:LibCurl::Easy!/" />
         </SOURCES>
       </library>
     </orderEntry>
