@@ -691,10 +691,10 @@ class ProcessedPod does SetupTemplates {
         )
     }
 
-    multi method handle(Pod::Block::Named $node where .name.lc eq 'output', Int $in-level,
+    multi method handle(Pod::Block::Named $node where .name.lc ~~ any(< output input >), Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
         $.completion($in-level, 'zero', %(), :$defn )
-            ~ $.completion($in-level, 'output',
+            ~ $.completion($in-level, .name.lc,
             %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Preformatted, :$defn) }),$node.config
             ), :$defn
         )
@@ -704,16 +704,7 @@ class ProcessedPod does SetupTemplates {
                         Context $context = None, Bool :$defn = False,  --> Str) {
         $.completion($in-level, 'zero', %(), :$defn )
             ~ $.completion($in-level, 'nested',
-            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Preformatted, :$defn) }),$node.config
-            ), :$defn
-        )
-    }
-
-    multi method handle(Pod::Block::Named $node where .name.lc eq 'input', Int $in-level,
-                        Context $context = None, Bool :$defn = False,  --> Str) {
-        $.completion($in-level, 'zero', %(), :$defn )
-            ~ $.completion($in-level, 'input',
-            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Preformatted, :$defn) }),$node.config
+            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),$node.config
             ), :$defn
         )
     }

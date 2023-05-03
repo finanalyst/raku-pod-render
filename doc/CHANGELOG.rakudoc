@@ -306,5 +306,7 @@ filtered out by the template if desired.
 =head1 2023-05-02 v4.6.0
 =item added C<=input> C<=nested> blocks to match Pod documentation.
 =item refactored tests to take the required templates from the SetupTemplates role.
+=item make tests for input/output/nested.
+=item2 set input / output to todo.
 
 =end pod
