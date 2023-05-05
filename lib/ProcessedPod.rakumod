@@ -392,10 +392,10 @@ class ProcessedPod does SetupTemplates {
 
     #| registers a header or title in the toc structure
     #| is-title is true for TITLE and SUBTITLE blocks, false otherwise
-    method register-toc(:$level!, :$text!, Bool :$is-title = False --> Str) {
+    method register-toc(:$level!, :$text!, Bool :$is-title = False, Bool :$toc = True --> Str) {
         my $target = self.rewrite-target($text, :unique($is-title));
         # if a title (TITLE) then it must be unique
-        $!pod-file.raw-toc.push: %( :$level, :$text, :$target, :$is-title );
+        $!pod-file.raw-toc.push: %( :$level, :$text, :$target, :$is-title ) if $toc;
         $target
     }
 
@@ -565,7 +565,10 @@ class ProcessedPod does SetupTemplates {
             ~ (|c[0].^can('type') ?? (' with type ｢' ~ |c[0].type) ~ '｣' !! '')
             if $.debug;
         @.config-stack.push: $.config;
-        note 'Config data is ' ~ $.config.raku if $.verbose;
+        if $.verbose {
+            note 'Scope config data is ' ~ $.config.raku;
+            note 'Node config data is ' ~ |c[0].config.raku if |c[0].^can('config');
+        }
         my $rv = {*}
         @.config-stack.pop;
         $rv
@@ -718,12 +721,26 @@ class ProcessedPod does SetupTemplates {
         )
     }
 
-    multi method handle(Pod::Block::Named $node where .name ~~ any(@.custom), Int $in-level,
+    multi method handle(Pod::Block::Named $node where .name ~~ any( ( @.custom , 'para', 'Para' ).flat ), Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
-        my $level = abs($node.config<headlevel> // 1); # no negative levels
+        my $level;
+        my Bool $toc;
+        with $node.config<headlevel> {
+            $level = abs($_);
+            $toc = $level != 0;
+        }
+        else {
+            with $node.config<toc> {
+                $toc = $_;
+                $level = 0 unless $toc;
+            }
+            else {
+                $toc = True;
+                $level = 1;
+            }
+        }
         my $target = '';
-        $target = $.register-toc(:$level, :text(recurse-until-str($node).tclc))
-            if +$level;
+        $target = $.register-toc(:$level, :text(recurse-until-str($node).tclc), :$toc);
         my $template = $node.config<template> // $node.name.lc;
         my $name-space = $node.config<name-space> // $template // $node.name.lc;
         my $data = $_ with %!plugin-data{ $name-space };

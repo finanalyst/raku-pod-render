@@ -382,7 +382,7 @@ For example,
 
 would include C<Some caption text> in the TOC as if it were the contents of a C<=head2> block.
 
-Setting C<:headlevel<0> > will not register the block at all.
+Setting C<:headlevel<0> > will not register the block in the TOC at all. C<:!toc> does the same thing.
 
 The parameters passed to the template will also contain a C<:target> key, which can be used to
 provide an anchor, so that when the item in the TOC is clicked (assuming HTML output), the window is

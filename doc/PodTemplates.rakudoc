@@ -335,9 +335,9 @@ this can be over-ridden using the C<:namespace<xxx>> metadata.
 The structure of C<myblock> is determined by the plugin.
 
 If a custom block is associated with the metadata key C<:headlevel(integer)>, then C<level> is given
-the value of C<integer>.
+the value of C<integer>. If C<:!toc> is given, C<level> will be 0.
 
-If C<integer> is 0, then the contents of the block are not included in the Table of Contents.
+If C<integer> is 0 or C<:!toc>, then the contents of the block are not included in the Table of Contents.
 
 For a custom format code, using format code C<F> as an example:
 

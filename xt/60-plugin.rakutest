@@ -15,7 +15,7 @@ my $rv;
 my $processor = ProcessedPod.new;
 my $pc = 0;
 
-plan 11;
+plan 12;
 
 use RenderPod::Templating;
 my @templates = SetupTemplates.new.required;
@@ -64,7 +64,20 @@ $processor.render-block($=pod[$pc++]);
 $rv = $processor.pod-file.raw-toc.raku;
 unlike $rv, /
 'This one is different'
-/, 'Block\'s content has not been added to TOC';
+/, 'Block\'s content has not been added to TOC with headlevel(0)';
+
+=begin pod
+
+=for newblocktype :!toc
+This one is very different
+
+=end pod
+
+$processor.render-block($=pod[$pc++]);
+$rv = $processor.pod-file.raw-toc.raku;
+unlike $rv, /
+'This one is very different'
+/, 'Block\'s content has not been added to TOC with :!toc';
 
 =begin pod
 

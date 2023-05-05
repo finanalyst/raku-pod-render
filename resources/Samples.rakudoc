@@ -4,8 +4,6 @@
 
 These are the cool possibilities using the C<Raku::Pod::Render> distribution.
 
-(The repeated headings in the Table of Contents are deliberate, as will become clear in this text.)
-
 =head1 Assigning classes to HTML containers.
 
 These effects can be found in the plugin C<simple-extras>.
@@ -13,28 +11,28 @@ These effects can be found in the plugin C<simple-extras>.
 For example, C< <hr> >.
 
 =begin code
-=for HR :class<yellowish-dots>
+=for HR :class<yellowish-dots> :!toc
 
-=for HR :class<bluish-dots>
+=for HR :class<bluish-dots> :!toc
 
-=for HR :class<greenish-dots>
+=for HR :class<greenish-dots> :!toc
 
 =end code
 
 renders as
 
-=for HR :class<yellowish-dots>
+=for HR :class<yellowish-dots> :!toc
 
-=for HR :class<bluish-dots>
+=for HR :class<bluish-dots> :!toc
 
-=for HR :class<greenish-dots>
+=for HR :class<greenish-dots> :!toc
 =head1 Adding new templates for existing Pod::Blocks
 
 Suppose you want a different template to act on an existing block, like Para,
 which is coded as HTML C<<p>>. For example,
 =begin code
 I like this sonnet:
-=for para :template<quotation> :author<William Shakespeare> :citation<Sonnet 116>
+=for para :template<quotation> :author<William Shakespeare> :citation<Sonnet 116> :!toc
 Let me not to the marriage of true minds\n
 Admit impediments; love is not love\n
 Which alters when it alteration finds,\n
@@ -42,7 +40,7 @@ Or bends with the remover to remove.
 =end code
 
 I like this sonnet:
-=for para :template<quotation> :author<William Shakespeare> :citation<Sonnet 116>
+=for para :template<quotation> :author<William Shakespeare> :citation<Sonnet 116> :!toc
 Let me not to the marriage of true minds\n
 Admit impediments; love is not love\n
 Which alters when it alteration finds,\n
@@ -131,7 +129,7 @@ New functionality is being developed
 =end code
 
 Generates an image with the text in the Table of Contents. The TOC entry
-can be eliminated with a C<:headlevel(0)>.
+can be eliminated with a C<:!toc>.
 
 =for Image :src<asset_files/images/octopus-build.gif> :class<justify-center>
 New searching functionality is being developed
@@ -144,7 +142,7 @@ dot program. Since many lines of graph data are required, only the delimited for
 
 The following diagraph comes from the C<dot> documentation. The following Rakudoc
 =begin code
-=begin Graphviz :headlevel(0)
+=begin Graphviz :!toc
     digraph G {
         main -> parse -> execute;
         main -> init;
@@ -160,7 +158,7 @@ The following diagraph comes from the C<dot> documentation. The following Rakudo
 
 produces
 
-=begin Graphviz :headlevel(0)
+=begin Graphviz :!toc
     digraph G {
         main -> parse -> execute;
         main -> init;
@@ -179,7 +177,7 @@ This plugin block sends the Latex markup to the CodeCogs online equation editor 
 needs to be served with a live internet link. For example,
 
 =begin code
-=for Latex :headlevel(0)
+=for Latex :!toc
 \begin{align*}
 \sum_{i=1}^{k+1} i^{3}
 &= \biggl(\sum_{i=1}^{n} i^{3}\biggr) +  i^3\\
@@ -190,7 +188,7 @@ needs to be served with a live internet link. For example,
 \end{align*}
 =end code
 
-=for Latex :headlevel(0)
+=for Latex :!toc
 \begin{align*}
 \sum_{i=1}^{k+1} i^{3}
 &= \biggl(\sum_{i=1}^{n} i^{3}\biggr) +  i^3\\
@@ -200,7 +198,7 @@ needs to be served with a live internet link. For example,
 &= \frac{(k+1)^{2}(k+2)^{2}}{4}
 \end{align*}
 
-head1 Errors
+=head1 Errors
 
 If a block is used in a Rakudoc document that is misspelt or a Custom plugin has not been correctly
 defined, then the C<ProcessedPod> renderer will render the block as an Unknown Name with an error

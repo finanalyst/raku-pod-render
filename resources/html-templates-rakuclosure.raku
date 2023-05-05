@@ -195,10 +195,10 @@ use v6;
                 ~ "\t<body class=\"pod\">\n"
                 ~ %tml<header>(%prm, %tml)
                 ~ '<div class="pod-content">'
-                ~ ( %prm<toc> ne '' or %prm<glossary> ne '' ?? '<nav>' !! '')
+                ~ ( (%prm<toc> ne '' or %prm<glossary> ne '') ?? '<nav>' !! '')
                 ~ %prm<toc>
                 ~ %prm<glossary>
-                ~ ( %prm<toc> ne '' or %prm<glossary> ne '' ?? '</nav>' !! '')
+                ~ ( (%prm<toc> ne '' or %prm<glossary> ne '') ?? '</nav>' !! '')
                 ~ %tml<top-of-page>(%prm, %tml)
                 ~ %tml<subtitle>(%prm, %tml)
                 ~ '<div class="pod-body' ~ ( %prm<toc> ne '' ?? '' !! ' no-toc') ~ '">'
