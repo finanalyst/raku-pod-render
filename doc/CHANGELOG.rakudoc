@@ -309,10 +309,21 @@ filtered out by the template if desired.
 =item make tests for input/output/nested.
 =item2 set input / output to todo.
 
-=head1 2023-05-4 v4.6.2
-=item added :!toc as alias to :headlevel(0) for named blocks
+=head1 2023-05-04 v4.6.2
+=item added C<:!toc> as alias to <:headlevel(0)> for named blocks
 =item when --verbose is set, the Block's config data is given as well as the scope config
 =item 'para' & 'Para' added to custom handle so its not added to TOC.
 =item error in Samples.rakudoc fixed
+
+=head1 2023-05-09 v4.6.3
+=item make C<:!toc> the default for C<Nested> and C<Para> blocks.
+=item Both C<Nested> and C<Para> blocks are treated as Custom block apart from this.
+=item Add C<:toc-caption> as a possible metadata for a block, to include that string in the TOC
+
+=head1 2023-05-10 v4.6.4
+=item Add node.config to parameters passed to Code
+
+=head1 2023-05-?? v4.7.0
+=item added C<:cumulative-number> to header and item
 
 =end pod

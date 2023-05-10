@@ -188,7 +188,7 @@ the new template (after modify-templates) will access the value from the previou
 ## Mustache Templates - minor extension.
 The following notes are for the MustacheTemplater, because an extension of Mustache templates is used here.
 
-The Hash structure for the default RakuClosureTemplater can be found in [RakuClosureTemplates](RakuClosureTemplates.md).
+The Hash structure for the default RakuClosureTemplater can be found in [Raku Closure Templater](RakuClosureTemplates.md).
 
 ### String Template
 For example if `'escaped' =` '{{ contents }}', > is a line in a hash declaration of the templates, then the right hand side is the `Mustache` template for the `escaped` key. The template engine is called with a hash containing String data that are interpolated into the template. `contents` is provided for all keys, but some keys have more complex data.
@@ -334,7 +334,11 @@ If the block's config parameters include the key `headlevel`, then that level is
 ```
 would include `Some caption text` in the TOC as if it were the contents of a `=head2` block.
 
-Setting `:headlevel<0> ` will not register the block at all.
+Setting `:headlevel<0> ` will not register the block in the TOC at all.
+
+`:toc` puts the contents of the block in the TOC and sets `:headlevel` to one if `:headlevel` is not specified. This is the **default** for custom blocks.
+
+`:!toc` excludes the contents of the block in the TOC and sets `:headlevel` to zero, unless `:headlevel` is also specified. **Headlevel** takes priority over `:!toc`. This is the **default** for the standard blocks `Para` and `Nested`.
 
 The parameters passed to the template will also contain a `:target` key, which can be used to provide an anchor, so that when the item in the TOC is clicked (assuming HTML output), the window is moved to the start of the relevant content.
 
@@ -787,4 +791,4 @@ When the `.templates` method is called, the templates will be checked against th
 
 
 ----
-Rendered from RenderPod at 2023-01-08T15:32:04Z
+Rendered from RenderPod at 2023-05-10T20:39:20Z

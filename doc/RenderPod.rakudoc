@@ -382,7 +382,14 @@ For example,
 
 would include C<Some caption text> in the TOC as if it were the contents of a C<=head2> block.
 
-Setting C<:headlevel<0> > will not register the block in the TOC at all. C<:!toc> does the same thing.
+Setting C<:headlevel<0> > will not register the block in the TOC at all.
+
+C<:toc> puts the contents of the block in the TOC and sets C<:headlevel> to one if C<:headlevel> is
+not specified. This is the B<default> for custom blocks.
+
+C<:!toc> excludes the contents of the block in the TOC and sets C<:headlevel> to zero, unless
+C<:headlevel> is also specified. B<Headlevel> takes priority over C<:!toc>. This is the B<default>
+for the standard blocks C<Para> and C<Nested>.
 
 The parameters passed to the template will also contain a C<:target> key, which can be used to
 provide an anchor, so that when the item in the TOC is clicked (assuming HTML output), the window is

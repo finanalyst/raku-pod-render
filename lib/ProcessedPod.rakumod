@@ -591,7 +591,14 @@ class ProcessedPod does SetupTemplates {
         my $name-space = $node.config<name-space> // $template;
         my $data = $_ with %!plugin-data{ $name-space };
 
-        $retained-list ~ $.completion($in-level, 'block-code', %( :$contents, "$name-space" => $data, :config(self.config), ), :$defn );
+        $retained-list
+            ~ $.completion($in-level, 'block-code',
+            %( :$contents,
+               $node.config,
+               "$name-space" => $data,
+               :config(self.config),
+            ), :$defn
+        )
     }
 
     multi method handle(Pod::Block::Comment $node, Int $in-level, Context $context = None, Bool :$defn = False,  --> Str) {
@@ -703,15 +710,6 @@ class ProcessedPod does SetupTemplates {
         )
     }
 
-    multi method handle(Pod::Block::Named $node where .name.lc eq 'nested', Int $in-level,
-                        Context $context = None, Bool :$defn = False,  --> Str) {
-        $.completion($in-level, 'zero', %(), :$defn )
-            ~ $.completion($in-level, 'nested',
-            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),$node.config
-            ), :$defn
-        )
-    }
-
     multi method handle(Pod::Block::Named $node where .name.lc eq 'raw', Int $in-level,
                         Context $context = None, Bool :$defn = False,  --> Str) {
         $.completion($in-level, 'zero', %(), :$defn )
@@ -721,8 +719,10 @@ class ProcessedPod does SetupTemplates {
         )
     }
 
-    multi method handle(Pod::Block::Named $node where .name ~~ any( ( @.custom , 'para', 'Para' ).flat ), Int $in-level,
-                        Context $context = None, Bool :$defn = False,  --> Str) {
+    multi method handle(Pod::Block::Named $node where .name ~~ any( ( @.custom , <para Para nested Nested> ).flat ),
+                        Int $in-level,
+                        Context $context = None,
+                        Bool :$defn = False,  --> Str) {
         my $level;
         my Bool $toc;
         with $node.config<headlevel> {
@@ -735,12 +735,13 @@ class ProcessedPod does SetupTemplates {
                 $level = 0 unless $toc;
             }
             else {
-                $toc = True;
+                $toc = $node.name ne any(<para Para nested Nested>);
                 $level = 1;
             }
         }
         my $target = '';
-        $target = $.register-toc(:$level, :text(recurse-until-str($node).tclc), :$toc);
+        my $toc-caption = $node.config<toc-caption> // recurse-until-str($node).tclc;
+        $target = $.register-toc(:$level, :text($toc-caption), :$toc);
         my $template = $node.config<template> // $node.name.lc;
         my $name-space = $node.config<name-space> // $template // $node.name.lc;
         my $data = $_ with %!plugin-data{ $name-space };

@@ -390,15 +390,41 @@ Samples.rakudoc for image
 *  change id processing X in headers
 
 # 2023-05-02 v4.6.0
-
-
 *  added `=input` `=nested` blocks to match Pod documentation.
 
 *  refactored tests to take the required templates from the SetupTemplates role.
+
+*  make tests for input/output/nested.
+
+	*  set input / output to todo.
+
+# 2023-05-04 v4.6.2
+*  added `:!toc` as alias to <:headlevel(0)> for named blocks
+
+*  when --verbose is set, the Block's config data is given as well as the scope config
+
+*  'para' & 'Para' added to custom handle so its not added to TOC.
+
+*  error in Samples.rakudoc fixed
+
+# 2023-05-09 v4.6.3
+*  make `:!toc` the default for `Nested` and `Para` blocks.
+
+*  Both `Nested` and `Para` blocks are treated as Custom block apart from this.
+
+*  Add `:toc-caption` as a possible metadata for a block, to include that string in the TOC
+
+# 2023-05-10 v4.6.4
+*  Add node.config to parameters passed to Code
+
+# 2023-05-?? v4.7.0
+
+
+*  added `:cumulative-number` to header and item
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2023-05-02T22:18:01Z
+Rendered from CHANGELOG at 2023-05-10T20:39:16Z
