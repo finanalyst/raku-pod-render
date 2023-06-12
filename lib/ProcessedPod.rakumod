@@ -185,8 +185,8 @@ class ProcessedPod does SetupTemplates {
     #| contains the configuration for the outer pod/rakudoc block
     multi method config { @.config-stack[ *-1 ].clone }
     multi method config( %extra ) { for %extra.kv { @.config-stack[ *-1 ]{ $^a } = $^b } }
-    multi method config( %extra, :$lexical! ) {
-        return unless $lexical;
+    multi method config( %extra, :$block-scope! ) {
+        return unless $block-scope;
         if @!config-stack.elems {
             my $index = @!config-stack.elems eq 1 ?? 0 !! @!config-stack.elems - 2;
             for %extra.kv { @!config-stack[ $index ]{ $^a } = $^b }
@@ -196,7 +196,7 @@ class ProcessedPod does SetupTemplates {
         }
     }
 
-    my enum Context <None Heading HTML Raw Preformatted InPodCode>;
+    my enum Context <None Heading HTML Raw Preformatted InCodeBlock>;
 
     submethod TWEAK(:$rakopts) {
         with %*ENV<RAKOPTS> // $rakopts {
@@ -284,7 +284,7 @@ class ProcessedPod does SetupTemplates {
             :name($!pod-file.name),
             :lang($!pod-file.lang),
             :path($!pod-file.path),
-        ), :lexical );
+        ), :block-scope );
         $!pod-body = [~] gather for $pod.list { take self.handle($_, 0 , Context::None ) };
         # returns accumulated pod-bodies
         $!body ~= $!pod-body;
@@ -580,13 +580,13 @@ class ProcessedPod does SetupTemplates {
     }
     #| handle strings within a Block, don't need to be escaped if HTML
     multi method handle(Str $node, Int $in-level, Context $context --> Str) {
-        $.rendition((($context ~~ HTML | Raw ) or ( $context ~~ InPodCode and $.no-code-escape)) ?? 'raw' !! 'escaped', %( :contents(~$node)))
+        $.rendition((($context ~~ HTML | Raw ) or ( $context ~~ InCodeBlock and $.no-code-escape)) ?? 'raw' !! 'escaped', %( :contents(~$node)))
     }
 
-    multi method handle(Pod::Block::Code $node, Int $in-level, Context $context = InPodCode, Bool :$defn = False,  --> Str) {
+    multi method handle(Pod::Block::Code $node, Int $in-level, Context $context = InCodeBlock, Bool :$defn = False,  --> Str) {
         # first completion is to flush a retained list before the contents of the block are processed
         my $retained-list = $.completion($in-level, 'zero', %(), :$defn );
-        my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, InPodCode, :$defn ) };
+        my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, InCodeBlock, :$defn ) };
         my $template = $node.config<template> // 'block-code';
         my $name-space = $node.config<name-space> // $template;
         my $data = $_ with %!plugin-data{ $name-space };
@@ -651,7 +651,7 @@ class ProcessedPod does SetupTemplates {
         # DEFAULT_TOP, until TITLE changes it. Will fail if multiple pod without TITLE
         unless $.pod-block-processed {
             $.pod-file.pod-config-data = $node.config;
-            $.config( $node.config, :lexical );
+            $.config( $node.config, :block-scope );
             $.pod-block-processed = True;
             note "Processing first pod declaration in file { $.pod-file.path }" if $.debug;
         }
@@ -860,7 +860,7 @@ class ProcessedPod does SetupTemplates {
     }
 
     multi method handle(Pod::Config $node, Int $in-level, Context $context = None, Bool :$defn = False, --> Str) {
-        $.config( $node.type => $node.config, :lexical );
+        $.config( $node.type => $node.config, :block-scope );
         $.completion($in-level, 'zero', %(), :$defn )
     }
     multi method handle(Pod::FormattingCode $node where .type ~~ any( <B C I K T U> ), Int $in-level,

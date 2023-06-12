@@ -418,15 +418,22 @@ Samples.rakudoc for image
 *  Add node.config to parameters passed to Code
 
 # 2023-06-12 v4.7.0
-
-
 *  added `:cumulative-number` to header and item
 
 *  add `:$context` to all templates, so that `:allow` can be properly accessed in templates.
+
+# 2023-06-13 v4.7.1
+
+
+*  changed internal names
+
+	*  lexical -> block-scope
+
+	*  enum context item InPodCode -> InCodeBlock
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2023-06-12T12:51:14Z
+Rendered from CHANGELOG at 2023-06-12T13:04:51Z
