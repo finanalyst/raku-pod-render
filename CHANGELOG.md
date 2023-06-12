@@ -417,14 +417,16 @@ Samples.rakudoc for image
 # 2023-05-10 v4.6.4
 *  Add node.config to parameters passed to Code
 
-# 2023-05-?? v4.7.0
+# 2023-06-12 v4.7.0
 
 
 *  added `:cumulative-number` to header and item
+
+*  add `:$context` to all templates, so that `:allow` can be properly accessed in templates.
 
 
 
 
 
 ----
-Rendered from CHANGELOG at 2023-05-10T20:39:16Z
+Rendered from CHANGELOG at 2023-06-12T12:51:14Z

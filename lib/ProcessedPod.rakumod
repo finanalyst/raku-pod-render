@@ -784,17 +784,25 @@ class ProcessedPod does SetupTemplates {
                 :headers(+@headers ?? %( :cells(@headers)) !! Nil),
                 :rows([gather for $node.contents -> @r {
                     take %( :cells([gather for @r { take $.handle($_, $in-level, $context, :$defn) }]))
-                }])
-                ,$node.config, :config(self.config),
-                ), :$defn
-            )
+                }]),
+                $node.config,
+                :config(self.config),
+                :$context,
+            ),
+            :$defn
+        )
     }
 
     multi method handle(Pod::Defn $node, Int $in-level, Context $context --> Str) {
         $.completion($in-level, 'zero', %(), :defn($!in-defn-list) )
             ~ $.completion($in-level, 'defn',
-                %( :term($node.term), %( :contents([~] gather for $node.contents { take self.handle($_,
-                $in-level, :defn, $context) })),$node.config, :config(self.config),
+                %( :term($node.term),
+                    %( :contents([~] gather for $node.contents {
+                        take self.handle($_, $in-level, :defn, $context)
+                    })),
+                   $node.config,
+                   :config(self.config),
+                   :$context,
                 ),
                 :defn
             )
@@ -818,6 +826,7 @@ class ProcessedPod does SetupTemplates {
             $name-space => $data,
             $node.config,
             :config(self.config),
+            :$context,
             }, :$defn
         )
     }
@@ -834,7 +843,7 @@ class ProcessedPod does SetupTemplates {
         }
         $.itemlist[$in-level - 1].push: $.rendition('item',
                 %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context) }),
-                   $node.config, :config(self.config),)
+                   $node.config, :config(self.config), :$context, )
                 );
         return ''
         # explicitly return an empty string because callers expecting a Str
@@ -845,7 +854,7 @@ class ProcessedPod does SetupTemplates {
         $.completion($in-level, 'zero', %(), :$defn )
                 ~ $.rendition('raw',
                 %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Context::Raw, :$defn) }),
-                   $node.config, :config(self.config),
+                   $node.config, :config(self.config), :$context,
                 ), :$defn
         )
     }
@@ -859,7 +868,7 @@ class ProcessedPod does SetupTemplates {
         my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) };
         my $meta = @($node.meta) // []; # by default an empty array
         $.completion($in-level, 'format-' ~ $node.type.lc ,
-                %( :$contents, :$meta, :config(self.config), ), :$defn
+                %( :$contents, :$meta, :config(self.config), :$context, ), :$defn
             )
     }
     multi method handle(Pod::FormattingCode $node where .type ~~ none(<E Z X N L P V B C I K T U>), Int $in-level,
@@ -890,12 +899,12 @@ class ProcessedPod does SetupTemplates {
         }
         if %.tmpl{ 'format-' ~ $node.type.lc }:exists {
             $.completion($in-level, 'format-' ~ $node.type.lc ,
-                %( :$contents, :$meta, :config(self.config), ), :$defn
+                %( :$contents, :$meta, :config(self.config), :$context,  ), :$defn
             )
         }
         else {
             $.completion($in-level, 'unknown-name',
-                %( :$contents, :$meta, :format-code($node.type),
+                %( :$contents, :$meta, :format-code($node.type), :$context,
                 ), :$defn
             )
         }
@@ -903,7 +912,7 @@ class ProcessedPod does SetupTemplates {
 
     multi method handle(Pod::FormattingCode $node where .type eq 'N', Int $in-level, Context $context = None, Bool :$defn = False, --> Str) {
         my $text = [~] gather for $node.contents { take $.handle($_, $in-level, $context, :$defn) };
-        $.completion($in-level, 'format-n', $.register-footnote(:$text), :$defn)
+        $.completion($in-level, 'format-n', $.register-footnote(:$text), :$context,  :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'E', Int $in-level,
@@ -912,13 +921,13 @@ class ProcessedPod does SetupTemplates {
             when Int { "&#$_;" };
             when Str { "&$_;" };
             $_
-        })), :config(self.config),), :$defn)
+        })), :config(self.config),), :$context,  :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'Z', Int $in-level, $context = None, Bool :$defn = False,  --> Str) {
         $.completion($in-level, 'zero',
                 %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
-                 :config(self.config),
+                 :config(self.config), :$context,
                 ), :$defn)
     }
 
@@ -930,7 +939,7 @@ class ProcessedPod does SetupTemplates {
         # ignore if there is nothing that can be an entry
         my $target = $.register-glossary($text, $node.meta, $header);
         #s/recurse-until-str($node).join /$text/
-        $.completion($in-level, 'format-x', %( :$text, :$target, :$header, :meta($node.meta):config(self.config),), :$defn)
+        $.completion($in-level, 'format-x', %( :$text, :$target, :$header, :$context,  :meta($node.meta):config(self.config),), :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'L', Int $in-level,
@@ -945,6 +954,7 @@ class ProcessedPod does SetupTemplates {
                :$place,
                :config(self.config),
                :meta( $node.meta ),
+               :$context,
             ), :$defn
         )
     }
@@ -953,7 +963,7 @@ class ProcessedPod does SetupTemplates {
                         Context $context = None, Bool :$defn = False, --> Str) {
         $.completion($in-level, 'escaped',
             %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
-             :config(self.config),
+             :config(self.config), :$context,
             ), :$defn
         )
     }
@@ -1003,6 +1013,7 @@ class ProcessedPod does SetupTemplates {
             :$html,
             :config(self.config),
             :meta( $node.meta ),
+            :$context,
         ), :$defn)
     }
 }

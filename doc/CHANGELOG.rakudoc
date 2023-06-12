@@ -323,7 +323,7 @@ filtered out by the template if desired.
 =head1 2023-05-10 v4.6.4
 =item Add node.config to parameters passed to Code
 
-=head1 2023-05-?? v4.7.0
+=head1 2023-06-12 v4.7.0
 =item added C<:cumulative-number> to header and item
-
+=item add C<:$context> to all templates, so that C<:allow> can be properly accessed in templates.
 =end pod
