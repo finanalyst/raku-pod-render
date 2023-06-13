@@ -332,4 +332,7 @@ filtered out by the template if desired.
 =item2 lexical -> block-scope
 =item2 enum context item InPodCode -> InCodeBlock
 
+=head1 2023-06-13 v4.7.2
+=item fix formatcodes N and C to add context correctly.
+
 =end pod

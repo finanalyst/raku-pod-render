@@ -423,17 +423,20 @@ Samples.rakudoc for image
 *  add `:$context` to all templates, so that `:allow` can be properly accessed in templates.
 
 # 2023-06-13 v4.7.1
-
-
 *  changed internal names
 
 	*  lexical -> block-scope
 
 	*  enum context item InPodCode -> InCodeBlock
 
+# 2023-06-13 v4.7.2
+
+
+*  fix formatcodes N and C to add context correctly.
+
 
 
 
 
 ----
-Rendered from CHANGELOG at 2023-06-12T13:04:51Z
+Rendered from CHANGELOG at 2023-06-13T06:51:09Z

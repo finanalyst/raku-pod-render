@@ -487,12 +487,12 @@ class ProcessedPod does SetupTemplates {
     # and the return anchor (with the text from which the footnote originates, to be used in the footnote
     # to return the cursor if desired).
 
-    method register-footnote(:$text! --> Hash) {
+    method register-footnote(:$text!, :$context --> Hash) {
         my $fnNumber = +$!pod-file.raw-footnotes + 1;
         my $fnTarget = self.rewrite-target("fn$fnNumber", :unique);
         my $retTarget = self.rewrite-target("fnret$fnNumber", :unique);
         $!pod-file.raw-footnotes.push: %( :$text, :$retTarget, :$fnNumber, :$fnTarget);
-        (:$fnTarget, :$fnNumber, :$retTarget).hash
+        (:$fnTarget, :$fnNumber, :$retTarget, :$context ).hash
     }
 
     # Pod specifies Meta data for use in an HTML header context, but it could be used in other
@@ -912,7 +912,7 @@ class ProcessedPod does SetupTemplates {
 
     multi method handle(Pod::FormattingCode $node where .type eq 'N', Int $in-level, Context $context = None, Bool :$defn = False, --> Str) {
         my $text = [~] gather for $node.contents { take $.handle($_, $in-level, $context, :$defn) };
-        $.completion($in-level, 'format-n', $.register-footnote(:$text), :$context,  :$defn)
+        $.completion($in-level, 'format-n', $.register-footnote(:$text, :$context), :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'E', Int $in-level,
@@ -921,7 +921,7 @@ class ProcessedPod does SetupTemplates {
             when Int { "&#$_;" };
             when Str { "&$_;" };
             $_
-        })), :config(self.config),), :$context,  :$defn)
+        })), :config(self.config), :$context ),  :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'Z', Int $in-level, $context = None, Bool :$defn = False,  --> Str) {
