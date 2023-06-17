@@ -2,184 +2,128 @@
 =TITLE Raku::Pod::Render
 =SUBTITLE Change log
 
-=head1 Prior to 2021-01-17
+=head1 2023-06-17 v4.7.3
+=item invert Changelog so top is latest.
 
-=item Module runs, passes all tests.
-=item P2HTML passes all legacy tests
-=item custom blocks
-=item custom templates
+=head1 2023-06-13 v4.7.2
+=item fix formatcodes N and C to add context correctly.
 
-=head1 2021-01-17
-=item resolved issue relating to name. Changed Pod::To::HTML to Pod::To::HTML2
+=head1 2023-06-13 v4.7.1
+=item changed internal names
+=item2 lexical -> block-scope
+=item2 enum context item InPodCode -> InCodeBlock
 
-=head1 2021-01-18
-=item added CHANGELOG.pod6 / CHANGELOG.md
-=item Added functionality to Unused B<FormatCodes>
-=item2 Codes such as B<L> and B<X> have the form C<CodeLetter<some content | data ; more data> >
-=item2 The C<Pod::Block> then provides B<some content> as C<contents> and then C<meta> is a list of B<'data', 'more data'>
-=item2 This syntax is applied to all non-standard format codes
-=item added new test for formatting
-=item refactored tests
-=item2 removed meta file test to xt/ and so no need for Environment flag
-=item2 moved several large testing modules from test-depends to depends
-=item modified xt/100-html/150* to not run unless SHELL_TEST environment set
-=item spun off Extractor to a different module 'raku-pod-extraction'
-=item2 Changed all documentation references to Extractor
-=item removal of Extractor removes dependence on GTK::Simple
-=item2 resolves issue regarding GTK::Simple
+=head1 2023-06-12 v4.7.0
+=item added C<:cumulative-number> to header and item
+=item add C<:$context> to all templates, so that C<:allow> can be properly accessed in templates.
 
-=head1 2021-01-19
-=item change installation default from installing highlighter to not installing highlighter
-=item added utility to install highlighter post installation
+=head1 2023-05-10 v4.6.4
+=item Add node.config to parameters passed to Code
 
-=head1 2021-01-20
-=item change META6.json to ensure module passes tests with prove6 -I.
+=head1 2023-05-09 v4.6.3
+=item make C<:!toc> the default for C<Nested> and C<Para> blocks.
+=item Both C<Nested> and C<Para> blocks are treated as Custom block apart from this.
+=item Add C<:toc-caption> as a possible metadata for a block, to include that string in the TOC
 
-=head1 2021-01-22
-=item improve css
-=item2 change nav ids to _TOC/_Glossary to avoid name clash with possible block names TOC or Glossary
-=item2 change tests of TOC and Glossary
-=item2 error in footnote scss
-=item change templates so that no nav divs appear when no component structures have content.
+=head1 2023-05-04 v4.6.2
+=item added C<:!toc> as alias to <:headlevel(0)> for named blocks
+=item when --verbose is set, the Block's config data is given as well as the scope config
+=item 'para' & 'Para' added to custom handle so its not added to TOC.
+=item error in Samples.rakudoc fixed
 
-=head1 2021-01-23
-=item add $.templs-used to Template manager. records each time a template is used during rendering.
-The intention is to make the information available for debugging when dealing with multiple
-files.
+=head1 2023-05-02 v4.6.0
+=item added C<=input> C<=nested> blocks to match Pod documentation.
+=item refactored tests to take the required templates from the SetupTemplates role.
+=item make tests for input/output/nested.
+=item2 set input / output to todo.
 
-=item test added to xt/030* for templates-used
-=item extend to other named & header Pod::Blocks the ability to use another template if given as a config variable.
+=head1 2023-04-23 v4.5.1
+=item add meta to format-x, format-l and format-p to be available for template.
+=item change META6 for fez review
+=item change doc.perl.org to docs.raku.org in test
+=item change id processing X in headers
 
-=head1 2021-01-25
-=item fix default Markdown template of metadata
-=item fix default Markdown of =defn blocks
-=item change Perl 6 => Raku in tests, except non-breaking space
+=head1 2023-04-23 v4.5.0
+=item add flag to glossary entry if the target is in a heading, so that the entries can be
+filtered out by the template if desired.
 
-=head1 2021-01-31
-=item fixed test-templates, which had suffered bit-rot
-=item improved test-templates, so that it now gives more feedback on template contents that are not returned
-=item fixed html templates that new test-template feed-back showed were erroneous.
-=item fixed and updated RakuClosureTemplates.pod6
-=item bump version
+=head1 2023-03-17 v4.4.2
+=item add tutorial text and directory based on Advent Calendar code.
+=item fix error when parsing two V< L<> > items with the same link but different texts
 
-=head1 2021-02-01
-=item refactoring in emit-... function.
+=head1 2023-02-24 v4.4.1
+=item fix highlight resource name
 
-=head1 2021-02-02
-=item refactored to move all pod-file related variables out to a class that is reinstantiated
-=item changed tests because an object not a hash is returned.
-=item refactored to change rules for plugin and namespaces. Plugins can add their configs to their namespace
-=item namespaces cannot be written to more than once.
+=head1 2023-01-22 v4.4.0
+=item add debug information to Templating
+=item add separate template debug flag
+=item fixing link error - external flag not being set properly
+=item2 Provide parameter type to template with values internal, external, local
 
-=head1 2021-02-5
-=item bump version
-=item PodFile  gist written, started on ProcessedPod gist
-=item fixed failing tests due to renderedtime and path changes
-=item HTML2 templates improved and removed need for separate wrap-source function.
+=head1 2023-01-08 v4.3.4
+=item add config output when verbose is on.
+=item ensure file config available for source-wrap
 
-=head1 2021-02-09 v10
-=item to get Cro, require rakudo-star:2020.01, but that doesn't like set op (==), so use different test in test-templates
+=head1 2023-01-08 v4.3.3
+=item guarantee empty contents when format-code has zero content, eg., C<D<>>.
+=item fix C<=config> directive to alter lexical level, not its own.
+=item add tests for config params sent to templates
 
-=head1 2021-02-13 v11
-=item added TOC functionality to Custom defined blocks
-=item added documentation about TOC and also provision of plugin config data to ProcessedPod
+=head1 2023-01-01 v4.3.2
+=item refactor Templating to eliminate two copies of tmpl
+=item include tests for remembering prior formats
+=item fix Mustache renderer to work with memory variant
 
-=head1 2021-02-02-14 v12
-=item fixed non-standard FC error when not specially templated, added test.
+=head1 2023-01-01 v4.3.1
+=item handle end of linked list better. prior returns Nil not .cell
 
-=head1 2021-02-20 v3-6-13
-=item empty BagHash of templates-used correctly with default, not Nil.
+=head1 2022-12-31 v4.3.0
+=item add ability to remember previous templates.
+=item2 works and tests ok for RakuClosure. Does not work for Mustache, perhaps Binding needs adding
+to LinkedVals Hash???
+=item2 So LinkedVals Hash is only used for RakuClosures.
 
-=head1 2021-02-26 v3-6-14
-=item Pod-File gist improved when templates-used is undefined.
-=item test 060 improved.
+=head1 2022-12-17 v4.2.3
+=item add pod-output to PodFile.gist
+=item add optional length to GIST for amount of pod-output printed
+=item2 add test to check this.
 
-=head1 2021-02-27 v3-6-15
-=item resolved issue with passing legacy css tests
+=head1 2022-12-15 v4.2.2
+=item fix error - namespace not in header handler.
 
-=head1 2021-02-27 v3-6-16
-=item moved functionality of test-templates to pm6
-=item added test functions templates-present, templates-match, extra-templates-match
-=item rewrite / refactor Documentation files
+=head1 2022-12-14 v4.2.1
+=item add attribute to PodFile for final output so that it can be accessed later.
+=item2 use case: Collection plugin 'secondaries' that needs the text following a chosen header
+so that it can be inserted into another file.
 
-=head1 2021-03-4 v3-6-17
-=item correct HTML rendering of targets in local files. eg href="filen.html#internal-link"
-=item change test accordingly
-=item change type of templates-used in PodFile from BagHash to %, and adjust gist.
-=item fixed persistent Templates-used error, not emptying.
+=head1 2022-12-08 v4.2.0
+=item make sure all necessary Pod-blocks can take :template & :name-space meta-data,
+and pass name-space data to template. Previously this was only done for named blocks.
 
-=head1 2021-03-25 v3-6-18
-=item add change of '::' token to '/' in links. This is (previously) undocumented behaviour of L<>
+=item implementing =config directive.
+=item2 C<=config> metadata is provided to all templates as the C<config> parameter.
+=item2 metadata for the outermost C<=pod> or C<=rakudoc> blocks is included in the C<=config> data
+=item change 'unknown-name' template so that we can format unknown format codes properly
+=item change handler of FormatCode so that 'unknown-name' is called with :format-code.
+=item default templates for footer needs changing to generate a time
+=item default navigation template to remove tags if no TOC or Glossary.
+=item include C<add-plugins> to P2HTML2 so that new plugins can added to the distributed ones.
 
-=head1 2021-03-27 v3-6-19
-=item improve L<> handling of '::' in file part only.
-=item improve test to cover new variations.
+=head1 2022-11-27 v4.1.1
+=item improve unknown-name default template
+=item improve default templates
+=correct Samples.rakudoc for image
 
-=head1 2021-03-28 v3-6-20
-=item add link text to link registration for improved error tracing
+=head1 2022-11-15 v4.1.0
+=item allow for data object to be rewritten by add-plugin. Use case: the name-space for a plugin
+needs to be available for the plugin's callables, as it contains config data needed by plugin
+callables
 
-=head1 2021-03-31 v3-6-21
-=item add page-data key to be passed to template 'file-wrap'. This is config in first C<=pod> line.
-
-=head1 2021-04-02 v3-6-22
-=item trim white space in head texts (occurs if head text is also indexed)
-
-=head1 2022-02-11 v3-7-0
-=item refactored the templating system
-=item2 move-templating out of ProcessedPod
-=item2 created an array of tests to identify the templating engine
-=item2 made templating engines into classes, rather than roles
-=item new error occurred where role supplied a BagHash and a new did not initialise it
-=item2 added a method to the role to reinitialise it.
-=item begun to add Cro Web templates as possible option
-=item refactored the highlighting system
-=item2 moved highlighting from templates
-=item2 created possibility for alternate highlighting engine
-=item2 made autodetection of template engine into a role
-=item refactored Exceptions, putting all exceptions associated with ProcessedPod into one file
-=item refactored path names, creating C<RenderPod> folder, moved files to more intuitive places
-=item renamed pm6 to rakumod
-=item renamed sanity tests to make order more logical, testing base roles/classes first
-
-=head1 2022-02-11 v3-7-1
-=item Add github badge to front of a Markdown file.
-=item Add TEST_OFFLINE environment flag so that tests can be run offline.
-
-=head1 2022-02-20 v3-7-2
-=item changes to way badge path is calculated, from META6.json & .github directory
-=item simplified CI setup
-=item modification to templates
-
-=head1 2022-03-28 v3-7-3
-=item Add a check to detect templater that looks for C<_templater> in the template hash
-and if it exists, then it must contain the name of the templater class.
-=item add test file to verify the auto-detect and C<_templater> key.
-=item Add C<_templater> key to HTML and MarkDown renderers
-=item Change behaviour of css-text. It now over-rides the css template, not the css-text template.
-=item The test suite sometimes fails at or after C<xt/100-html/015-css-addition.t> The tests
-individually pass.
-=item added :type to Pod::To::HTML that indicates which templating system to use, the default is 'closure'
-because crotmp causes random test failures.
-
-=head1 22-06-13 v3-7-4
-=item default engine set to 'rakuclosure' because crotmp fails many tests because it
-does not permit double html injection.
-
-=item correction to CWTR::Hash stops failure in test suite.
-
-=head1 22-07-08 v3-7-5
-=item move to fez
-=head change testing
-
-=head1 22-07-09 v3-7-6
-=item version bump
-
-=head1 22-07-10 v3-7-7
-=item minor changes to README, update CHANGELOG
-
-=head1 2022-09-24 v3-8-0
-=item allow rakudoc to be an alias to pod for a named block
-=item make github badge changable in MarkDown
+=item Created a Samples.rakudoc file for Rakudoc-to-html Example
+=item rewrote sample plugins for HTML2 from Collection variants.
+=item wrote new core plugin move-assets for HTML2 to mimic Collection render milestone functionality
+=item rewrote BUILD.pm to copy all plugins from resources to a local default directory
+=item basic node2html and pod2html options tested. Uses Rakuclosure, so no mustache options.
 
 =head1 2022-10-x v4-0-0
 =item Refactor HTML2 to
@@ -215,124 +159,183 @@ then an Exception is thrown
 
 =item remove ExtractPod as Pod::Load is Raku canonical
 
-=head1 2022-11-15 v4.1.0
-=item allow for data object to be rewritten by add-plugin. Use case: the name-space for a plugin
-needs to be available for the plugin's callables, as it contains config data needed by plugin
-callables
+=head1 2022-09-24 v3-8-0
+=item allow rakudoc to be an alias to pod for a named block
+=item make github badge changable in MarkDown
 
-=item Created a Samples.rakudoc file for Rakudoc-to-html Example
-=item rewrote sample plugins for HTML2 from Collection variants.
-=item wrote new core plugin move-assets for HTML2 to mimic Collection render milestone functionality
-=item rewrote BUILD.pm to copy all plugins from resources to a local default directory
-=item basic node2html and pod2html options tested. Uses Rakuclosure, so no mustache options.
+=head1 22-07-10 v3-7-7
+=item minor changes to README, update CHANGELOG
 
-=head1 2022-11-27 v4.1.1
-=item improve unknown-name default template
-=item improve default templates
-=correct Samples.rakudoc for image
+=head1 22-07-09 v3-7-6
+=item version bump
 
-=head1 2022-12-08 v4.2.0
-=item make sure all necessary Pod-blocks can take :template & :name-space meta-data,
-and pass name-space data to template. Previously this was only done for named blocks.
+=head change testing
 
-=item implementing =config directive.
-=item2 C<=config> metadata is provided to all templates as the C<config> parameter.
-=item2 metadata for the outermost C<=pod> or C<=rakudoc> blocks is included in the C<=config> data
-=item change 'unknown-name' template so that we can format unknown format codes properly
-=item change handler of FormatCode so that 'unknown-name' is called with :format-code.
-=item default templates for footer needs changing to generate a time
-=item default navigation template to remove tags if no TOC or Glossary.
-=item include C<add-plugins> to P2HTML2 so that new plugins can added to the distributed ones.
+=head1 22-07-08 v3-7-5
+=item move to fez
+=head1 22-06-13 v3-7-4
+=item default engine set to 'rakuclosure' because crotmp fails many tests because it
+does not permit double html injection.
 
-=head1 2022-12-14 v4.2.1
-=item add attribute to PodFile for final output so that it can be accessed later.
-=item2 use case: Collection plugin 'secondaries' that needs the text following a chosen header
-so that it can be inserted into another file.
+=item correction to CWTR::Hash stops failure in test suite.
 
-=head1 2022-12-15 v4.2.2
-=item fix error - namespace not in header handler.
+=head1 2022-03-28 v3-7-3
+=item Add a check to detect templater that looks for C<_templater> in the template hash
+and if it exists, then it must contain the name of the templater class.
+=item add test file to verify the auto-detect and C<_templater> key.
+=item Add C<_templater> key to HTML and MarkDown renderers
+=item Change behaviour of css-text. It now over-rides the css template, not the css-text template.
+=item The test suite sometimes fails at or after C<xt/100-html/015-css-addition.t> The tests
+individually pass.
+=item added :type to Pod::To::HTML that indicates which templating system to use, the default is 'closure'
+because crotmp causes random test failures.
 
-=head1 2022-12-17 v4.2.3
-=item add pod-output to PodFile.gist
-=item add optional length to GIST for amount of pod-output printed
-=item2 add test to check this.
+=head1 2022-02-20 v3-7-2
+=item changes to way badge path is calculated, from META6.json & .github directory
+=item simplified CI setup
+=item modification to templates
 
-=head1 2022-12-31 v4.3.0
-=item add ability to remember previous templates.
-=item2 works and tests ok for RakuClosure. Does not work for Mustache, perhaps Binding needs adding
-to LinkedVals Hash???
-=item2 So LinkedVals Hash is only used for RakuClosures.
+=head1 2022-02-11 v3-7-1
+=item Add github badge to front of a Markdown file.
+=item Add TEST_OFFLINE environment flag so that tests can be run offline.
 
-=head1 2023-01-01 v4.3.1
-=item handle end of linked list better. prior returns Nil not .cell
+=head1 2022-02-11 v3-7-0
+=item refactored the templating system
+=item2 move-templating out of ProcessedPod
+=item2 created an array of tests to identify the templating engine
+=item2 made templating engines into classes, rather than roles
+=item new error occurred where role supplied a BagHash and a new did not initialise it
+=item2 added a method to the role to reinitialise it.
+=item begun to add Cro Web templates as possible option
+=item refactored the highlighting system
+=item2 moved highlighting from templates
+=item2 created possibility for alternate highlighting engine
+=item2 made autodetection of template engine into a role
+=item refactored Exceptions, putting all exceptions associated with ProcessedPod into one file
+=item refactored path names, creating C<RenderPod> folder, moved files to more intuitive places
+=item renamed pm6 to rakumod
+=item renamed sanity tests to make order more logical, testing base roles/classes first
 
-=head1 2023-01-01 v4.3.2
-=item refactor Templating to eliminate two copies of tmpl
-=item include tests for remembering prior formats
-=item fix Mustache renderer to work with memory variant
+=head1 2021-04-02 v3-6-22
+=item trim white space in head texts (occurs if head text is also indexed)
 
-=head1 2023-01-08 v4.3.3
-=item guarantee empty contents when format-code has zero content, eg., C<D<>>.
-=item fix C<=config> directive to alter lexical level, not its own.
-=item add tests for config params sent to templates
+=head1 2021-03-31 v3-6-21
+=item add page-data key to be passed to template 'file-wrap'. This is config in first C<=pod> line.
 
-=head1 2023-01-08 v4.3.4
-=item add config output when verbose is on.
-=item ensure file config available for source-wrap
+=head1 2021-03-28 v3-6-20
+=item add link text to link registration for improved error tracing
 
-=head1 2023-01-22 v4.4.0
-=item add debug information to Templating
-=item add separate template debug flag
-=item fixing link error - external flag not being set properly
-=item2 Provide parameter type to template with values internal, external, local
+=head1 2021-03-27 v3-6-19
+=item improve L<> handling of '::' in file part only.
+=item improve test to cover new variations.
 
-=head1 2023-02-24 v4.4.1
-=item fix highlight resource name
+=head1 2021-03-25 v3-6-18
+=item add change of '::' token to '/' in links. This is (previously) undocumented behaviour of L<>
 
-=head1 2023-03-17 v4.4.2
-=item add tutorial text and directory based on Advent Calendar code.
-=item fix error when parsing two V< L<> > items with the same link but different texts
+=head1 2021-03-4 v3-6-17
+=item correct HTML rendering of targets in local files. eg href="filen.html#internal-link"
+=item change test accordingly
+=item change type of templates-used in PodFile from BagHash to %, and adjust gist.
+=item fixed persistent Templates-used error, not emptying.
 
-=head1 2023-04-23 v4.5.0
-=item add flag to glossary entry if the target is in a heading, so that the entries can be
-filtered out by the template if desired.
+=head1 2021-02-27 v3-6-16
+=item moved functionality of test-templates to pm6
+=item added test functions templates-present, templates-match, extra-templates-match
+=item rewrite / refactor Documentation files
 
-=head1 2023-04-23 v4.5.1
-=item add meta to format-x, format-l and format-p to be available for template.
-=item change META6 for fez review
-=item change doc.perl.org to docs.raku.org in test
-=item change id processing X in headers
+=head1 2021-02-27 v3-6-15
+=item resolved issue with passing legacy css tests
 
-=head1 2023-05-02 v4.6.0
-=item added C<=input> C<=nested> blocks to match Pod documentation.
-=item refactored tests to take the required templates from the SetupTemplates role.
-=item make tests for input/output/nested.
-=item2 set input / output to todo.
+=head1 2021-02-26 v3-6-14
+=item Pod-File gist improved when templates-used is undefined.
+=item test 060 improved.
 
-=head1 2023-05-04 v4.6.2
-=item added C<:!toc> as alias to <:headlevel(0)> for named blocks
-=item when --verbose is set, the Block's config data is given as well as the scope config
-=item 'para' & 'Para' added to custom handle so its not added to TOC.
-=item error in Samples.rakudoc fixed
+=head1 2021-02-20 v3-6-13
+=item empty BagHash of templates-used correctly with default, not Nil.
 
-=head1 2023-05-09 v4.6.3
-=item make C<:!toc> the default for C<Nested> and C<Para> blocks.
-=item Both C<Nested> and C<Para> blocks are treated as Custom block apart from this.
-=item Add C<:toc-caption> as a possible metadata for a block, to include that string in the TOC
+=head1 2021-02-02-14 v12
+=item fixed non-standard FC error when not specially templated, added test.
 
-=head1 2023-05-10 v4.6.4
-=item Add node.config to parameters passed to Code
+=head1 2021-02-13 v11
+=item added TOC functionality to Custom defined blocks
+=item added documentation about TOC and also provision of plugin config data to ProcessedPod
 
-=head1 2023-06-12 v4.7.0
-=item added C<:cumulative-number> to header and item
-=item add C<:$context> to all templates, so that C<:allow> can be properly accessed in templates.
+=head1 2021-02-09 v10
+=item to get Cro, require rakudo-star:2020.01, but that doesn't like set op (==), so use different test in test-templates
 
-=head1 2023-06-13 v4.7.1
-=item changed internal names
-=item2 lexical -> block-scope
-=item2 enum context item InPodCode -> InCodeBlock
+=head1 2021-02-5
+=item bump version
+=item PodFile  gist written, started on ProcessedPod gist
+=item fixed failing tests due to renderedtime and path changes
+=item HTML2 templates improved and removed need for separate wrap-source function.
 
-=head1 2023-06-13 v4.7.2
-=item fix formatcodes N and C to add context correctly.
+=head1 2021-02-02
+=item refactored to move all pod-file related variables out to a class that is reinstantiated
+=item changed tests because an object not a hash is returned.
+=item refactored to change rules for plugin and namespaces. Plugins can add their configs to their namespace
+=item namespaces cannot be written to more than once.
+
+=head1 2021-02-01
+=item refactoring in emit-... function.
+
+=head1 2021-01-31
+=item fixed test-templates, which had suffered bit-rot
+=item improved test-templates, so that it now gives more feedback on template contents that are not returned
+=item fixed html templates that new test-template feed-back showed were erroneous.
+=item fixed and updated RakuClosureTemplates.pod6
+=item bump version
+
+=head1 2021-01-25
+=item fix default Markdown template of metadata
+=item fix default Markdown of =defn blocks
+=item change Perl 6 => Raku in tests, except non-breaking space
+
+=head1 2021-01-23
+=item add $.templs-used to Template manager. records each time a template is used during rendering.
+The intention is to make the information available for debugging when dealing with multiple
+files.
+
+=item test added to xt/030* for templates-used
+=item extend to other named & header Pod::Blocks the ability to use another template if given as a config variable.
+
+=head1 2021-01-22
+=item improve css
+=item2 change nav ids to _TOC/_Glossary to avoid name clash with possible block names TOC or Glossary
+=item2 change tests of TOC and Glossary
+=item2 error in footnote scss
+=item change templates so that no nav divs appear when no component structures have content.
+
+=head1 2021-01-20
+=item change META6.json to ensure module passes tests with prove6 -I.
+
+=head1 2021-01-19
+=item change installation default from installing highlighter to not installing highlighter
+=item added utility to install highlighter post installation
+
+=head1 2021-01-18
+=item added CHANGELOG.pod6 / CHANGELOG.md
+=item Added functionality to Unused B<FormatCodes>
+=item2 Codes such as B<L> and B<X> have the form C<CodeLetter<some content | data ; more data> >
+=item2 The C<Pod::Block> then provides B<some content> as C<contents> and then C<meta> is a list of B<'data', 'more data'>
+=item2 This syntax is applied to all non-standard format codes
+=item added new test for formatting
+=item refactored tests
+=item2 removed meta file test to xt/ and so no need for Environment flag
+=item2 moved several large testing modules from test-depends to depends
+=item modified xt/100-html/150* to not run unless SHELL_TEST environment set
+=item spun off Extractor to a different module 'raku-pod-extraction'
+=item2 Changed all documentation references to Extractor
+=item removal of Extractor removes dependence on GTK::Simple
+=item2 resolves issue regarding GTK::Simple
+
+=head1 2021-01-17
+=item resolved issue relating to name. Changed Pod::To::HTML to Pod::To::HTML2
+
+=head1 Prior to 2021-01-17
+
+=item Module runs, passes all tests.
+=item P2HTML passes all legacy tests
+=item custom blocks
+=item custom templates
 
 =end pod
