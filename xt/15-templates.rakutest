@@ -1,7 +1,8 @@
-use v6.*;
+use v6.d;
 use Test;
 use ProcessedPod;
 use Test::Output;
+
 # A helper sub for RakuClosureTemplates
 sub gen-closure-template (Str $tag) is export {
     my $start = '<' ~ $tag ~ '>';
@@ -10,7 +11,8 @@ sub gen-closure-template (Str $tag) is export {
         $start ~ (%prm<contents> // '') ~ $end;
     }
 }
-plan 13;
+
+plan 14;
 
 my $processor;
 
@@ -75,5 +77,18 @@ like $processor.rendition('format-b', %(:contents('Hello world'))),
         'new stuff, then old ' \s*
         '<container>' 'Hello world' '</container> is wrapped'
         /, 'got new and interpolation with partials';
+
+# is a non-existent template trapped?
+$processor.modify-templates( %(
+    format-b => sub ( %prm, %tml) {
+        'new stuff, then old ' ~
+        %tml<format-bx>.( %prm, %tml )
+    }
+));
+
+throws-like { $processor.rendition('format-b', %(:contents('Hello world'))) },
+        X::ProcessedPod::Unexpected-Template,
+        message=>/ 'Have you called ｢format-bx｣ inside another template' /,
+        "Catches the non-existent template";
 
 done-testing;

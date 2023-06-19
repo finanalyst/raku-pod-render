@@ -50,13 +50,20 @@ class X::ProcessedPod::MissingTemplates is Exception {
         else { "No templates loaded, ProcessedPod object method \.templates not called" }
     }
 }
+class X::ProcessedPod::Unexpected-Template is Exception {
+    has $.key;
+    method message() {
+        "Stopping processing because non-existent template ｢$.key｣ encountered.\n"
+        ~ "Have you called ｢$.key｣ inside another template without defining it?"
+    }
+}
 class X::ProcessedPod::Non-Existent-Template is Exception {
     has $.key;
     has %.params;
     multi method message() {
         "Stopping processing because non-existent template ｢$.key｣ encountered with the following parameters:\n"
-                ~ %.params.gist
-                ~ "\nHave you provided a custom block without a custom template?"
+        ~ %.params.gist
+        ~ "\nHave you mispelt a template?"
     }
 }
 class X::ProcessedPod::Unexpected-Nil is Exception {

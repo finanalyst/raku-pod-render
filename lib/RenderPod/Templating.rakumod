@@ -99,7 +99,13 @@ class LinkedList {
 #| A hash that remembers previous values
 class LinkedVals does Associative {
     has %.fields handles < push EXISTS-KEY iterator list keys values>;
-    multi method AT-KEY ($key) is rw { %!fields{$key }.cell }
+    multi method AT-KEY ($key) is rw {
+        with %!fields{ $key } { .cell }
+        else {
+            X::ProcessedPod::Unexpected-Template.new(:$key).throw
+        }
+    }
+
     multi method DELETE-KEY ($key) {
         with %!fields{$key}.prior {
             %!fields{ $key } = $_
@@ -115,8 +121,7 @@ class LinkedVals does Associative {
         }
     }
     method prior($key) {
-        with %!fields{$key}.prior
-            { .cell }
+        with %!fields{$key}.prior { .cell }
         else { Nil }
     }
     method kv(LinkedVals:D: --> Seq:D) {
@@ -304,7 +309,7 @@ role SetupTemplates is export does Highlighting {
         return '' if $key eq 'zero';
         # special case this as there must be no EOL.
         X::ProcessedPod::Non-Existent-Template.new(:$key, :%params).throw
-        unless %.tmpl{$key}:exists;
+            unless %.tmpl{$key}:exists;
         if $key eq 'block-code' and $.highlight-code {
             %params<highlighted> = self.insert-highlights.(%params<contents>)
         }

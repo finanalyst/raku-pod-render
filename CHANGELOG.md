@@ -2,8 +2,10 @@
 >Change log
 
 
-# 2023-06-17 v4.7.3
+# 2023-06-20 v4.7.3
 *  invert Changelog so top is latest.
+
+*  throw error when one template calls another non-existent one.
 
 # 2023-06-13 v4.7.2
 *  fix formatcodes N and C to add context correctly.
@@ -442,4 +444,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2023-06-17T12:47:56Z
+Rendered from CHANGELOG at 2023-06-19T23:46:48Z
