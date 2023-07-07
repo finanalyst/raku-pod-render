@@ -1,0 +1,84 @@
+use v6.d;
+use Test;
+use ProcessedPod;
+
+# A helper class for RakuClosureTemplates
+multi sub gen-closure-template (Str $tag) is export {
+    my $start = '<' ~ $tag ~ '>';
+    my $end = '</' ~ $tag ~ '>';
+    return sub (%prm, %tml? --> Str) {
+        $start ~ (%prm<contents> // %prm<text> // '') ~ $end;
+    }
+}
+plan *;
+
+my $processor = ProcessedPod.new;
+my $pv = 0;
+my $rv;
+
+use RenderPod::Templating;
+my @templates = SetupTemplates.new.required;
+
+my %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
+%templates<escaped> = sub ($s) { $s };
+%templates<SYNOPSIS> = sub ( %prm, %tml ) {
+    qq[
+        <synopsis>
+        { %prm<contents> }
+        </synopsis>
+    ]
+}
+%templates<meta> = sub ( %prm, %tmp ) {
+    "<meta>\n"
+    ~ %prm<meta>.map( { $_<name> ~ '=' ~ $_<value> ~ "\n"} )
+    ~ '</meta>'
+};
+%templates<source-wrap> = sub (%prm, %tml ) {
+    "<file><body>{ %prm<body> }</body>{ %prm<metadata> }</file>"
+};
+$processor.templates(%templates);
+
+=begin rakudoc
+this is text
+
+=AUTHOR A.N. Writer
+=SUMMARY Some summarised remarks
+
+=SYNOPSIS Here is some text in a synopsis
+
+=begin TEST
+This is multiline in a SEMANTIC node
+
+more
+=end TEST
+
+stuff
+
+=TEST another test
+
+=end rakudoc
+$rv = $processor.render-tree( $=pod[$pv] );
+like $rv,
+    /
+    '<synopsis>'
+    .+
+    'in a synopsis'
+    .+
+    '</synopsis>'
+    /, 'got semantic block with a template';
+
+like $rv,
+        /
+        '<heading>TEST</heading'
+        .+
+        'SEMANTIC'
+        /, 'semantic block without a template treated as head1';
+
+$rv = $processor.source-wrap;
+like $rv,
+        /
+        '<meta>'
+        [ \s* 'Author=A.N. Writer' | \s* 'Summary=Some summarised remarks' ] **2
+        \s* '</meta>'
+        /, 'Got meta data structure';
+done-testing;

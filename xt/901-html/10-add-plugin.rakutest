@@ -20,7 +20,7 @@ mktree 'new-plugin';
     %( :template-raku<templates.raku>, :custom-raku<custom.raku> )
     FILE
 'new-plugin/custom.raku'.IO.spurt( q:to/FILE/ );
-    <NEWBLOCK NewBlock>
+    <Newblock NewBlock>
     FILE
 'new-plugin/templates.raku'.IO.spurt( q:to/FILE/ );
     %(

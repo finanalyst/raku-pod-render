@@ -2,6 +2,12 @@
 =TITLE Raku::Pod::Render
 =SUBTITLE Change log
 
+=head1 2023-07-07 v4.8.0
+=item Handle SEMANTIC blocks as per RakuDoc requirements
+=item2 leave VERSION DESCRIPTION AUTHOR SUMMARY as before in meta part of HTML
+=item add tests for undefined SEMANTIC blocks, and defined SEMANTIC block
+=item add test when undefined $=pod is passed to render-block.
+
 =head1 2023-06-20 v4.7.3
 =item invert Changelog so top is latest.
 =item throw error when one template calls another non-existent one.

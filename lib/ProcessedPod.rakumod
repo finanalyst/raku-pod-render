@@ -226,7 +226,7 @@ class ProcessedPod does SetupTemplates {
 
         $candidate-name = $candidate-name.subst(/\s+/, '_', :g);
         if $unique {
-            $candidate-name ~= '_0' if $candidate-name (<) $!pod-file.targets;
+            $candidate-name ~= '_2' if $candidate-name (<) $!pod-file.targets;
             ++$candidate-name while $!pod-file.targets{$candidate-name};
             # will continue to loop until a unique name is found
         }
@@ -280,6 +280,7 @@ class ProcessedPod does SetupTemplates {
     #| process the pod block or tree passed to it, and concatenates it to previous pod tree
     #| returns a string representation of the tree in the required format
     method process-pod($pod --> Str) {
+        die 'cannot process an undefined Pod-Block' unless $pod.defined or $pod ~~ Array;
         $.config( %(
             :name($!pod-file.name),
             :lang($!pod-file.lang),
@@ -385,7 +386,12 @@ class ProcessedPod does SetupTemplates {
     #| renders on the meta data
     method render-meta(--> Str) {
         return '' if (!?$!pod-file.raw-metadata or $!no-meta or $.pod-file.pod-config-data<no-meta>);
-        self.rendition('meta', %( :meta($!pod-file.raw-metadata)))
+        # this should be more generic, but is restricted to maintain some backward compatibility
+        self.rendition('meta',
+            %( :meta(
+                $!pod-file.raw-metadata.grep({ .<name>.uc ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>) })
+            ))
+        )
     }
 
     # methods to collect page component data
@@ -690,6 +696,66 @@ class ProcessedPod does SetupTemplates {
         $.register-meta(:name($node.name.tclc), :value(recurse-until-str($node)));
         $.completion($in-level, 'zero', %(), :$defn )
         # make sure any list is correctly ended.
+    }
+
+    # Semantic blocks other than above treat as head1
+    multi method handle(Pod::Block::Named $node where .name ~~ / ^ <upper>+ $ /,
+                        Int $in-level, Context $context, Bool :$defn = False, --> Str) {
+        my $retained-list = $.completion($in-level, 'zero', %(), :$defn);
+        # process before contents
+        my $level;
+        my Bool $toc;
+        with $node.config<headlevel> {
+            $level = abs($_);
+            $toc = $level != 0;
+        }
+        else {
+            with $node.config<toc> {
+                $toc = $_;
+                $level = 0 unless $toc;
+            }
+            else {
+                $toc = True;
+                $level = 1;
+            }
+        }
+        my $toc-caption = $node.config<toc-caption> // $node.name;
+        # possibilities: :template or :name-space given in metadata
+        # or SEMANTIC (viz. node.name) template in template hash
+        my $semantic = $node.name if $.tmpl{ $node.name }:exists;
+        my $template = $node.config<template> // $semantic;
+        my $name-space = $node.config<name-space> // $template // $node.name;
+        my $data = $_ with %!plugin-data{ $name-space };
+        my $target = $.register-toc(:$level, :text($toc-caption), :is-title);
+        my $contents = trim( [~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) } );
+        $.register-meta(:name($node.name), :value($contents));
+        with $template {
+            $retained-list ~ $.completion($in-level, $template, {
+                :$level,
+                :text($toc-caption),
+                :$target,
+                :top($.pod-file.top),
+                $name-space => $data,
+                $node.config,
+                :config(self.config),
+                :$context,
+                :$contents,
+                }, :$defn
+            )
+        }
+        else {
+            $retained-list ~ $.completion($in-level, 'heading', {
+                :$level,
+                :text($toc-caption),
+                :$target,
+                :top($.pod-file.top),
+                $name-space => $data,
+                $node.config,
+                :config(self.config),
+                :$context,
+                }, :$defn
+            ) ~ $contents
+        }
     }
 
     multi method handle(Pod::Block::Named $node where $node.name.lc eq 'html' , Int $in-level,

@@ -2,6 +2,15 @@
 >Change log
 
 
+# 2023-07-07 v4.8.0
+*  Handle SEMANTIC blocks as per RakuDoc requirements
+
+	*  leave VERSION DESCRIPTION AUTHOR SUMMARY as before in meta part of HTML
+
+*  add tests for undefined SEMANTIC blocks, and defined SEMANTIC block
+
+*  add test when undefined $=pod is passed to render-block.
+
 # 2023-06-20 v4.7.3
 *  invert Changelog so top is latest.
 
@@ -444,4 +453,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2023-06-19T23:46:48Z
+Rendered from CHANGELOG at 2023-07-07T14:52:12Z

@@ -2,7 +2,7 @@ use Test;
 use Test::Deeply::Relaxed;
 use ProcessedPod;
 
-plan 13;
+plan 14;
 
 my ProcessedPod $processor .= new;
 # A helper sub for RakuClosureTemplates
@@ -56,6 +56,8 @@ An empty X<> is ignored.
 =end rakudoc
 
 $processor.templates(%templates);
+
+dies-ok { $processor.render-block( $=pod[2]) }, 'fails if $=pod not defined';
 
 lives-ok { $processor.render-block( $=pod[0] ); $processor.source-wrap; }, 'main processing methods work, not interested in return values yet';
 
