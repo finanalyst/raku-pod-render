@@ -1,4 +1,12 @@
 use v6.*;
+class X::ProcessedPod::Table::BadCommand is Exception {
+    has $.cmd;
+    method message() {
+        qq[[ Only ｢cell｣, ｢row｣, of ｢column｣ blocks/directives may appear directly
+        after a ｢grid｣ but got ｢$.cmd｣ instead.
+        ]]
+    }
+}
 class X::ProcessedPod::BadPluginTemplates is Exception {
     has $.path;
     has $.template-type;

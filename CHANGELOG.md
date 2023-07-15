@@ -2,6 +2,17 @@
 >Change log
 
 
+# 2023-07-15 v4.8.1
+*  Add extra functionality to `=table` as per RakuDoc
+
+*  Add table tests without needing HTML tests.
+
+*  Remove embedded code test from HTML table - was marked as TODO.
+
+*  Add BadCommand exception for when procedural table not followed by cell/row/column
+
+*  Make automatic id's for headings unique
+
 # 2023-07-07 v4.8.0
 *  Handle SEMANTIC blocks as per RakuDoc requirements
 
@@ -453,4 +464,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2023-07-07T14:52:12Z
+Rendered from CHANGELOG at 2023-07-15T21:02:52Z

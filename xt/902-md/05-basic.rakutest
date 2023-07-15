@@ -13,7 +13,7 @@ rmtree ~$def-dir if $def-dir ~~ :e;
 rmtree ~$tar-dir if $tar-dir ~~ :e;
 mktree $tar-dir;
 
-diag 'testing with distributed html-templates-rakuclosure';
+diag "\ntesting with distributed html-templates-rakuclosure\n";
 
 my $top-dir = $*CWD;
 plan 9;
@@ -61,7 +61,7 @@ $rv = $processor.render-block($=pod[$pc]);
 
 like $rv,
         / 'Another fascinating mess' /, 'latest snippit only';
-diag 'prepare for remaining HTML tests using fixed test raku closure templates';
+diag "\nprepare for remaining HTML tests using fixed test raku closure templates\n";
 chdir $top-dir;
 "resources/test_things/md-mustache.raku".IO.copy("$tar-dir/md-templates-mustache.raku");
 

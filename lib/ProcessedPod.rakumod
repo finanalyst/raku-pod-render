@@ -183,6 +183,8 @@ class ProcessedPod does SetupTemplates {
     #| the Config stack
     has @.config-stack ;
     #| contains the configuration for the outer pod/rakudoc block
+    #| :block-scope adds the %extra info to the enclosing block scope, needed for a config directive
+    #| without :block-scope, the extra info is added to the current block scope
     multi method config { @.config-stack[ *-1 ].clone }
     multi method config( %extra ) { for %extra.kv { @.config-stack[ *-1 ]{ $^a } = $^b } }
     multi method config( %extra, :$block-scope! ) {
@@ -226,7 +228,7 @@ class ProcessedPod does SetupTemplates {
 
         $candidate-name = $candidate-name.subst(/\s+/, '_', :g);
         if $unique {
-            $candidate-name ~= '_2' if $candidate-name (<) $!pod-file.targets;
+            $candidate-name ~= '_1' if $candidate-name (<) $!pod-file.targets;
             ++$candidate-name while $!pod-file.targets{$candidate-name};
             # will continue to loop until a unique name is found
         }
@@ -398,8 +400,8 @@ class ProcessedPod does SetupTemplates {
 
     #| registers a header or title in the toc structure
     #| is-title is true for TITLE and SUBTITLE blocks, false otherwise
-    method register-toc(:$level!, :$text!, Bool :$is-title = False, Bool :$toc = True --> Str) {
-        my $target = self.rewrite-target($text, :unique($is-title));
+    method register-toc(:$level!, :$text!, Bool :$is-title = False, Bool :$unique = False, Bool :$toc = True --> Str) {
+        my $target = self.rewrite-target($text, :unique($is-title or $unique));
         # if a title (TITLE) then it must be unique
         $!pod-file.raw-toc.push: %( :$level, :$text, :$target, :$is-title ) if $toc;
         $target
@@ -858,6 +860,176 @@ class ProcessedPod does SetupTemplates {
             :$defn
         )
     }
+    # RakuDoc makes row/column directives, but POD6 thinks they are blocks, so metadata are in contents
+    sub grid-directive-config( $instruction --> Hash ) {
+        my %opts;
+        for <label header align> -> $k {
+                %opts{ $k } = $_ with $instruction.config{ $k };
+            }
+        return %opts if $instruction.name eq 'cell';
+        my $contents = recurse-until-str( $instruction );
+        my $parsed = $contents ~~ /
+            ^ \s*
+            [ \: $<option> = ($<name> = ( 'label' | 'header' | 'align' )
+                [
+                \< ~ \>
+                    [ $<args>= ( 'middle' | 'top' | 'left' | 'right' | 'center' | 'centre' | 'top' | 'bottom' )]+ % \s+
+                ]? )
+            \s* ] +
+            $
+        /;
+        if $parsed {
+            for $parsed<option>.list {
+                if .<args> {
+                    %opts{ .<name>.Str } = ( .<args>>>.Str.list )
+                }
+                else { %opts{ .<name>.Str } = True }
+            }
+        }
+        %opts
+    }
+    #| handler for procedural table semantics, table is a 2D semi-infinite grid
+    multi method handle(Pod::Block::Named $node where .name ~~ / ^ 'table' $/, Int $in-level,
+                        Context $context = None, Bool :$defn = False,  --> Str) {
+        #| config for whole table, may include caption, toc, etc.
+        my %table-config = $node.config;
+        my $level;
+        my Bool $toc;
+        with %table-config<headlevel> {
+            $level = abs($_);
+            $toc = $level != 0;
+        }
+        else {
+            with %table-config<toc> {
+                $toc = $_;
+                $level = 0 unless $toc;
+            }
+            else {
+                $toc = True;
+                $level = 1;
+            }
+        }
+        my $target = '';
+        my $toc-caption = %table-config<toc-caption> // %table-config<caption> // 'Table';
+        $target = $.register-toc(:$level, :text($toc-caption), :$toc);
+        my $template = %table-config<template> // 'table';
+        my $name-space = %table-config<name-space> // $template;
+        my $data = $_ with %!plugin-data{ $name-space };
+
+        # grid traversing algorithm due to Damian Conway
+        # Initially empty grid...
+        my @grid;
+        # How to locate the next empty cell...
+        my \find_next_empty = {
+            ACROSS => sub (:%at is copy) {
+                # Search leftwards for first empty cell...
+                repeat { %at<col>++ } until !defined @grid[%at<row>][%at<col>];
+                return %at;
+            },
+            DOWN => sub (:%at is copy) {
+                # Search downwards for first empty cell...
+                repeat { %at<row>++ } until !defined @grid[%at<row>][%at<col>];
+                return %at;
+            },
+            ROW => sub (:%at is copy) {
+                # Search downwards for first row with an empty cell to the right...
+                # (Note: starts by searching current row before moving down)
+                for %at<row> ..* -> $row {
+                    for 0 ..^ %at<col> -> $col {
+                        return { :$row, :$col } if !defined @grid[$row][$col];
+                    }
+                }
+            },
+            COLUMN => sub (:%at is copy) {
+                # Search rightwards for first column with an empty cell above...
+                # (Note: starts by searching current column before moving left)
+                for %at<col> ..* -> $col {
+                    for 0 ..^ %at<row> -> $row {
+                        return { :$row, :$col } if !defined @grid[$row][$col];
+                    }
+                }
+            },
+        }
+        # parse row and column directive contents, should be in node.config
+        my %POS = :row(0), :col(0);
+        my $DIR = 'ACROSS';
+        # Track previous action at each step...
+        my $prev-was-cell = False; # because we are in grid
+        my @cell-context = ( %(), ); # cell context can be set at grid, row, column, or cell level
+        # span type only set at cell level
+        for <label header align> -> $k {
+            @cell-context[*-1]{ $k } = $_ with %table-config{ $k };
+        }
+        for $node.contents -> $grid-instruction {
+            given $grid-instruction.name {
+                when 'cell' {
+                    my %payload = %( |@cell-context[*-1], |grid-directive-config( $grid-instruction ) );
+                    %payload<data> = trim([~] gather
+                        for $grid-instruction.contents { take $.handle($_, $in-level, $context, :$defn) }
+                    );
+                    my $span;
+                    $span = $_ with $grid-instruction.config<span>;
+                    with $grid-instruction.config<column-span> {
+                        $span[0] = $_;
+                        $span[1] //= 1
+                    }
+                    with $grid-instruction.config<row-span> {
+                        $span[0] //= 1;
+                        $span[1] = $_
+                    }
+                    %payload<span> = $span if $span;
+                    # Fill current cell with payload...
+                    @grid[%POS<row>][%POS<col>] = %payload;
+                    # Reserve the full span of cells specified...
+                    if $span {
+                        for 0 ..^ $span[0] -> $extra-col {
+                            for 0 ..^ $span[1] -> $extra-row {
+                                @grid[%POS<row> + $extra-row][%POS<col> + $extra-col]
+                                        //= %( :no-cell, );
+                            }
+                        }
+                    }
+                    # Find next empty cell in the fill direction...
+                    %POS = find_next_empty{$DIR}(at => %POS);
+                }
+                when 'row' {
+                    @cell-context.pop if @cell-context.elems > 1;  # this is only false if the first row/column after =table
+                    # Check the contents for metadata
+                    @cell-context.push: %( |@cell-context[0], |grid-directive-config( $grid-instruction ) );
+                    # Start filling across the new row...
+                    $DIR = 'ACROSS';
+                    # Find the new fill position...
+                    if $prev-was-cell {
+                        %POS = find_next_empty<ROW>(at => %POS);
+                    }
+                }
+                when 'column' {
+                    @cell-context.pop if @cell-context.elems > 1;  # this is only false if the first row/column after =table
+                    # Check the contents for metadata
+                    @cell-context.push: %( |@cell-context[0], |grid-directive-config( $grid-instruction ) );
+
+                    # Start filling down the new column...
+                    $DIR = 'DOWN';
+                    # Find the new fill position...
+                    if $prev-was-cell {
+                        %POS = find_next_empty<COLUMN>(at => %POS);
+                    }
+                }
+                default { # only =cell =row =column allowed after a =grid
+                    X::ProcessedPod::Table::BadCommand.new( :cmd( $_ ) ).throw
+                }
+            }
+            # Update previous action...
+            $prev-was-cell = $grid-instruction.name eq 'cell';
+        };
+        $.completion($in-level, $template, %(
+            $name-space => $data,
+            :config(self.config),
+            :@grid,
+            :procedural,
+            ), :$defn
+        )
+    }
 
     multi method handle(Pod::Defn $node, Int $in-level, Context $context --> Str) {
         $.completion($in-level, 'zero', %(), :defn($!in-defn-list) )
@@ -881,7 +1053,7 @@ class ProcessedPod does SetupTemplates {
         my $template = $node.config<template> // 'heading';
         my $name-space = $node.config<name-space> // $template;
         my $data = $_ with %!plugin-data{ $name-space };
-        my $target = $.register-toc(:$level, :text(recurse-until-str($node).join.trim));
+        my $target = $.register-toc(:$level, :text(recurse-until-str($node).join.trim), :unique);
         # must register toc before processing content!!
         my $text = trim([~] gather for $node.contents { take $.handle($_, $in-level, Heading, :$defn) });
         $retained-list ~ $.completion($in-level, $template, {

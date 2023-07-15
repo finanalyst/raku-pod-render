@@ -1,0 +1,364 @@
+use v6.d;
+use Test;
+use ProcessedPod;
+
+# A helper class for RakuClosureTemplates
+multi sub gen-closure-template (Str $tag) is export {
+    my $start = '<' ~ $tag ~ '>';
+    my $end = '</' ~ $tag ~ '>';
+    return sub (%prm, %tml? --> Str) {
+        $start ~ (%prm<contents> // %prm<text> // '') ~ $end;
+    }
+}
+plan 53;
+
+my $processor = ProcessedPod.new;
+my $pv = 0;
+my $rv;
+
+use RenderPod::Templating;
+my @templates = SetupTemplates.new.required;
+
+my @tmpl-grid;
+my @tmpl-headers;
+my $tmpl-caption;
+my @tmpl-rows;
+my $tmpl-class;
+
+my %templates = @templates Z=> @templates.map({ gen-closure-template($_) });
+%templates<escaped> = sub ($s) {
+    $s
+};
+%templates<table> = sub (%prm, %) {
+    if %prm<procedural> {
+        @tmpl-grid = %prm<grid>.list;
+        @tmpl-grid.gist
+    }
+    else {
+        @tmpl-headers = %prm<headers><cells>.list // Nil;
+        $tmpl-caption = %prm<caption> // '';
+        @tmpl-rows = %prm<rows>.list // Nil;
+        $tmpl-class = %prm<class> // '';
+        '<table>Visual semantic test</table>'
+    }
+};
+$processor.templates(%templates);
+
+diag "\nvisual semantics\n";
+
+=table
+  col1  col2
+
+$rv = $processor.render-block($=pod[$pv++]);
+is @tmpl-rows[0].elems, 1, 'got a row';
+is @tmpl-rows[0]<cells>.elems, 2, 'got two columns';
+
+=table
+  H1    H2
+  --    --
+  col1  col2
+
+$rv = $processor.render-block($=pod[$pv++]);
+is @tmpl-rows[0].elems, 1, 'got a row';
+is @tmpl-rows[0]<cells>.elems, 2, 'got two columns';
+is @tmpl-headers.elems, 2, 'got two header columns';
+is @tmpl-headers[1], 'H2', 'got second header data';
+is @tmpl-rows[0]<cells>[1], 'col2', 'got cell data';
+
+=begin table :class<sorttable>
+
+  H1    H2
+  --    --
+  col1  col2
+
+  col1  col2
+
+=end table
+
+$rv = $processor.render-block($=pod[$pv++]);
+is @tmpl-rows.elems, 2, 'got two rows';
+is @tmpl-rows[0]<cells>.elems, 2, 'got two columns';
+is @tmpl-headers.elems, 2, 'got two header columns';
+is @tmpl-headers[1], 'H2', 'got second header data';
+is @tmpl-rows[1]<cells>[1], 'col2', 'got cell data';
+is $tmpl-class, 'sorttable', 'got class';
+
+=begin table :caption<Test Caption>
+
+  H1    H2
+  --    --
+  col1  col2
+
+=end table
+
+$rv = $processor.render-block($=pod[$pv++]);
+is $tmpl-caption, 'Test Caption', 'got caption';
+
+diag "\nprocedural semantics\n";
+
+#basic table
+=begin rakudoc
+=begin table
+    =row
+        =cell data1,1
+        =cell data1,2
+    =row
+        =cell data2,1
+        =cell data2,2
+=end table
+=end rakudoc
+$rv = $processor.render-block($=pod[$pv++]);
+is @tmpl-grid[0].elems, 2, 'got two rows';
+is @tmpl-grid[1].elems, 2, 'got two columns';
+like @tmpl-grid[0][1]<data>, /'data1,2'/, 'cell contents 1r2c ok';
+like @tmpl-grid[1][0]<data>, /'data2,1'/, 'cell contents 2r1c ok';
+
+# table with misspelt command
+=begin rakudoc
+=begin table
+    =rol
+        =cell data1,1
+        =cell data1,2
+    =row
+        =cell data2,1
+        =cell data2,2
+
+=end table
+=end rakudoc
+throws-like { $rv = $processor.render-block($=pod[$pv++]) }, X::ProcessedPod::Table::BadCommand, 'traps mispelling';
+
+#basic table with embedded RakuDoc
+=begin rakudoc
+=begin table
+    =row
+        =cell data1,1
+        =cell C<data1,2>
+    =row
+        =cell data2,1
+        =cell B<data2,2>
+=end table
+=end rakudoc
+$rv = $processor.render-block($=pod[$pv++]);
+is @tmpl-grid[0].elems, 2, 'embedded code matrix got two rows';
+is @tmpl-grid[1].elems, 2, 'ecm got two columns';
+like @tmpl-grid[0][1]<data>, /'<format-c>' 'data1,2' '</format-c>'/, 'ecm cell contents 1r2c ok';
+like @tmpl-grid[1][1]<data>, /'<format-b>' 'data2,2' '</format-b>'/, 'ecm cell contents 2r2c ok';
+
+# table with header row
+=begin rakudoc
+=begin table
+    =for row :header
+
+        =cell data1,1
+        =cell data1,2
+    =row
+        =cell data2,1
+        =cell data2,2
+=end table
+=end rakudoc
+
+$rv = $processor.render-block($=pod[$pv++]);
+ok @tmpl-grid[0][0]<header>:exists, 'header in first cell';
+ok @tmpl-grid[0][1]<header>:exists, 'header in first row second cell';
+nok (@tmpl-grid[1][0]<header>:exists or @tmpl-grid[1][1]<header>:exists), 'no header in second row cells';
+
+# table with label column and mixed row/columns
+=begin rakudoc
+=begin table
+    =row
+        =cell dates
+        =cell sample 1
+        =cell sample 2
+    =row
+    =column :label
+        =cell 2023-01
+        =cell 2023-02
+    =column
+        =cell data1,1
+        =cell data1,2
+    =column
+        =cell data2,1
+        =cell data2,2
+=end table
+=end rakudoc
+
+$rv = $processor.render-block($=pod[$pv++]);
+is @tmpl-grid[0].elems, 3, 'label matrix got three rows';
+is @tmpl-grid[1].elems, 3, 'lm got three columns';
+ok @tmpl-grid[1][0]<label>:exists, 'lm got label in first cell second row';
+ok @tmpl-grid[2][0]<label>:exists, 'lm got label in first cell third row';
+nok (@tmpl-grid[0][0]<label>:exists or @tmpl-grid[0][1]<label>:exists or @tmpl-grid[0][2]<label>:exists), 'lm not got labels in first row cells';
+
+#spans
+=begin rakudoc
+    =begin table
+        =row
+            =cell data1,1
+            =cell data1,2
+            =cell data1,3
+            =cell data1,4
+        =row
+            =cell data2,1
+            =for cell :span(2,2)
+            data2, 2-3
+            =cell data 2,4
+        =row
+            =cell data3,1
+            =cell data 3,4
+        =row
+            =cell data4,1
+            =cell data4,2
+            =cell data4,3
+            =cell data4,4
+    =end table
+=end rakudoc
+
+$rv = $processor.render-block($=pod[$pv++]);
+is @tmpl-grid.elems, 4, 'span in matrix got four rows';
+is @tmpl-grid[1].elems, 4, 'sim got four columns';
+my $p = True;
+for (1, 2), (2, 1), (2, 2) { $p &&= @tmpl-grid[.[0]][.[1]]<no-cell> }
+ok $p, 'sim got empty cell marker where needed';
+$p = True;
+for (0, 0), (0, 1), (0,2), (0,3), (1, 1), (1, 0), (1, 3), (2, 0), (2, 3), (3, 0), (3, 1), (3, 2), (3,3) {
+    $p &&= @tmpl-grid[.[0]][.[1]]<data>:exists
+}
+ok $p, 'sim got cell content where needed';
+
+=begin rakudoc
+  =begin table
+    =row :header
+        =for cell :row-span(2)
+        Date
+        =for cell :column-span(3)
+        Samples
+        =for cell :row-span(2)
+        Mean
+    =row :header
+        =cell I<Sample 1>
+        =cell I<Sample 2>
+        =cell I<Sample 3>
+    =row
+    =column
+        =cell 2023-03-08
+        =cell 2023-04-14
+        =cell 2023-06-23
+    =column
+        =cell 0.4
+        =cell 0.8
+        =cell 0.2
+    =column
+        =cell 0.1
+        =cell 0.6
+        =cell 0.9
+    =column
+        =cell 0.3
+        =cell 0.5
+        =cell 0.0
+    =column
+        =cell 0.26667
+        =cell 0.63333
+        =cell 0.36667
+    =row
+        =for cell :label
+        Mean:
+        =cell 0.46667
+        =cell 0.53333
+        =cell 0.26667
+        =cell 0.42222
+  =end table
+=end rakudoc
+
+$rv = $processor.render-block($=pod[$pv++]);
+is @tmpl-grid.elems, 6, 'spanned cell matrix got six rows';
+is @tmpl-grid[1].elems, 5, 'sm got five columns';
+$p = True;
+for (0, 0), (0, 1), (0, 4), (1, 1), (1, 2), (1, 3) { $p &&= @tmpl-grid[.[0]][.[1]]<header>:exists }
+ok $p, 'sm got headers where needed';
+ok @tmpl-grid[5][0]<label>:exists, 'sm got label where expected';
+$p = True;
+for (0, 2), (0, 3), (1, 0), (1, 4) { $p &&= @tmpl-grid[.[0]][.[1]]<no-cell> }
+ok $p, 'sm got empty cell marker where needed';
+$p = True;
+for (0, 0), (0, 1), (0, 4), (1, 1), (1, 2), (1, 3), (5, 0), (5, 1), (4, 4), (3, 3), (2, 2) {
+    $p &&= @tmpl-grid[.[0]][.[1]]<data>:exists
+}
+ok $p, 'sm got cell content where needed';
+
+#aligns & multiple
+=begin rakudoc
+    =begin table
+        =row :header :align<right bottom>
+            =cell data1,1
+            =cell data1,2
+            =cell data1,3
+            =cell data1,4
+        =row
+            =cell data2,1
+            =for cell :label :align<top left> :column-span(2)
+            data2, 2-3
+            =cell data 2,4
+        =row
+            =cell data3,1
+            =for cell :label :align<centre left> :column-span(2)
+            data3, 2-3
+            =cell data 3,4
+        =row
+            =cell data4,1
+            =cell data4,2
+            =cell data4,3
+            =cell data4,4
+    =end table
+=end rakudoc
+
+$rv = $processor.render-block($=pod[$pv++]);
+is @tmpl-grid.elems, 4, 'mixed matrix got four rows';
+is @tmpl-grid[1].elems, 4, 'mm got four columns';
+$p = True;
+for (1, 2), (2, 2) { $p &&= @tmpl-grid[.[0]][.[1]]<no-cell> }
+ok $p, 'mm got empty cell marker where needed';
+$p = True;
+for (0, 0), (0, 1), (0,2), (0,3), (1, 1), (1, 0), (1, 3), (2, 0), (2, 1), (2, 3), (3, 0), (3, 1), (3, 2), (3,3) {
+    $p &&= @tmpl-grid[.[0]][.[1]]<data>:exists
+}
+ok $p, 'mm got cell content where needed';
+$p = True;
+for (0, 0), (0, 1), (0,2), (0,3) {
+    $p &&= @tmpl-grid[.[0]][.[1]]<header>:exists and @tmpl-grid[.[0]][.[1]]<align> ~~ <right bottom>
+}
+ok $p, 'mm got headers and alignments where needed';
+$p = True;
+for (1, 1), (2, 1) {
+    $p &&= @tmpl-grid[.[0]][.[1]]<label>:exists
+}
+ok $p, 'mm got labels where needed';
+is @tmpl-grid[1][1]<align>, <top left>, 'mm got top left at 2,2';
+is @tmpl-grid[2][1]<align>, <centre left>, 'mm got top left at 3,2';
+
+#table with embedded table
+=begin rakudoc
+=begin table
+    =row
+        =cell data1,1
+        =begin cell
+            =begin table
+                =row
+                =cell embedded 1,1
+                =cell embedded 1,2
+                =row
+                =cell embedded 2,1
+                =cell embedded 2,2
+            =end table
+        =end cell
+    =row
+        =cell data2,1
+        =cell data2,2
+=end table
+=end rakudoc
+$rv = $processor.render-block($=pod[$pv++]);
+is @tmpl-grid[0].elems, 2, 'embedded table table got two rows';
+is @tmpl-grid[1].elems, 2, 'ett got two columns';
+like @tmpl-grid[0][1]<data>, /'embedded 1,1' .+? 'embedded 2,2' /, 'ett cell contents 1r2c ok';
+like @tmpl-grid[1][0]<data>, /'data2,1'/, 'ett cell contents 2r1c ok';
+
+done-testing;

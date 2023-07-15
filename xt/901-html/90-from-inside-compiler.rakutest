@@ -10,7 +10,7 @@ mktree ~$tar-dir;
 chdir ~$tar-dir;
 plan 15;
 
-diag 'RAKOPTS unset';
+diag "\nRAKOPTS unset\n";
 my $p = shell "RAKDEFAULTS=../$def raku -I../.. --doc=HTML2 ../../resources/test_things/rend-test-file.raku", :out;
 
 my $rv = $p.out.slurp(:close);
@@ -36,7 +36,7 @@ like $rv, /
 'id="_Footnotes"'
 /, 'footnotes rendered';
 
-diag 'RAKOPTS="no-toc"';
+diag "\nRAKOPTS=\"no-toc\"\n";
 $p = shell "RAKOPTS='no-toc' RAKDEFAULTS=../$def raku -I../.. --doc=HTML2 ../../resources/test_things/rend-test-file.raku", :out;
 $rv = $p.out.slurp(:close);
 
@@ -61,7 +61,7 @@ like $rv, /
 'id="_Footnotes"'
 /, 'footnotes rendered';
 
-diag 'RAKOPTS="no-toc no-glos"';
+diag "\nRAKOPTS=\"no-toc no-glos\"\n";
 $p = shell "RAKOPTS='no-toc no-glos' RAKDEFAULTS=../$def raku -I../.. --doc=HTML2 ../../resources/test_things/rend-test-file.raku", :out;
 $rv = $p.out.slurp(:close);
 

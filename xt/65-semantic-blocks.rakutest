@@ -10,7 +10,7 @@ multi sub gen-closure-template (Str $tag) is export {
         $start ~ (%prm<contents> // %prm<text> // '') ~ $end;
     }
 }
-plan *;
+plan 3;
 
 my $processor = ProcessedPod.new;
 my $pv = 0;

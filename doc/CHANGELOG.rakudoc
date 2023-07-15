@@ -1,6 +1,12 @@
 =begin pod :no-toc :no-glossary
 =TITLE Raku::Pod::Render
 =SUBTITLE Change log
+=head1 2023-07-15 v4.8.1
+=item Add extra functionality to C<=table> as per RakuDoc
+=item Add table tests without needing HTML tests.
+=item Remove embedded code test from HTML table - was marked as TODO.
+=item Add BadCommand exception for when procedural table not followed by cell/row/column
+=item Make automatic id's for headings unique
 
 =head1 2023-07-07 v4.8.0
 =item Handle SEMANTIC blocks as per RakuDoc requirements

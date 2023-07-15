@@ -33,7 +33,7 @@ throws-like { indir $tar-dir, Pod::To::HTML2.new(:$def-dir) },
         X::ProcessedPod::BadDefault,
         'No assets in default directory';
 # copy all assets to test default
-diag 'testing with distributed html-templates-rakuclosure';
+diag "\ntesting with distributed html-templates-rakuclosure\n";
 
 my @todo = $resources, ;
 while @todo {
@@ -83,7 +83,7 @@ like $rv, /
     '</body>' .* '</html>'
     /, 'got HTML page';
 
-diag 'prepare for remaining HTML tests using fixed test raku closure templates';
+diag "\nprepare for remaining HTML tests using fixed test raku closure templates\n";
 chdir $top-dir;
 "resources/test_things/html-rakuclosure.raku".IO.copy("$tar-dir/html-templates-rakuclosure.raku");
 done-testing;

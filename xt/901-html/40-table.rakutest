@@ -12,7 +12,7 @@ my $processor = Pod::To::HTML2.new(:$def-dir, :plugins() );
 my $rv;
 my $pn = 0;
 
-plan 5;
+plan 4;
 =table
   col1  col2
 
@@ -117,36 +117,4 @@ like $rv,
     \s* '</table>'
     /, 'table with caption';
 
-=begin table :class<sorttable>
-
-  H1    H2
-  --    --
-  col1  B<col2>
-
-  I<col1>  col2
-
-=end table
-
-$rv = $processor.render-block( $=pod[$pn++] );
-todo 'Compiler does not give information about contents of POD table cells';
-like $rv,
-    /
-    '<table class="pod-table sorttable">'
-    \s*   '<thead>'
-    \s*     '<tr>'
-    \s*       '<th>H1</th>'
-    \s*       '<th>H2</th>'
-    \s*     '</tr>'
-    \s*   '</thead>'
-    \s*   '<tbody>'
-    \s*     '<tr>'
-    \s*       '<td><strong>col1</strong></td>'
-    \s*       '<td>col2</td>'
-    \s*     '</tr>'
-    \s*     '<tr>'
-    \s*       '<td><em>col1</em></td>'
-    \s*       '<td>col2</td>'
-    \s*     '</tr>'
-    \s*   '</tbody>'
-    \s* '</table>'
-    /, 'table with pod inside a cell';
+done-testing
