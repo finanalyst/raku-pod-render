@@ -1,6 +1,11 @@
 =begin pod :no-toc :no-glossary
 =TITLE Raku::Pod::Render
 =SUBTITLE Change log
+
+=head1 2023-07-17 v4.8.2
+=item allow C<=comment> in procedural table
+=item disallow blocks without .name, eg., C<=head> in p-tables
+
 =head1 2023-07-15 v4.8.1
 =item Add extra functionality to C<=table> as per RakuDoc
 =item Add table tests without needing HTML tests.

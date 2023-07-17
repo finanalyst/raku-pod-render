@@ -10,7 +10,7 @@ multi sub gen-closure-template (Str $tag) is export {
         $start ~ (%prm<contents> // %prm<text> // '') ~ $end;
     }
 }
-plan 53;
+plan 57;
 
 my $processor = ProcessedPod.new;
 my $pv = 0;
@@ -126,6 +126,37 @@ like @tmpl-grid[1][0]<data>, /'data2,1'/, 'cell contents 2r1c ok';
 =end table
 =end rakudoc
 throws-like { $rv = $processor.render-block($=pod[$pv++]) }, X::ProcessedPod::Table::BadCommand, 'traps mispelling';
+
+# table with Pod Block that has no name method, eg. =head
+=begin rakudoc
+=begin table
+    =rol
+        =cell data1,1
+        =cell data1,2
+        =head1 this is a heading
+    =row
+        =cell data2,1
+        =cell data2,2
+
+=end table
+=end rakudoc
+throws-like { $rv = $processor.render-block($=pod[$pv++]) }, X::ProcessedPod::Table::BadCommand, 'traps =head';
+
+#basic table with comment
+=begin rakudoc
+=begin table
+    =row
+        =cell data1,1
+        =cell data1,2
+    =comment may be add a row?
+    =row
+        =cell data2,1
+        =cell data2,2
+=end table
+=end rakudoc
+lives-ok { $rv = $processor.render-block($=pod[$pv++]) }, 't+c allows a =comment';
+is @tmpl-grid.elems, 2, 't+c got two rows';
+is @tmpl-grid[1].elems, 2, 't+c got two columns';
 
 #basic table with embedded RakuDoc
 =begin rakudoc

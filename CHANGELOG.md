@@ -2,6 +2,11 @@
 >Change log
 
 
+# 2023-07-17 v4.8.2
+*  allow `=comment` in procedural table
+
+*  disallow blocks without .name, eg., `=head` in p-tables
+
 # 2023-07-15 v4.8.1
 *  Add extra functionality to `=table` as per RakuDoc
 
@@ -464,4 +469,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2023-07-15T21:02:52Z
+Rendered from CHANGELOG at 2023-07-17T09:47:50Z

@@ -961,6 +961,9 @@ class ProcessedPod does SetupTemplates {
             @cell-context[*-1]{ $k } = $_ with %table-config{ $k };
         }
         for $node.contents -> $grid-instruction {
+            next if $grid-instruction ~~ Pod::Block::Comment;
+            X::ProcessedPod::Table::BadCommand.new( :cmd( $grid-instruction.Str ) ).throw
+                unless $grid-instruction.^can('name');
             given $grid-instruction.name {
                 when 'cell' {
                     my %payload = %( |@cell-context[*-1], |grid-directive-config( $grid-instruction ) );
