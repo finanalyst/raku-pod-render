@@ -216,6 +216,7 @@ class ProcessedPod does SetupTemplates {
     #| rewrites targets (link/footnotes destinations) to be made unique and to be canonised depending on the output format
     #| takes the candidate name, and whether it should be unique
     #| returns with the canonised link name
+    #| if unique, then adds target to target set, otherwise does not add.
     method rewrite-target(Str $candidate-name is copy, :$unique --> Str) {
         # target names inside the POD file, eg., headers, glossary, footnotes
         # function is called to canonise the target name and to ensure - if necessary - that
@@ -228,12 +229,10 @@ class ProcessedPod does SetupTemplates {
 
         $candidate-name = $candidate-name.subst(/\s+/, '_', :g);
         if $unique {
-            $candidate-name ~= '_1' if $candidate-name (<) $!pod-file.targets;
-            ++$candidate-name while $!pod-file.targets{$candidate-name};
+            $candidate-name ~= '_1' if $candidate-name ∈ $!pod-file.targets;
             # will continue to loop until a unique name is found
+            ++$candidate-name while $!pod-file.targets{$candidate-name};
         }
-        $!pod-file.targets{$candidate-name}++;
-        # now add to targets, no effect if not unique
         $candidate-name
     }
 
@@ -677,6 +676,17 @@ class ProcessedPod does SetupTemplates {
             ), :$defn
         )
     }
+
+    # special case HTML for Pod::To::HTML compatibility
+    multi method handle(Pod::Block::Named $node where $node.name ~~ /:i 'html' / , Int $in-level,
+                        Context $context = None, Bool :$defn = False, --> Str) {
+        $.completion($in-level, 'zero', %(), :$defn )
+            ~ $.completion($in-level, 'raw', %( :contents([~] gather for $node.contents { take self.handle($_,
+                $in-level, HTML, :$defn) }), $node.config
+            ), :$defn
+        )
+    }
+
     # TITLE, SUBTITLE, META blocks are not included in Body
     multi method handle(Pod::Block::Named $node where .name eq 'TITLE', Int $in-level,
                         Context $context, Bool :$defn = False, --> Str) {
@@ -758,15 +768,6 @@ class ProcessedPod does SetupTemplates {
                 }, :$defn
             ) ~ $contents
         }
-    }
-
-    multi method handle(Pod::Block::Named $node where $node.name.lc eq 'html' , Int $in-level,
-                        Context $context = None, Bool :$defn = False, --> Str) {
-        $.completion($in-level, 'zero', %(), :$defn )
-            ~ $.completion($in-level, 'raw', %( :contents([~] gather for $node.contents { take self.handle($_,
-                $in-level, HTML, :$defn) }), $node.config
-            ), :$defn
-        )
     }
 
     multi method handle(Pod::Block::Named $node where .name.lc ~~ any(< output input >), Int $in-level,
@@ -1056,7 +1057,7 @@ class ProcessedPod does SetupTemplates {
         my $template = $node.config<template> // 'heading';
         my $name-space = $node.config<name-space> // $template;
         my $data = $_ with %!plugin-data{ $name-space };
-        my $target = $.register-toc(:$level, :text(recurse-until-str($node).join.trim), :unique);
+        my $target = $.register-toc(:$level, :text( recurse-until-str($node).join.trim ), :unique);
         # must register toc before processing content!!
         my $text = trim([~] gather for $node.contents { take $.handle($_, $in-level, Heading, :$defn) });
         $retained-list ~ $.completion($in-level, $template, {

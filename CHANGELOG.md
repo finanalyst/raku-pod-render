@@ -2,6 +2,11 @@
 >Change log
 
 
+# 2023-07-21 v4.8.3
+*  special case `=HTML` so that it is not processed like a SEMANTIC block
+
+*  fix error arising from making heading unique, and a forward reference is made.
+
 # 2023-07-17 v4.8.2
 *  allow `=comment` in procedural table
 
@@ -469,4 +474,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2023-07-17T09:47:50Z
+Rendered from CHANGELOG at 2023-07-21T13:40:13Z

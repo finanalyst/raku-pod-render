@@ -2,6 +2,10 @@
 =TITLE Raku::Pod::Render
 =SUBTITLE Change log
 
+=head1 2023-07-21 v4.8.3
+=item special case C<=HTML> so that it is not processed like a SEMANTIC block
+=item fix error arising from making heading unique, and a forward reference is made.
+
 =head1 2023-07-17 v4.8.2
 =item allow C<=comment> in procedural table
 =item disallow blocks without .name, eg., C<=head> in p-tables
