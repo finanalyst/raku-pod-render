@@ -2,6 +2,9 @@
 >Change log
 
 
+# 2023-07-27 v4.8.4
+*  fix table to pass on caption and target.
+
 # 2023-07-21 v4.8.3
 *  special case `=HTML` so that it is not processed like a SEMANTIC block
 
@@ -474,4 +477,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2023-07-21T13:40:13Z
+Rendered from CHANGELOG at 2023-07-27T15:39:38Z

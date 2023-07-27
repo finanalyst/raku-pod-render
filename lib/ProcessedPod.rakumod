@@ -911,8 +911,8 @@ class ProcessedPod does SetupTemplates {
             }
         }
         my $target = '';
-        my $toc-caption = %table-config<toc-caption> // %table-config<caption> // 'Table';
-        $target = $.register-toc(:$level, :text($toc-caption), :$toc);
+        my $caption = %table-config<caption> // 'Table';
+        $target = $.register-toc(:$level, :text($caption), :$toc);
         my $template = %table-config<template> // 'table';
         my $name-space = %table-config<name-space> // $template;
         my $data = $_ with %!plugin-data{ $name-space };
@@ -1031,6 +1031,8 @@ class ProcessedPod does SetupTemplates {
             :config(self.config),
             :@grid,
             :procedural,
+            :$target,
+            :$caption,
             ), :$defn
         )
     }
