@@ -2,6 +2,15 @@
 >Change log
 
 
+# 2023-07-28 v4.9.0
+*  fix nested (and custom blocks) which were incorrectly rendering trailing lists.
+
+*  fixed semantic blocks
+
+*  moved VERSION DESCRIPTION AUTHOR SUMMARY into Semantic blocks, but treat them as if `:hidden` is set
+
+*  add `semantic:` to `P<>`
+
 # 2023-07-27 v4.8.4
 *  fix table to pass on caption and target.
 
@@ -477,4 +486,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2023-07-27T15:39:38Z
+Rendered from CHANGELOG at 2023-07-29T22:31:39Z

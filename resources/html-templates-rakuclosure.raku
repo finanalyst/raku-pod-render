@@ -246,14 +246,20 @@ use v6;
     },
     'meta' => sub ( %prm, %tml ) {
         with %prm<meta> {
-            [~] %prm<meta>.map({
-                '<meta name="' ~ %tml<escaped>( .<name> )
-                        ~ '" value="' ~ %tml<escaped>( .<value> )
+            [~] %prm<meta>
+                .grep({ $_<name> ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>) } )
+                .map({
+                '<meta name="' ~ .<name>.tclc
+                        ~ '" value="' ~ .<value>
                         ~ "\" />\n"
             })
         }
         else { '' }
     },
+    'VERSION' => sub (%prm, %tml) { %prm<raw-contents> },
+    'DESCRIPTION' => sub (%prm, %tml) { %prm<raw-contents> },
+    'AUTHOR' => sub (%prm, %tml) { %prm<raw-contents> },
+    'SUMMARY' => sub (%prm, %tml) { %prm<raw-contents> },
     'toc' => sub ( %prm, %tml ) {
         "<div id=\"_TOC\"><table>\n<caption>Table of Contents</caption>\n"
             ~ [~] %prm<toc>.map({

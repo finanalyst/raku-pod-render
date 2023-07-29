@@ -64,9 +64,10 @@ class PodFile {
 
     #| language of pod file
     has Str $.lang is rw is default('en') = 'en';
+    #| store data of semantic blocks
     #| information to be included in eg html header
     has @.raw-metadata;
-    #| toc structure , collected and rendered separately to body
+    #| toc structure, collected and rendered separately to body
     has @.raw-toc;
     #| glossary structure
     has %.raw-glossary;
@@ -387,10 +388,9 @@ class ProcessedPod does SetupTemplates {
     #| renders on the meta data
     method render-meta(--> Str) {
         return '' if (!?$!pod-file.raw-metadata or $!no-meta or $.pod-file.pod-config-data<no-meta>);
-        # this should be more generic, but is restricted to maintain some backward compatibility
         self.rendition('meta',
             %( :meta(
-                $!pod-file.raw-metadata.grep({ .<name>.uc ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>) })
+                $!pod-file.raw-metadata
             ))
         )
     }
@@ -498,7 +498,7 @@ class ProcessedPod does SetupTemplates {
         my $fnNumber = +$!pod-file.raw-footnotes + 1;
         my $fnTarget = self.rewrite-target("fn$fnNumber", :unique);
         my $retTarget = self.rewrite-target("fnret$fnNumber", :unique);
-        $!pod-file.raw-footnotes.push: %( :$text, :$retTarget, :$fnNumber, :$fnTarget);
+        $!pod-file.raw-footnotes.push: %( :$text, :$retTarget, :$fnNumber, :$fnTarget, :$context );
         (:$fnTarget, :$fnNumber, :$retTarget, :$context ).hash
     }
 
@@ -607,6 +607,40 @@ class ProcessedPod does SetupTemplates {
             ), :$defn
         )
     }
+    multi method handle(Pod::Block::Input $node, Int $in-level, Context $context = Preformatted, Bool :$defn = False,  --> Str) {
+        # first completion is to flush a retained list before the contents of the block are processed
+        my $retained-list = $.completion($in-level, 'zero', %(), :$defn );
+        my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, Preformatted, :$defn ) };
+        my $template = $node.config<template> // 'input';
+        my $name-space = $node.config<name-space> // $template;
+        my $data = $_ with %!plugin-data{ $name-space };
+
+        $retained-list
+            ~ $.completion($in-level, $template,
+            %( :$contents,
+               $node.config,
+               "$name-space" => $data,
+               :config(self.config),
+            ), :$defn
+        )
+    }
+    multi method handle(Pod::Block::Output $node, Int $in-level, Context $context = Preformatted, Bool :$defn = False,  --> Str) {
+        # first completion is to flush a retained list before the contents of the block are processed
+        my $retained-list = $.completion($in-level, 'zero', %(), :$defn );
+        my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, Preformatted, :$defn ) };
+        my $template = $node.config<template> // 'output';
+        my $name-space = $node.config<name-space> // $template;
+        my $data = $_ with %!plugin-data{ $name-space };
+
+        $retained-list
+            ~ $.completion($in-level, $template,
+            %( :$contents,
+               $node.config,
+               "$name-space" => $data,
+               :config(self.config),
+            ), :$defn
+        )
+    }
 
     multi method handle(Pod::Block::Comment $node, Int $in-level, Context $context = None, Bool :$defn = False,  --> Str) {
         $.completion($in-level, 'zero', %(), :$defn )
@@ -703,13 +737,6 @@ class ProcessedPod does SetupTemplates {
         # we can't guarantee SUBTITLE will be after TITLE
     }
 
-    multi method handle(Pod::Block::Named $node where .name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>),
-                        Int $in-level, Context $context, Bool :$defn = False, --> Str) {
-        $.register-meta(:name($node.name.tclc), :value(recurse-until-str($node)));
-        $.completion($in-level, 'zero', %(), :$defn )
-        # make sure any list is correctly ended.
-    }
-
     # Semantic blocks other than above treat as head1
     multi method handle(Pod::Block::Named $node where .name ~~ / ^ <upper>+ $ /,
                         Int $in-level, Context $context, Bool :$defn = False, --> Str) {
@@ -731,20 +758,26 @@ class ProcessedPod does SetupTemplates {
                 $level = 1;
             }
         }
-        my $toc-caption = $node.config<toc-caption> // $node.name;
+        with $node.config<hidden> or $node.name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>) {
+            $toc = False;
+        }
+        my $caption = $node.config<caption> // $node.name;
         # possibilities: :template or :name-space given in metadata
         # or SEMANTIC (viz. node.name) template in template hash
-        my $semantic = $node.name if $.tmpl{ $node.name }:exists;
+        my $semantic = $node.name if $.tmpl{ $node.name }:exists; # if doesn't exist then Any
         my $template = $node.config<template> // $semantic;
         my $name-space = $node.config<name-space> // $template // $node.name;
         my $data = $_ with %!plugin-data{ $name-space };
-        my $target = $.register-toc(:$level, :text($toc-caption), :is-title);
+        my $target = $.register-toc( :$level, :text($caption), :!is-title, :$toc );
         my $contents = trim( [~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) } );
-        $.register-meta(:name($node.name), :value($contents));
-        with $template {
-            $retained-list ~ $.completion($in-level, $template, {
+        $contents ~= $.completion($in-level, 'zero', %(), :$defn );
+        my $raw-contents = trim( [~] gather for $node.contents { take self.handle($_, $in-level, Context::Raw, :$defn) } );
+        $raw-contents ~= $.completion($in-level, 'zero', %(), :$defn );
+        my $rendered;
+        with $template { # only defined if there is block name template, or template given
+            $rendered = $.completion($in-level, $template, {
                 :$level,
-                :text($toc-caption),
+                :text($caption),
                 :$target,
                 :top($.pod-file.top),
                 $name-space => $data,
@@ -752,13 +785,14 @@ class ProcessedPod does SetupTemplates {
                 :config(self.config),
                 :$context,
                 :$contents,
+                :$raw-contents,
                 }, :$defn
             )
         }
         else {
-            $retained-list ~ $.completion($in-level, 'heading', {
+            $rendered = $.completion($in-level, 'heading', {
                 :$level,
-                :text($toc-caption),
+                :text($caption),
                 :$target,
                 :top($.pod-file.top),
                 $name-space => $data,
@@ -768,15 +802,11 @@ class ProcessedPod does SetupTemplates {
                 }, :$defn
             ) ~ $contents
         }
-    }
-
-    multi method handle(Pod::Block::Named $node where .name.lc ~~ any(< output input >), Int $in-level,
-                        Context $context = None, Bool :$defn = False,  --> Str) {
-        $.completion($in-level, 'zero', %(), :$defn )
-            ~ $.completion($in-level, .name.lc,
-            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, Preformatted, :$defn) }),$node.config
-            ), :$defn
-        )
+        $.register-meta(:name($node.name), :value($rendered));
+        if $node.config<hidden> or $node.name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>) {
+            $rendered = ''
+        }
+        $retained-list ~ $rendered
     }
 
     multi method handle(Pod::Block::Named $node where .name.lc eq 'raw', Int $in-level,
@@ -809,19 +839,23 @@ class ProcessedPod does SetupTemplates {
             }
         }
         my $target = '';
-        my $toc-caption = $node.config<toc-caption> // recurse-until-str($node).tclc;
-        $target = $.register-toc(:$level, :text($toc-caption), :$toc);
+        my $caption = $node.config<caption> // recurse-until-str($node).tclc;
+        $target = $.register-toc(:$level, :text($caption), :$toc);
         my $template = $node.config<template> // $node.name.lc;
         my $name-space = $node.config<name-space> // $template // $node.name.lc;
         my $data = $_ with %!plugin-data{ $name-space };
-        $.completion($in-level, 'zero', %(), :$defn )
-            ~ $.completion($in-level, $template,
-            %( :contents([~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }),
-            $node.config,
-            :$target,
-            :raw-contents( [~] gather for $node.contents { take self.handle($_, $in-level, Raw, :$defn ) } ),
-            $name-space => $data,
-            :config(self.config),
+        my $unrendered-list = $.completion($in-level, 'zero', %(), :$defn );
+        my $contents = [~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) }
+        $contents ~= $.completion($in-level, 'zero', %(), :$defn );
+        my $raw-contents = [~] gather for $node.contents { take self.handle($_, $in-level, Raw, :$defn ) }
+        $raw-contents ~= $.completion($in-level, 'zero', %(), :$defn );
+        $unrendered-list ~ $.completion($in-level, $template, %(
+                :$contents,
+                $node.config,
+                :$target,
+                :$raw-contents,
+                $name-space => $data,
+                :config(self.config),
             ), :$defn
         )
     }
@@ -1153,10 +1187,17 @@ class ProcessedPod does SetupTemplates {
             )
         }
     }
-
+    # footnotes depends on raw-contents being rendered after rendered contents
     multi method handle(Pod::FormattingCode $node where .type eq 'N', Int $in-level, Context $context = None, Bool :$defn = False, --> Str) {
         my $text = [~] gather for $node.contents { take $.handle($_, $in-level, $context, :$defn) };
-        $.completion($in-level, 'format-n', $.register-footnote(:$text, :$context), :$defn)
+        my %params;
+        if $context ~~ Context::Raw {
+            %params = $!pod-file.raw-footnotes[*-1]
+        }
+        else {
+            %params = $.register-footnote(:$text, :$context )
+        }
+        $.completion($in-level, 'format-n', %params, :$defn)
     }
 
     multi method handle(Pod::FormattingCode $node where .type eq 'E', Int $in-level,
@@ -1215,13 +1256,33 @@ class ProcessedPod does SetupTemplates {
     multi method handle(Pod::FormattingCode $node where .type eq 'P', Int $in-level,
                         Context $context = None, Bool :$defn = False, --> Str) {
         my Str $link-contents = recurse-until-str($node);
-        my $link = ($node.meta eqv [] | [""] ?? $link-contents !! $node.meta).Str;
-        my URI $uri .= new($link);
+        my $link = ($node.meta eqv [] | [""] ?? $link-contents !! $node.meta).Str.trim;
+        my $schema = '';
+        my $uri = '';
+        if $link ~~ / ^ $<sch> = (\w+) ':' \s* $<uri> = (.*) $ / {
+            $schema = $<sch>.Str;
+            $uri = $<uri>.Str
+        }
         my Str $contents;
-        my LibCurl::Easy $curl;
+        my Bool $no-render = False;
         my Bool $html = False;
-        given $uri.scheme {
+        given $schema {
+            when 'toc' {
+                $contents = "See: $link-contents"
+            }
+            when 'index' {
+                $contents = "See: $link-contents"
+            }
+            when 'semantic' {
+                $no-render = True;
+                $.pod-file.raw-metadata.grep({ .<name> ~~ $uri }).map({ $contents ~= .<value> });
+                without $contents {
+                    $contents = "See: $link-contents";
+                    $no-render = False;
+                }
+            }
             when 'http' | 'https' {
+                my LibCurl::Easy $curl;
                 $curl .= new(:URL($link), :followlocation, :failonerror );
                 try {
                     $curl.perform;
@@ -1237,7 +1298,8 @@ class ProcessedPod does SetupTemplates {
                 }
             }
             when 'file' | '' {
-                if $uri.path.Str.IO.f {
+                my URI $uri .= new($link);
+                if $uri.path.Str.IO ~~ :e & :f {
                     $contents = $uri.path.Str.IO.slurp;
                 }
                 else {
@@ -1258,6 +1320,7 @@ class ProcessedPod does SetupTemplates {
             :config(self.config),
             :meta( $node.meta ),
             :$context,
+            :$no-render,
         ), :$defn)
     }
 }

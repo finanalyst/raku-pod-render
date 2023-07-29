@@ -19,12 +19,13 @@ my $rv;
 use RenderPod::Templating;
 my @templates = SetupTemplates.new.required;
 
-
 my %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
 %templates<escaped> = sub ($s) { $s };
 %templates<meta> = sub ( %prm, %tmp ) {
     "<meta>\n"
-    ~ %prm<meta>.map( { $_<name> ~ '=' ~ $_<value> ~ "\n"} )
+    ~ %prm<meta>
+        .grep({ $_<name> ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>) } )
+        .map( { $_<name>.tclc ~ '=' ~ $_<value> ~ "\n"} )
     ~ '</meta>'
 };
 %templates<source-wrap> = sub (%prm, %tml ) {
@@ -32,6 +33,12 @@ my %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
 };
 %templates<heading> = sub (%prm, %tml) {
     "<config>" ~ %prm<text> ~ %prm<config>.sort.fmt("%s=>%s") ~ '</config>'
+};
+%templates<AUTHOR> = sub (%prm, %tml) {
+    %prm<raw-contents>
+};
+%templates<SUMMARY> = sub (%prm, %tml) {
+    %prm<raw-contents>
 };
 $processor.templates(%templates);
 

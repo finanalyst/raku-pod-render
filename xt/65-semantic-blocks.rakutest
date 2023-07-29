@@ -28,11 +28,22 @@ my %templates  = @templates Z=> @templates.map( { gen-closure-template( $_ ) });
         </synopsis>
     ]
 }
-%templates<meta> = sub ( %prm, %tmp ) {
-    "<meta>\n"
-    ~ %prm<meta>.map( { $_<name> ~ '=' ~ $_<value> ~ "\n"} )
-    ~ '</meta>'
-};
+%templates<meta> = sub ( %prm, %tml ) {
+        with %prm<meta> {
+            '<meta>'
+            [~] %prm<meta>
+                .grep({ $_.<name> ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>) } )
+                .map({
+                .<name>.tclc ~ '=' ~ .<value>
+            })
+            ~ '</meta>'
+        }
+        else { '' }
+    };
+%templates<VERSION> = sub (%prm, %tml) { %prm<raw-contents> };
+%templates<DESCRIPTION> = sub (%prm, %tml) { %prm<raw-contents> };
+%templates<AUTHOR> = sub (%prm, %tml) { %prm<raw-contents> };
+%templates<SUMMARY> = sub (%prm, %tml) { %prm<raw-contents> };
 %templates<source-wrap> = sub (%prm, %tml ) {
     "<file><body>{ %prm<body> }</body>{ %prm<metadata> }</file>"
 };

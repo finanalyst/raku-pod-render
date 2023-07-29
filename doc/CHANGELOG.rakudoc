@@ -2,6 +2,14 @@
 =TITLE Raku::Pod::Render
 =SUBTITLE Change log
 
+=head1 2023-07-28 v4.9.0
+=item fix nested (and custom blocks) which were incorrectly rendering trailing lists.
+=item fixed semantic blocks
+=item moved VERSION DESCRIPTION AUTHOR SUMMARY into Semantic blocks, but treat them
+as if C<:hidden> is set
+
+=item add C<semantic:> to C<P<>>
+
 =head1 2023-07-27 v4.8.4
 =item fix table to pass on caption and target.
 
