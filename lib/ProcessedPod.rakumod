@@ -505,8 +505,8 @@ class ProcessedPod does SetupTemplates {
     # Pod specifies Meta data for use in an HTML header context, but it could be used in other
     # contexts, such as epub or pdf for the author, version, etc.
 
-    method register-meta(:$name, :$value) {
-        $!pod-file.raw-metadata.push: %( :$name, :$value)
+    method register-meta(:$name, :$value, :$caption = $name, :$level = 1 ) {
+        $!pod-file.raw-metadata.push: %( :$name, :$value, :$caption, :$level )
     }
 
     # This is the routine called at the end of a Pod block and is used to determine whether the cursor
@@ -758,9 +758,8 @@ class ProcessedPod does SetupTemplates {
                 $level = 1;
             }
         }
-        with $node.config<hidden> or $node.name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>) {
-            $toc = False;
-        }
+        $toc = ! $_ with $node.config<hidden>;
+        $toc = False if $node.name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>);
         my $caption = $node.config<caption> // $node.name;
         # possibilities: :template or :name-space given in metadata
         # or SEMANTIC (viz. node.name) template in template hash
@@ -768,7 +767,7 @@ class ProcessedPod does SetupTemplates {
         my $template = $node.config<template> // $semantic;
         my $name-space = $node.config<name-space> // $template // $node.name;
         my $data = $_ with %!plugin-data{ $name-space };
-        my $target = $.register-toc( :$level, :text($caption), :!is-title, :$toc );
+        my $target = $.register-toc( :$level, :text($caption), :$toc, :unique );
         my $contents = trim( [~] gather for $node.contents { take self.handle($_, $in-level, $context, :$defn) } );
         $contents ~= $.completion($in-level, 'zero', %(), :$defn );
         my $raw-contents = trim( [~] gather for $node.contents { take self.handle($_, $in-level, Context::Raw, :$defn) } );
@@ -802,7 +801,7 @@ class ProcessedPod does SetupTemplates {
                 }, :$defn
             ) ~ $contents
         }
-        $.register-meta(:name($node.name), :value($rendered));
+        $.register-meta(:name($node.name), :value($rendered), :$caption, :$level );
         if $node.config<hidden> or $node.name ~~ any(<VERSION DESCRIPTION AUTHOR SUMMARY>) {
             $rendered = ''
         }
@@ -1264,8 +1263,9 @@ class ProcessedPod does SetupTemplates {
             $uri = $<uri>.Str
         }
         my Str $contents;
-        my Bool $no-render = False;
+        my Bool $as-pre = True;
         my Bool $html = False;
+        my $target;
         given $schema {
             when 'toc' {
                 $contents = "See: $link-contents"
@@ -1274,12 +1274,23 @@ class ProcessedPod does SetupTemplates {
                 $contents = "See: $link-contents"
             }
             when 'semantic' {
-                $no-render = True;
-                $.pod-file.raw-metadata.grep({ .<name> ~~ $uri }).map({ $contents ~= .<value> });
+                $as-pre = False;
+                my $caption;
+                my $level;
+                $.pod-file.raw-metadata
+                        .grep({ .<name> ~~ $uri })
+                        .map({ 
+                            $contents ~= .<value> ; 
+                            $caption = .<caption> without $caption;
+                            $level = .<level> without $level;
+                        });
                 without $contents {
                     $contents = "See: $link-contents";
-                    $no-render = False;
+                    $as-pre = True;
                 }
+                $caption = $uri without $caption;
+                $level = 1 without $level;
+                $target = $.register-toc(:$level, :text($caption), :toc, :unique );
             }
             when 'http' | 'https' {
                 my LibCurl::Easy $curl;
@@ -1320,7 +1331,8 @@ class ProcessedPod does SetupTemplates {
             :config(self.config),
             :meta( $node.meta ),
             :$context,
-            :$no-render,
+            :$as-pre,
+            :$target,
         ), :$defn)
     }
 }

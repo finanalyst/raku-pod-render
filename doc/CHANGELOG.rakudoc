@@ -2,6 +2,9 @@
 =TITLE Raku::Pod::Render
 =SUBTITLE Change log
 
+=head1 2023-07-31 v4.9.1
+=item C<P<semantic: XXX>> injects XXX into the Table of Contents at the position in the text.
+
 =head1 2023-07-28 v4.9.0
 =item fix nested (and custom blocks) which were incorrectly rendering trailing lists.
 =item fixed semantic blocks

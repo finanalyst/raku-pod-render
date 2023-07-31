@@ -2,6 +2,9 @@
 >Change log
 
 
+# 2023-07-31 v4.9.1
+*  `P<semantic: XXX>` injects XXX into the Table of Contents at the position in the text.
+
 # 2023-07-28 v4.9.0
 *  fix nested (and custom blocks) which were incorrectly rendering trailing lists.
 
@@ -486,4 +489,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2023-07-29T22:31:39Z
+Rendered from CHANGELOG at 2023-07-31T22:03:44Z
