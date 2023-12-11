@@ -55,27 +55,32 @@ and vertical spaces conserved.
 =end output
 =end pod
 
-$rv = $processor.render-block( $=pod[$pn++] );
-todo 'Rakudo not distinguishing =input from =code', 2;
-like $rv, /
-    '<pre class="pod-input">'
-    '12345678901234567890' \n
-    '   this is   preformatted' \n
-    ' spaces should be maintained' \n
-    \n
-    'and vertical spaces conserved.'
-    '</pre>'
-/, 'input seems OK';
-like $rv, /
-    '<pre class="pod-output">'
-    '12345678901234567890' \n
-    '   this is   preformatted' \n
-    ' spaces should be maintained' \n
-    \n
-    'and vertical spaces conserved.'
-    '</pre>'
-/, 'output seems OK';
-
+if $*RAKU.compiler.version gt v2023.04 {
+    $rv = $processor.render-block( $=pod[$pn++] );
+    like $rv, /
+        '<pre class="pod-input">'
+        '12345678901234567890'\n
+        '   this is   preformatted'\n
+        ' spaces should be maintained'\n
+        \n
+        'and vertical spaces conserved.'\n
+        '</pre>'
+    /, 'input seems OK';
+    like $rv, /
+        '<pre class="pod-output">'
+        'Like input'\n
+        '12345678901234567890'\n
+        '   this is   preformatted'\n
+        ' spaces should be maintained'\n
+        \n
+        'and vertical spaces conserved.'\n
+        '</pre>'
+    /, 'output seems OK';
+}
+else {
+    $pn += 1;
+    skip 'Input / output not implemented as classes', 2
+}
 =begin pod
 =begin nested
 This is normal text      with squashed
