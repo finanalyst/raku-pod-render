@@ -2,6 +2,9 @@
 >Change log
 
 
+# 2023-12-16 v4.9.2
+*  fix bug relating to storing targets, thus not picking up repeated heading names or preserving targets for link checking
+
 # 2023-07-31 v4.9.1
 *  `P<semantic: XXX>` injects XXX into the Table of Contents at the position in the text.
 
@@ -489,4 +492,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2023-07-31T22:03:44Z
+Rendered from CHANGELOG at 2023-12-16T12:50:48Z

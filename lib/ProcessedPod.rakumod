@@ -224,15 +224,19 @@ class ProcessedPod does SetupTemplates {
         # the target name used in the link is unique.
         # This method uses the default algorithm for HTML and POD
         # It may need to be over-ridden, eg., for MarkDown which uses a different targeting function.
+        # $unique means register target to ensure unique ones
 
         return DEFAULT_TOP if $candidate-name eq DEFAULT_TOP;
         # don't rewrite the top
 
         $candidate-name = $candidate-name.subst(/\s+/, '_', :g);
         if $unique {
-            $candidate-name ~= '_1' if $candidate-name ∈ $!pod-file.targets;
-            # will continue to loop until a unique name is found
-            ++$candidate-name while $!pod-file.targets{$candidate-name};
+            if $!pod-file.targets{$candidate-name} {
+                $candidate-name ~= '_0' unless $!pod-file.targets{$candidate-name ~ '_0'};
+                # will continue to loop until a unique name is found
+                ++$candidate-name while $!pod-file.targets{$candidate-name};
+            }
+            $!pod-file.targets{$candidate-name}++;
         }
         $candidate-name
     }
