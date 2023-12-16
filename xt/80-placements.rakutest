@@ -1,0 +1,77 @@
+use v6.d;
+use Test;
+
+use ProcessedPod;
+
+# A helper class for RakuClosureTemplates
+multi sub gen-closure-template (Str $tag) is export {
+    my $start = '<' ~ $tag ~ '>';
+    my $end = '</' ~ $tag ~ '>';
+    return sub (%prm, %tml? --> Str) {
+        $start ~ (%prm<contents> // %prm<text> // '') ~ $end;
+    }
+}
+plan *;
+
+my $processor = ProcessedPod.new;
+my $pv = 0;
+my $rv;
+
+use RenderPod::Templating;
+my @templates = SetupTemplates.new.required;
+
+my %templates = @templates Z=> @templates.map({ gen-closure-template($_) });
+%templates ,= %(
+    escaped => sub ($s) {
+        $s
+    },
+    para => sub (%prm, %) {
+        %prm<contents> ~ "\n"
+    },
+    format-p => sub (%prm, %) {
+        qq:to/HEAD/;
+            { %prm<numbered> ?? %prm<numeration> !! '' } { %prm<text> }
+            HEAD
+    },
+);
+$processor.templates(%templates);
+
+=begin rakudoc
+
+=head1 License
+
+P<https://github.com/Raku/doc/blob/main/LICENSE>
+
+=end rakudoc
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv,
+    /
+    '<body' .+ 'Artistic License 2.0' .+ '</body'
+    /,'Seems to have got Artistic License';
+
+=begin rakudoc
+
+=head1 Readme text
+P<file:README.md>
+
+=end rakudoc
+
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv,
+    /
+    '# Generic Pod Renderer'
+    /,'Seems to have got file contents';
+
+=begin rakudoc
+
+P<toc:>
+
+=end rakudoc
+
+$rv = $processor.render-block( $=pod[$pn++] );
+like $rv, /
+    'Table of Contents not rendered until document is complete'
+    /, 'Premature stringification of ToC';
+
+
+done-testing;

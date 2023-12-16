@@ -1,0 +1,374 @@
+use v6.d;
+use Test;
+
+use ProcessedPod;
+
+# A helper class for RakuClosureTemplates
+multi sub gen-closure-template (Str $tag) is export {
+    my $start = '<' ~ $tag ~ '>';
+    my $end = '</' ~ $tag ~ '>';
+    return sub (%prm, %tml? --> Str) {
+        $start ~ (%prm<contents> // %prm<text> // '') ~ $end;
+    }
+}
+plan *;
+
+my $processor = ProcessedPod.new;
+my $pv = 0;
+my $rv;
+
+# test numeration before templates set up.
+is $processor.header-counter.inc(1).Str, '1.', 'simple inc';
+is $processor.header-counter.inc(2).Str, '1.1.', '2-level inc';
+is $processor.header-counter.inc(4).Str, '1.1.0.1.', '4-level inc';
+is $processor.header-counter.inc(2).Str, '1.2.', '2-level inc, resets other levels.';
+is $processor.header-counter.inc(4).Str, '1.2.0.1.', '4-level inc, after reset';
+$processor.header-counter.reset;
+is $processor.header-counter.inc(2).Str, '0.1.', 'reset then 2-level inc';
+$processor.header-counter.set(4,3);
+is $processor.header-counter.Str, '0.1.0.3.', 'set works on 4-level';
+
+
+use RenderPod::Templating;
+my @templates = SetupTemplates.new.required;
+
+my %templates = @templates Z=> @templates.map({ gen-closure-template($_) });
+%templates ,= %(
+    escaped => sub ($s) {
+        $s
+    },
+    para => sub (%prm, %) {
+        %prm<contents> ~ "\n"
+    },
+    heading => sub (%prm, %) {
+        qq:to/HEAD/;
+            { %prm<numbered> ?? %prm<numeration> !! '' } { %prm<text> }
+            HEAD
+    },
+    item => sub (%prm, %) {
+        qq:to/ITEM/;
+            <li>{ %prm<contents> }</li>
+            ITEM
+    },
+    'list' => sub ( %prm, %tml ) {
+        qq:to/LIST/;
+        <ol type="{ %prm<html-ol> }">
+        { %prm<items>.join }
+        </ol>
+        LIST
+    },
+);
+$processor.templates(%templates);
+
+=begin rakudoc
+=for head1 :numbered
+The Problem
+
+=for head1 :numbered
+The Solution
+
+    =for head2 :numbered
+    Analysis
+
+        =for head3
+        Overview
+
+        =for head3
+        Details
+
+    =for head2 :numbered
+    Design
+
+=for head1 :numbered
+The Implementation
+
+=end rakudoc
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv,
+    /
+    '1. The Problem'
+    \D+
+    '2. The Solution'
+    \D+
+    '2.1. Analysis'
+    \D+
+    'Overview'
+    \D+
+    'Details'
+    \D+
+    '2.2. Design'
+    \D+
+    '3. The Implementation'
+    /
+    , 'Numbered titles as per RakuDoc-2';
+
+=begin rakudoc
+=config head1 :numbered
+=config head2 :numbered
+=config head3 :!numbered
+
+=head1 The Problem
+=head1 The Solution
+=head2   Analysis
+=head3     Overview
+=head3     Details
+=head2   Design
+=head1 The Implementation
+=end rakudoc
+
+# reset header counter to 0
+$processor.header-counter.reset;
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv,
+    /
+    '1. The Problem'
+    \D+
+    '2. The Solution'
+    \D+
+    '2.1. Analysis'
+    \D+
+    'Overview'
+    \D+
+    'Details'
+    \D+
+    '2.2. Design'
+    \D+
+    '3. The Implementation'
+    /
+    , 'Config with numbered titles as per RakuDoc-2';
+=begin rakudoc
+=head1 # The Problem
+=head1 # The Solution
+=head2   # Analysis
+=head3       Overview
+=head3       Details
+=head2   # Design
+=head1 # The Implementation
+=end rakudoc
+$processor.header-counter.reset;
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv,
+    /
+    '1. The Problem'
+    \D+?
+    '2. The Solution'
+    \D+?
+    '2.1. Analysis'
+    \D+?
+    'Overview'
+    \D+?
+    'Details'
+    \D+?
+    '2.2. Design'
+    \D+?
+    '3. The Implementation'
+    /
+    , '# Numbered titles as per RakuDoc-2';
+=begin rakudoc
+=head6 # The Rescue of the Kobayashi Maru
+=end rakudoc
+$processor.header-counter.reset;
+$processor.header-counter
+        .set(1,2)
+        .set(2,3)
+        .set(3,8)
+        .set(4,6)
+        .set(5,1)
+        .set(6,8);
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv,
+    /
+    '2.3.8.6.1.9. The Rescue of the Kobayashi Maru'
+    /
+    , 'Arbitrary numbered title as per RakuDoc-2';
+
+diag 'numbered items';
+=begin rakudoc
+     =for item1 :numbered
+     Visito
+
+     =for item2 :numbered
+     Veni
+
+     =for item2 :numbered
+     Vidi
+
+     =for item2 :numbered
+     Vici
+=end rakudoc
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv,
+    /
+    '1. Visito'
+    .+?
+    '1.1. Veni'
+    .+?
+    '1.2. Vidi'
+    .+?
+    '1.3. Vici'
+    /
+    , 'Numbered item list as per RakuDoc-2';
+
+=begin rakudoc
+     =item1  # Visito
+     =item2     # Veni
+     =item2     # Vidi
+     =item2     # Vici
+=end rakudoc
+
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv,
+    /
+    '1. Visito'
+    .+?
+    '1.1. Veni'
+    .+?
+    '1.2. Vidi'
+    .+?
+    '1.3. Vici'
+    /
+    , '# Numbered item list as per RakuDoc-2';
+
+=begin rakudoc
+    =item V<#> introduces a comment
+=end rakudoc
+
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv,
+    /
+    '# introduces a comment'
+    /
+    , 'Ornithorpe item list as per RakuDoc-2';
+
+#=begin rakudoc
+#    =for item :!numbered
+#    # introduces a comment
+#=end rakudoc
+#$rv = $processor.render-block( $=pod[$pv++] );
+#like $rv,
+#    /
+#    '# introduces a comment'
+#    /
+#    , 'Ornithorpe item list as per RakuDoc-2';
+
+=begin rakudoc
+The options are:
+
+=item1 # Liberty
+=item1 # Death
+=item1 # Beer
+
+The tools are:
+
+=item1 # Revolution
+=item1 # Deep-fried peanut butter sandwich
+=item1 # Keg
+=end rakudoc
+
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv,
+    /
+    'The options are:'
+    .+?
+    '1. Liberty'
+    .+?
+    '2. Death'
+    .+?
+    '3. Beer'
+    .+?
+    'The tools are:'
+    .+?
+    '1. Revolution'
+    .+?
+    '2. Deep-fried peanut butter sandwich'
+    .+?
+    '3. Keg'
+    /
+    , 'Hash numbered item list as per RakuDoc-2';
+
+#=begin rakudoc
+#     =for item1
+#     # Retreat to remote Himalayan monastery
+#
+#     =for item1
+#     # Learn the hidden mysteries of space and time
+#
+#     I<????>
+#
+#     =for item1 :continued
+#     # Prophet!
+#=end rakudoc
+#$rv = $processor.render-block( $=pod[$pv++] );
+#like $rv,
+#    /
+#    '1. Retreat to remote Himalayan monastery'
+#    .+?
+#    '2. Learn the hidden mysteries of space and time'
+#    \D+?
+#    '????'
+#    .+?
+#    '3. Prophet!'
+#    /
+#    , 'continued numbered item list as per RakuDoc-2';
+
+=begin rakudoc
+=config item1 :numbered
+=config item2 :numbered
+=item1  Visito
+=item2  Veni
+=item2  Vidi
+=item2  Vici
+=end rakudoc
+
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv,
+    /
+    '1. Visito'
+    .+?
+    '1.1. Veni'
+    .+?
+    '1.2. Vidi'
+    .+?
+    '1.3. Vici'
+    /
+    , 'Config numbered item list';
+
+
+=begin rakudoc
+=config item1 :numbered :html-ol<L>
+=config item2 :numbered :html-ol<i>
+=item1  Visito
+=item2  Veni
+=item2  Vidi
+=item2  Vici
+=item1  Caesar said
+=item2  I came
+=item2  I saw
+=item2  I conquered
+=item2  which he did
+=end rakudoc
+
+$rv = $processor.render-block( $=pod[$pv++] );
+like $rv,
+    /
+    'A. Visito'
+    .+?
+    'A.i. Veni'
+    .+?
+    'A.ii. Vidi'
+    .+?
+    'A.iii. Vici'
+    .+?
+    'B. Caesar said'
+    .+?
+    'B.i. I came'
+    .+?
+    'B.ii. I saw'
+    .+?
+    'B.iii. I conquered'
+    .+?
+    'B.iv. which he did'
+    /
+    , 'Config numbered item list with html-ol enhancement';
+
+done-testing;
