@@ -2,6 +2,12 @@
 =TITLE Raku::Pod::Render
 =SUBTITLE Change log
 
+=head1 2023-12-22 v4.10.0
+=item modify rewrite-target to produce Raku/doc X<> markup targets
+=item2 Raku has `X<text|Head,item;Head2,item>` type markup
+=item2 targets exclude the first elem of meta array
+=item2 rewrite test html/65 to cover situation
+
 =head1 2023-12-16 v4.9.2
 =item fix bug relating to storing targets, thus not picking up repeated heading names
 or preserving targets for link checking

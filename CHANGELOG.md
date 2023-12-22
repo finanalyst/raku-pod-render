@@ -2,6 +2,15 @@
 >Change log
 
 
+# 2023-12-22 v4.10.0
+*  modify rewrite-target to produce Raku/doc   markup targets
+
+	*  Raku has ``text `` type markup
+
+	*  targets exclude the first elem of meta array
+
+	*  rewrite test html/65 to cover situation
+
 # 2023-12-16 v4.9.2
 *  fix bug relating to storing targets, thus not picking up repeated heading names or preserving targets for link checking
 
@@ -492,4 +501,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2023-12-16T12:50:48Z
+Rendered from CHANGELOG at 2023-12-22T14:10:17Z
