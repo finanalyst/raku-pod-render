@@ -8,6 +8,7 @@
       <excludeFolder url="file://$MODULE_DIR$/test/.idea" />
       <excludeFolder url="file://$MODULE_DIR$/.precomp" />
       <excludeFolder url="file://$MODULE_DIR$/arc" />
+      <excludeFolder url="file://$MODULE_DIR$/-v/.precomp" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

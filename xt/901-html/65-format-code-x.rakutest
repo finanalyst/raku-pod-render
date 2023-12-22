@@ -71,6 +71,8 @@ It is possible to index X<hierarchical items|defining,a term>with hierarchical l
 
 And then index the X<same place|Same,almost;Place> with different index entries.
 
+Anomalous indexing X<quote-words|Terms,qw;Terms,quote-words> for Raku documentation
+
 But X<|an entry can exist> without the text being marked.
 
 An empty X<> is ignored.
@@ -91,8 +93,10 @@ like $rv,
     \s* '<a name="' .+ '></a>'
     \s * '<span class="glossary-entry">hierarchical items</span>'
     .+ 'index the'
-    \s* '<a name="index-entry-Same' .+ '></a>'
-    \s * '<span class="glossary-entry">same place</span>'
+    \s* '<a name="index-entry-Same_almost-Place-same_place' .+ '></a>'
+    \s* '<span class="glossary-entry">same place</span>'
+    .+ 'Anomalous indexing <a name="index-entry-qw-quote-words-quote-words"'
+    .+ '<span' .+ 'quote-words</span>'
     .+ 'But' \s* '<a name' .+ '</a>' \s* 'without the text being marked.'
     .+ 'An empty' \s+ 'is ignored.'
     /,  'Text with indexed items correct';
@@ -120,4 +124,4 @@ like $rv, /
     /, 'glossary contains entry of zero text marker';
 $rv ~~ /  [ 'class="glossary-defn">' ~ '</'  $<es> =(.+?)  .*? ]* $ /;
 
-is-deeply $<es>>>.Str, ['Define an item','Place','Same','an entry can exist','defining'], 'Entries match, nothing for the X<>';
+is-deeply $<es>>>.Str, ['Define an item','Place','Same','Terms','an entry can exist','defining'], 'Entries match, nothing for the X<>';

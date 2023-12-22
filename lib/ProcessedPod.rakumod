@@ -412,10 +412,22 @@ class ProcessedPod does SetupTemplates {
 
     method register-glossary(Str $text, @entries, Bool $is-header --> Str) {
         my $target;
-        $target = ('index-entry'
-                ~ (@entries and ! $is-header ?? ( '-' ~ @entries.join('-') ) !! '')
-                ~ ($text ?? '-' !! '') ~ $text
-        ).subst('_', '__', :g).subst(' ', '_', :g);
+        # Original Pod::To::HTML href
+        # my $index-name-attr =
+        #    qq[index-entry{ @indices ?? '-' !! '' }{ @indices.join('-') }{ $index-text ?? '-' !! '' }$index-text]
+        #    .subst('_', '__', :g).subst(' ', '_', :g);
+        $target = 'index-entry';
+        if @entries {
+            if all(@entries>>.elems.map(* == 2)) {
+                $target ~= '-' ~ @entries>>[1..*].join('-')
+            }
+            else {
+                $target ~= '-' ~ @entries.join('-')
+            }
+        }
+        $target ~= '-' ~ $text.subst(/ '<' '/'* 'code>' /,'',:g ) if $text;
+        $target .= subst('_', '__', :g);
+        $target .= subst(' ', '_', :g);
         $target = self.rewrite-target($target, :unique);
         # Place information is needed when a glossary is constructed without a return anchor reference,
         # so the most recent header is used
@@ -1283,8 +1295,8 @@ class ProcessedPod does SetupTemplates {
                 my $level;
                 $.pod-file.raw-metadata
                         .grep({ .<name> ~~ $uri })
-                        .map({ 
-                            $contents ~= .<value> ; 
+                        .map({
+                            $contents ~= .<value> ;
                             $caption = .<caption> without $caption;
                             $level = .<level> without $level;
                         });
