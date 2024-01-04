@@ -2,6 +2,11 @@
 >Change log
 
 
+# 2024-01-04 v4.10.1
+*  add rakudoc-table to plugins
+
+	*  the plugin adds procedural tables as defined in RakuDoc v2 to HTML2 only
+
 # 2023-12-22 v4.10.0
 *  modify rewrite-target to produce Raku/doc   markup targets
 
@@ -501,4 +506,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2023-12-22T14:10:17Z
+Rendered from CHANGELOG at 2024-01-04T23:40:02Z

@@ -2,6 +2,10 @@
 =TITLE Raku::Pod::Render
 =SUBTITLE Change log
 
+=head1 2024-01-04 v4.10.1
+=item add rakudoc-table to plugins
+=item2 the plugin adds procedural tables as defined in RakuDoc v2 to HTML2 only
+
 =head1 2023-12-22 v4.10.0
 =item modify rewrite-target to produce Raku/doc X<> markup targets
 =item2 Raku has `X<text|Head,item;Head2,item>` type markup

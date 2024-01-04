@@ -1,5 +1,6 @@
 use ProcessedPod;
 use RenderPod::Exceptions;
+use JSON::Fast;
 
 unit class Pod::To::MarkDown2 is ProcessedPod;
 has $.def-ext is rw;
