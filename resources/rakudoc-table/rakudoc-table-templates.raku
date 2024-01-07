@@ -17,7 +17,8 @@ use v6.d;
                         $content ~= "rakudoc-cell-$_ "
                     } }
                     $content ~= 'rakudoc-cell-label' if $cell<label>;
-                    $content ~= '">' ~ $cell<data>;
+                    with $cell<data> { $content ~= '">' ~ $cell<data> }
+                    else { $content ~= '">' }
                     if $cell<header> {
                         $rv ~= "<th$content\</th>"
                     }

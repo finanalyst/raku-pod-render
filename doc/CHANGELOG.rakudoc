@@ -2,6 +2,9 @@
 =TITLE Raku::Pod::Render
 =SUBTITLE Change log
 
+=head1 2024-01-07 v4.10.2
+=item fix warning in rakudoc-tables when cell empty
+
 =head1 2024-01-04 v4.10.1
 =item add rakudoc-table to plugins
 =item2 the plugin adds procedural tables as defined in RakuDoc v2 to HTML2 only

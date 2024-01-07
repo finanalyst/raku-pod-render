@@ -2,6 +2,9 @@
 >Change log
 
 
+# 2024-01-07 v4.10.2
+*  fix warning in rakudoc-tables when cell empty
+
 # 2024-01-04 v4.10.1
 *  add rakudoc-table to plugins
 
@@ -506,4 +509,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2024-01-04T23:40:02Z
+Rendered from CHANGELOG at 2024-01-07T13:02:22Z
