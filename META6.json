@@ -1,7 +1,7 @@
 {
   "name": "Raku::Pod::Render",
   "description": "A generic Pod6 Renderer with custom Pod::Blocks, FormatCodes for one or more files using templates, provides HTML and MarkDown.",
-  "version": "4.10.2",
+  "version": "4.10.3",
   "perl": "6.d",
   "authors": [
     "Richard Hainsworth"
@@ -40,7 +40,6 @@
   "resources": [
     "html-templates-mustache.raku",
     "html-templates-crotmp.raku",
-    "md-templates-mustache.raku",
     "html-templates-rakuclosure.raku",
     "highlight_files/highlight-filename-from-stdin.coffee",
     "highlight_files/package.json",
@@ -87,15 +86,6 @@
     "move-assets/cleanup.raku",
     "move-assets/templates.raku",
     "move-assets/README.rakudoc",
-    "rakudoc-table/config.raku",
-    "rakudoc-table/rakudoc-table-templates.raku",
-    "rakudoc-table/README.rakudoc",
-    "rakudoc-table/css/rakudoc-table-dark.css",
-    "rakudoc-table/css/rakudoc-table-light.css",
-    "rakudoc-table/scss/rakudoc-table-dark.scss",
-    "rakudoc-table/scss/rakudoc-table-light.scss",
-    "rakudoc-table/scss/_rakudoc-table.scss",
-    "rakudoc-table/scss/_themes-colors.scss",
     "styling/config.raku",
     "styling/_highlights.scss",
     "styling/rakudoc-styling.scss",
@@ -144,7 +134,8 @@
     "font-awesome/fonts/fontawesome-webfont.eot",
     "font-awesome/font-awesome-4.7.0/less/font-awesome.less",
     "font-awesome/font-awesome-4.7.0/less/path.less",
-    "Samples.rakudoc"
+    "Samples.rakudoc",
+    "md-templates-mustache.raku"
   ],
   "support": {
     "bugtracker": "https://github.com/finanalyst/raku-pod-render/issues",

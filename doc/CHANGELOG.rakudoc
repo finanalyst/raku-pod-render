@@ -2,6 +2,10 @@
 =TITLE Raku::Pod::Render
 =SUBTITLE Change log
 
+=head1 2024-01-07 v4.10.3
+=item move procedural table into main default templates from plugin
+=item modify md templates to correctly output procedural table
+
 =head1 2024-01-07 v4.10.2
 =item fix warning in rakudoc-tables when cell empty
 

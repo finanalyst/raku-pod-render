@@ -57,7 +57,7 @@ class Pod::To::HTML2 is ProcessedPod {
     submethod TWEAK(
             :$highlight-code,
             :$type = 'rakuclosure',
-            :$plugins = <styling simple-extras graphviz latex-render images font-awesome rakudoc-table>,
+            :$plugins = <styling simple-extras graphviz latex-render images font-awesome>,
             :$add-plugins = '',
             :$def-dir
             # this option is for testing purposes

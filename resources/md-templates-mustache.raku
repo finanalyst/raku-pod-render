@@ -49,18 +49,31 @@ use v6;
     'para' => '{{{ contents }}}{{> nl2 }}',
     'section' => '{{{ contents }}}{{> nl2 }}{{{ tail }}}{{> nl2 }}',
     'subtitle' => '>{{{ subtitle }}}{{> nl }}',
-    'table' => q:to/TEMPL/,
-        {{# caption }}>{{{ caption }}}{{> nl }}{{/ caption }}
-        {{# headers }}{{# cells }} | {{{ . }}}{{/ cells }} |
-        {{# cells }}|:----:{{/ cells}}|
-        {{/ headers }}
-        {{# rows }}{{# cells }} | {{{ . }}}{{/ cells }} |{{> nl }}{{/ rows }}
-        TEMPL
+    'table' => -> %prm {
+        if %prm<procedural> {
+            %prm<grid-headers> = %prm<grid>.shift;
+            q:to/TEMPL/
+                {{# grid-headers }}{{# . }}| {{# header }}**{{/ header }}{{{ data }}}{{# header }}**{{/ header }} {{/ . }}{{/ grid-headers }} |
+                {{# grid-headers }}{{# . }}| --- {{/ . }}{{/ grid-headers }} |
+                {{# grid }}{{# . }}{{# . }}| {{# no-cell }} - {{/ no-cell }}{{# header }}**{{/ header }}{{# label }}**{{/ label }}{{{ data }}}{{# label }}**{{/ label }}{{# header }}**{{/ header }}{{/ . }}{{/ . }} |
+                {{/ grid }}
+                TEMPL
+        }
+        else {
+            q:to/TEMPL/
+                {{# caption }}>{{{ caption }}}{{> nl }}{{/ caption }}
+                {{# headers }}{{# cells }} | {{{ . }}}{{/ cells }} |
+                {{# cells }}|:----:{{/ cells}}|
+                {{/ headers }}
+                {{# rows }}{{# cells }} | {{{ . }}}{{/ cells }} |{{> nl }}{{/ rows }}
+                TEMPL
+        }
+    },
     'title' => '# {{{ title }}}{{> nl }}',
-    # templates used by output methods, eg., source-wrap, file-wrap, etc
-    # In HTML Meta tags can go in the Head section, but for Markdown they will be at the top above the TOC.
-    'source-wrap' => q:to/TEMPL/,
-        {{> github_badge }}
+        # templates used by output methods, eg., source-wrap, file-wrap, etc
+        # In HTML Meta tags can go in the Head section, but for Markdown they will be at the top above the TOC.
+        'source-wrap' => q:to/TEMPL/,
+                {{> github_badge }}
         {{> title }}
         {{> subtitle }}
         {{# metadata }}
@@ -80,15 +93,15 @@ use v6;
         {{> footer }}
         TEMPL
     'footnotes' => q:to/TEMPL/,
-        {{# notes }}
+                {{# notes }}
         ###### {{ fnNumber }}
         {{{ text }}}
         {{/ notes }}
         TEMPL
     'glossary' => '',
-    'meta' => '{{# meta }}> **{{ name }}** {{ value }}{{> nl2 }}{{/ meta }}',
-    'toc' => q:to/TEMPL/,
-        {{# toc }}
+        'meta' => '{{# meta }}> **{{ name }}** {{ value }}{{> nl2 }}{{/ meta }}',
+        'toc' => q:to/TEMPL/,
+                {{# toc }}
         [{{ text }}](#{{ target }}){{> sp2 }}
         {{/ toc }}
         TEMPL

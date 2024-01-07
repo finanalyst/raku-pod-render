@@ -2,6 +2,11 @@
 >Change log
 
 
+# 2024-01-07 v4.10.3
+*  move procedural table into main default templates from plugin
+
+*  modify md templates to correctly output procedural table
+
 # 2024-01-07 v4.10.2
 *  fix warning in rakudoc-tables when cell empty
 
@@ -509,4 +514,4 @@ change testing
 
 
 ----
-Rendered from CHANGELOG at 2024-01-07T13:02:22Z
+Rendered from CHANGELOG at 2024-01-07T18:40:51Z
